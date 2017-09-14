@@ -45,11 +45,11 @@ public class TaskManager {
         updateListener(new TaskEvent(task, TaskEvent.TaskEventType.DELETE));
     }
 
-    public void registerListener(TaskListener taskListener) {
+    public void addListener(TaskListener taskListener) {
         taskListeners.add(taskListener);
     }
 
-    public void unregisterListener(TaskListener taskListener) {
+    public void removeListener(TaskListener taskListener) {
         taskListeners.remove(taskListener);
     }
 

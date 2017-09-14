@@ -7,7 +7,7 @@ public class TaskBuilder {
 
     private String title = "Title";
     private String contents = "";
-    private TaskId taskId;
+    private TaskId taskId = TaskId.NULL;
     private TaskId parentTaskId = TaskId.NULL;
     private TaskType taskType = TaskType.EPIC;
 

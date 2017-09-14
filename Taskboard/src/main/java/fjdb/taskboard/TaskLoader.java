@@ -20,8 +20,11 @@ import java.util.List;
  */
 public class TaskLoader implements TaskDao {
 
-    private static final File xmlDirectory = new File("C:\\Users\\franc\\Desktop\\TaskBoard\\xmls");
-    private static final File deletedDirectory = new File("C:\\Users\\franc\\Desktop\\TaskBoard\\deleted");
+    //TODO A dedicated class should handle the storage, and add the user to create the folder if required.
+    private static final File home = new File(System.getenv("HOME"));
+    private static final File defaultTaskDir = new File(home, "Desktop" + File.separator + "TaskBoard");
+    private static final File xmlDirectory = new File(defaultTaskDir, "xmls");
+    private static final File deletedDirectory = new File(defaultTaskDir, "deleted");
 
     private Integer nextId = -1;
     @Override

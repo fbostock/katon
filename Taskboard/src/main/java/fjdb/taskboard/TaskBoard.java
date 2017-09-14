@@ -52,7 +52,7 @@ public class TaskBoard extends Application {
 
         taskPaneManager = new TaskPaneManager(panelsPane, tasks);
 
-        manager.registerListener(taskPaneManager);
+        manager.addListener(taskPaneManager);
 
         panelsPane.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
