@@ -18,7 +18,7 @@ public class Xform extends Group {
     public Translate p  = new Translate();
     public Translate ip = new Translate();
     public Rotate rx = new Rotate();
-    { rx.setAxis(Rotate.X_AXIS); }
+     { rx.setAxis(Rotate.X_AXIS); }
     public Rotate ry = new Rotate();
     { ry.setAxis(Rotate.Y_AXIS); }
     public Rotate rz = new Rotate();
