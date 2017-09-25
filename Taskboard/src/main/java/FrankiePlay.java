@@ -4,11 +4,6 @@
 public class FrankiePlay {
 
     public static void main(String[] args) {
-/*
-need to cut down raspberries now apparently
-peppers will go red when they're ready
-
- */
 
 
     }
