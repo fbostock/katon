@@ -1,4 +1,8 @@
 
 *.class
 *.iml
-.idea/*.xml
+.idea/*
+*.DS_Store
+*.iml
+katon.iml
+katon.iml
