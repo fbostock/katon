@@ -23,7 +23,7 @@ public class MainGame extends Application {
         launch(args);
     }
 
-
+//TODO make a quandl fetcher
 
     @Override
     public void start(Stage primaryStage) throws Exception {
