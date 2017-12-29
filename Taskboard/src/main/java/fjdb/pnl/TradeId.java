@@ -3,7 +3,7 @@ package fjdb.pnl;
 /**
  * Created by francisbostock on 29/10/2017.
  */
-public class TradeId {
+public class TradeId extends Id {
 
     public static final TradeId NULL  = new TradeId(-1);
 
@@ -17,4 +17,16 @@ public class TradeId {
         return id;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TradeId tradeId = (TradeId) o;
+        return id == tradeId.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
 }

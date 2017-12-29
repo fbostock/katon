@@ -32,6 +32,13 @@ public class TaskBoard extends Application {
             TODO we may want to define our own abstract class which extends Node, so we can control/enforce the decoration of
             various node classes, such as wrapping them so they are draggable etc.
 
+
+            TODO should we consider when making changes to tasks, to only send updates of the properties which were
+            changed, rather than build a whole taskItem? It would result in only sending an UpdateBuilder for a given task
+            to the task manager to update? But how will we know which fields of the update are set? Perhaps would just have to
+            iterate over all of them - wouldn't be too bad I guess, unless several events might be fired for each property
+            which was changed for instance. But I guess you could check whether a parameter has changed.
+
              */
     public static void main(String[] args) {
         launch(args);

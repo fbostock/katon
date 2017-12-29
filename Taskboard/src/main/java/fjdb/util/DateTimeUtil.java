@@ -12,6 +12,9 @@ public class DateTimeUtil {
     public static LocalDate date(String yyyyMMdd) {
         return LocalDate.parse(yyyyMMdd, DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
+    public static LocalDate date(int yyyyMMdd) {
+        return date(String.valueOf(yyyyMMdd));
+    }
 
     public static String print(LocalDate date) {
         if (date == null) return null;

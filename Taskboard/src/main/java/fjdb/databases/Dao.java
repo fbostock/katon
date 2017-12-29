@@ -1,19 +1,30 @@
 package fjdb.databases;
 
+import com.google.common.base.Functions;
+import com.google.common.base.Joiner;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import fjdb.pnl.Trade;
 import fjdb.pnl.TradeId;
+import fjdb.pnl.TradeType;
 import fjdb.util.DateTimeUtil;
+import fjdb.util.SqlUtil;
 
-import java.sql.*;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by francisbostock on 01/10/2017.
  */
-public class Dao {
+public class Dao extends AbstractSqlDao implements DaoIF<Trade> {
+    private final Columns columns;
 
     /*
 
@@ -25,6 +36,17 @@ public class Dao {
        Ideally, a Currency column would be usable for many tables/objects, trades being just one. But how do the currency
        get extract from trade and passed to the column?
 
+TODO Calculate minimum exit date for trades, e.g. in Trade object calculate it for one month hence if equity
+
+TODO add a memory/performance monitor to show current mem usage in jvm, and other properties, to get a feel for how
+programs' performance change over time with changes in engines etc. If a new change results in sudden increase in mem,
+ may want to address that.
+
+
+ TODO check how to draw custom nodes using GraphicsContext
+
+//TODO make a quandl fetcher
+
 
      */
 
@@ -32,11 +54,12 @@ public class Dao {
         Dao dao = new Dao();
 //        dao.setup();
 //        DatabaseConnection.setupDatabase(Lists.newArrayList(dao));
-//        dao.create(new Trade("VSUD", LocalDate.of(2017, 9, 25), 550, 47.437, Currency.getInstance("USD"), 1.12));
-//        dao.create(new Trade("VMID", LocalDate.of(2017, 10, 2), 330, 31.9152, Currency.getInstance("GBP"), 1.0));
-//        dao.create(new Trade("CNA", LocalDate.of(2017, 10, 11), 3000, 179.4717, Currency.getInstance("GBP"), 1.0));
-//        dao.create(new Trade("CLLN", LocalDate.of(2017, 10, 26), 6500, 0.4560, Currency.getInstance("GBP"), 1.0));
-//        dao.create(new Trade("MERL", LocalDate.of(2017, 10, 30), 550, 3.7342, Currency.getInstance("GBP"), 1.0));
+//        dao.create(new Trade(TradeType.ETF, "VSUD", LocalDate.of(2017, 9, 25), 550, 47.437, Currency.getInstance("USD"), 1.12));
+//        dao.create(new Trade(TradeType.ETF, "VMID", LocalDate.of(2017, 10, 2), 330, 31.9152, Currency.getInstance("GBP"), 1.0));
+//        dao.create(new Trade(TradeType.EQUITY, "CNA", LocalDate.of(2017, 10, 11), 3000, 179.4717, Currency.getInstance("GBP"), 1.0));
+//        dao.create(new Trade(TradeType.EQUITY, "CLLN", LocalDate.of(2017, 10, 26), 6500, 0.4560, Currency.getInstance("GBP"), 1.0));
+//        dao.create(new Trade(TradeType.EQUITY, "MERL", LocalDate.of(2017, 10, 30), 550, 3.7342, Currency.getInstance("GBP"), 1.0));
+//        dao.create(new Trade(TradeType.EQUITY, "TEST", LocalDate.of(2017, 11, 12), 550, 3.7342, Currency.getInstance("GBP"), 1.0));
 
 //        DateTimeFormatter.ofPattern("yyyyMMdd").
 //dao.setup();
@@ -57,7 +80,7 @@ public class Dao {
 
 
     public Dao() {
-
+        columns = new Columns();
     }
 
     /*
@@ -68,153 +91,320 @@ public class Dao {
 
     public List<Trade> load() {
         List<Trade> trades = new ArrayList<>();
-        Statement stmt = null;
         try {
-            stmt = DatabaseConnection.getInstance().createStatement();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        ResultSet resultSet = null;
-        try {
-            resultSet = stmt.executeQuery("SELECT * FROM TRADES");
-            while(resultSet.next()) {
-                TradeId tradeId = new TradeId(resultSet.getInt(1));
-                Date date = resultSet.getDate(3);
-                LocalDate tradeDate = DateTimeUtil.date(date);
-                Currency currency = Currency.getInstance(resultSet.getString(6));
-                Trade trade = new Trade(resultSet.getString(2), tradeDate, resultSet.getDouble(4), resultSet.getDouble(5), currency, resultSet.getDouble(7));
-                trades.add(trade);
-//                System.out.println(resultSet.getString(1));
-            }
-            resultSet.close();
+            String selectQuery = "SELECT * FROM " + getTableName();
+            trades.addAll(doSelect(selectQuery, new ArrayList<>(), new ResultHandler<Trade>() {
+
+                @Override
+                public Trade handle(ResultSet rs) throws SQLException {
+                    return columns.handle(rs);
+                }
+            }));
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return trades;
     }
 
-    public void setup() {
-        try{
-            Statement stmt = DatabaseConnection.getInstance().createStatement();
-//            stmt.execute("DROP TABLE TASKDB");
-            stmt.execute(createDB());
-//            stmt.execute("INSERT INTO TASKDB (NAME, NUMTASKS, LATESTID) VALUES ('TASKDBENTRY', 0, -1)");
-//            ResultSet resultSet = stmt.executeQuery("SELECT * FROM TRADES");
-//            System.out.println(            resultSet.next());
-            stmt.close();
-        }
-        catch(Exception e){
-            System.out.println("Exception: " + e);
-            e.printStackTrace();
-        }
 
-//        try {
-//            connection.close();
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
 
+    public String getTableName() {
+        return "TRADES";
     }
 
     public String createDB() {
-        return "CREATE TABLE TRADES (ID INT GENERATED BY DEFAULT AS IDENTITY, " + getColumns() + ")";
+        String drop = "DROP TABLE " + getTableName() + " IF EXISTS\n ";
+        return drop + "CREATE TABLE " + getTableName() + " (ID INT GENERATED BY DEFAULT AS IDENTITY, " + getColumns() + ")";
     }
 
     private String getColumns() {
         return "INSTRUMENT VARCHAR(256), TRADE_DATE DATE, QUANTITY DOUBLE, PRICE DOUBLE, CURRENCY VARCHAR(3), FIXING DOUBLE";
     }
 
+    public void setup() {
+        try{
+            Statement stmt = DatabaseConnection.getInstance().createStatement();
+            stmt.execute(createDB());
+            stmt.close();
+        }
+        catch(Exception e){
+            System.out.println("Exception: " + e);
+            e.printStackTrace();
+        }
+    }
+
     private String getColumnLabels() {
-        return "INSTRUMENT, TRADE_DATE, QUANTITY, PRICE, CURRENCY, FIXING";
+        return columns.getColumnLabels();
 //        return "INSTRUMENT, TRADE_DATE, QUANTITY, PRICE, CURRENCY, FIXING";
     }
 
 
+    /*
+    perhaps we can register columns with a class to store the object type so we can construct the trader from a map of columns class references
+     */
+    private static class Columns {
+        private final List<AbstractColumn> columns = new ArrayList<>();
+        private final TradeIdColumn idColumn;
+        private final StringColumn instrumentColumn;
+        private final CurrencyColumn currencyColumn;
+        private final DateColumn tradeDateColumn;
+        private final DoubleColumn quantityColumn;
+        private final DoubleColumn priceColumn;
+        private final DoubleColumn fixingColumn;
+        private final Map<AbstractColumn, Integer> columnIntegerMap;
+        private final TypeColumn<TradeType> tradetype;
 
-    private List<Object> getTradeObjects(Trade trade) {
-        ArrayList<Object> list = Lists.newArrayList();
-        list.add(trade.getInstrument());
-        list.add(trade.getTradeDate());
-        list.add(trade.getQuantity());
-        list.add(trade.getPrice());
-        list.add(trade.getCurrency());
-        list.add(trade.getFixing());
-        return list;
+        //TODO pass in the id column in the constructor? Or have a builder which has a setIdColumn method, as well as
+        //addColumn method which adds the column to the columnInt map as well as columns list.
+        public Columns() {
+            idColumn = new TradeIdColumn("id");
+            tradetype = new TypeColumn<>(TradeType.class, "TRADETYPE");
+            instrumentColumn = new StringColumn("INSTRUMENT");
+            tradeDateColumn = new DateColumn("TRADE_DATE");
+            quantityColumn = new DoubleColumn("QUANTITY");
+            priceColumn = new DoubleColumn("PRICE");
+            currencyColumn = new CurrencyColumn("CURRENCY");
+            fixingColumn = new DoubleColumn("FIXING");
+//            columns.add(idColumn);
+
+            columnIntegerMap = HashBiMap.create();
+            columnIntegerMap.put(idColumn, 1);
+            addColumn(tradetype).addColumn(instrumentColumn);
+            addColumn(tradeDateColumn).addColumn(quantityColumn);
+            addColumn(priceColumn).addColumn(currencyColumn);
+            addColumn(fixingColumn);
+        }
+
+        private Columns addColumn(AbstractColumn column) {
+            columns.add(column);
+            columnIntegerMap.put(column, columnIntegerMap.size()+1);
+            return this;
+        }
+
+        public Trade handle(ResultSet rs) throws SQLException {
+
+            //TODO add index in Columns class to track this
+            return new Trade(resolve(idColumn, rs), resolve(tradetype, rs), resolve(instrumentColumn,rs), resolve(tradeDateColumn, rs),
+                   resolve(quantityColumn,rs), resolve(priceColumn,rs),
+                    resolve(currencyColumn,rs), resolve(fixingColumn,rs));
+        }
+
+        private <V> V resolve(AbstractColumn<V, ?> column, ResultSet rs) throws SQLException {
+            return column.get(rs, columnIntegerMap.get(column));
+        }
+
+        public List<Object> getTradeObjects(Trade trade) {
+            ArrayList<Object> list = Lists.newArrayList();
+//            list.add(idColumn.dbElement(trade.getId()));
+            list.add(instrumentColumn.dbElement(trade.getInstrument()));
+            list.add(tradeDateColumn.dbElement(trade.getTradeDate()));
+            list.add(quantityColumn.dbElement(trade.getQuantity()));
+            list.add(priceColumn.dbElement(trade.getPrice()));
+            list.add(currencyColumn.dbElement(trade.getCurrency()));
+            list.add(fixingColumn.dbElement(trade.getFixing()));
+            return list;
+        }
+
+        public String getColumnLabels() {
+            return Joiner.on(",").join(Lists.transform(columns, Functions.toStringFunction()));
+        }
     }
 
 
+    private List<Object> getTradeObjects(Trade trade) {
+       return columns.getTradeObjects(trade);
+//        ArrayList<Object> list = Lists.newArrayList();
+//        list.add(trade.getInstrument());
+//        list.add(trade.getTradeDate());
+//        list.add(trade.getQuantity());
+//        list.add(trade.getPrice());
+//        list.add(trade.getCurrency());
+//        list.add(trade.getFixing());
+//        return list;
+    }
+
+    @Override
     public void create(Trade trade) {
-        Statement stmt = null;
         try {
-            DatabaseConnection.getInstance().setAutoCommit(false);
-            stmt = DatabaseConnection.getInstance().createStatement();
-
             List<Object> tradeObjects = getTradeObjects(trade);
-            String insert = "INSERT INTO TRADES (" + getColumnLabels() + ") values (?,?,?,?,?,?)";
-            SqlResolver.prepare(insert, tradeObjects);
-
-//            String tradeStr = getTradeString(trade);
-
-
-//            String tradeStr = "'S&P500 ETF', NULL, 550, 47.437, 'GBP', 1.33";
-            //TODO use prepared statements with ? marks, and if necessary handle the wrapping of strings in quotes
-//            stmt.execute("INSERT INTO TRADES (" + getColumnLabels() + ") values (" + tradeStr + ")");
-            stmt.close();
-            DatabaseConnection.getInstance().commit();
+            String insert = "INSERT INTO "+ getTableName() +" (" + getColumnLabels() + ") values " + SqlUtil.makeQuestionMarks(6);
+            doUpdate(insert, tradeObjects);
         } catch (SQLException e) {
+            //TODO should propagate the exception
             e.printStackTrace();
         }
     }
 
 
+    @Override
     public void delete(Trade trade) {
 
     }
 
+    @Override
     public void update(Trade trade) {
-
+        try {
+            List<Object> tradeObjects = getTradeObjects(trade);
+            tradeObjects.add(trade.getId().getId());
+            List<AbstractColumn> columnList = this.columns.columns;
+            String sql = "";
+            for (AbstractColumn column : columnList) {
+                sql = column.getName() + " = ?,";
+            }
+            String insert = "UPDATE "+ getTableName() +" SET (" + sql + ") WHERE " + columns.idColumn.getName() + " = ? ";
+            doUpdate(insert, tradeObjects);
+        } catch (SQLException e) {
+            //TODO should propagate the exception
+            e.printStackTrace();
+        }
     }
 
 
+    /**
+     *
+     * @param <V> The user object
+     * @param <X> The data type used to store V in the database
+     */
+    static abstract class AbstractColumn<V, X> {
+        private String dbName;
 
+        protected AbstractColumn(String dbName) {
+            this.dbName = dbName;
+        }
+        public abstract V get(ResultSet rs, int index) throws SQLException;
+        public abstract X dbElement(V input);
 
-    private static class SqlResolver {
-
-        public static void prepare(String sql, List<Object> objects) throws SQLException {
-            PreparedStatement preparedStatement = DatabaseConnection.getInstance().prepareStatement(sql);
-            String content = sql;
-            int num = 0;
-            int i;
-            while( (i = content.indexOf("?")) != -1) {
-                num++;
-                content = content.substring(i+1, content.length());
-            }
-            if (num != objects.size()) {
-                throw new SQLException(String.format("Statement (%s args) and argument list (%s args) not consistent", num, objects.size()));
-            }
-
-            for (int j = 0; j < objects.size(); j++) {
-                resolve(preparedStatement, j+1, objects.get(j));
-            }
-            //TODO for a pure insert query, use execute. For a select query use executeQuery. If we use the latter for an insert, get exception.
-            preparedStatement.execute();
+        @Override
+        public String toString() {
+            return dbName;
         }
 
+        public String getName() {
+            return dbName;
+        }
+    }
 
-        public static void resolve(PreparedStatement statement, int index, Object object) throws SQLException {
-            if (object instanceof LocalDate) {
-                LocalDate localDate = (LocalDate) object;
-                statement.setDate(index, DateTimeUtil.makeDate(localDate));
-            } else if (object instanceof Currency){
-                    Currency currency = (Currency) object;
-                statement.setString(index, currency.getCurrencyCode());
-            } else {
-                //if all else fails
-                statement.setObject(index, object);
-            }
+    static class IntColumn extends AbstractColumn<Integer, Integer> {
+
+        protected IntColumn(String dbName) {
+            super(dbName);
+        }
+
+        @Override
+        public Integer get(ResultSet rs, int index) throws SQLException {
+            return rs.getInt(index);
+        }
+
+        @Override
+        public Integer dbElement(Integer input) {
+            return input;
+        }
+    }
+
+    static class DoubleColumn extends AbstractColumn<Double, Double> {
+
+        protected DoubleColumn(String dbName) {
+            super(dbName);
+        }
+
+        @Override
+        public Double get(ResultSet rs, int index) throws SQLException {
+            return rs.getDouble(index);
+        }
+
+        @Override
+        public Double dbElement(Double input) {
+            return input;
+        }
+    }
+
+    static class CurrencyColumn extends AbstractColumn<Currency, String> {
+
+        protected CurrencyColumn(String dbName) {
+            super(dbName);
+        }
+
+        @Override
+        public Currency get(ResultSet rs, int index) throws SQLException {
+            return Currency.getInstance(rs.getString(index));
+        }
+
+        @Override
+        public String dbElement(Currency input) {
+            return input.getCurrencyCode();
+        }
+    }
+
+    static class StringColumn extends AbstractColumn<String, String> {
+
+        protected StringColumn(String dbName) {
+            super(dbName);
+        }
+
+        @Override
+        public String get(ResultSet rs, int index) throws SQLException {
+            return rs.getString(index);
+        }
+
+        @Override
+        public String dbElement(String input) {
+            return input;
         }
 
     }
 
+    static class DateColumn extends AbstractColumn<LocalDate, Date> {
+
+        protected DateColumn(String dbName) {
+            super(dbName);
+        }
+
+        @Override
+        public LocalDate get(ResultSet rs, int index) throws SQLException {
+            return DateTimeUtil.date(rs.getDate(index));
+        }
+
+        @Override
+        public Date dbElement(LocalDate input) {
+            return DateTimeUtil.makeDate(input);
+        }
+    }
+
+    static class TradeIdColumn extends AbstractColumn<TradeId, Integer> {
+
+        protected TradeIdColumn(String dbName) {
+            super(dbName);
+        }
+
+        @Override
+        public TradeId get(ResultSet rs, int index) throws SQLException {
+            return new TradeId(rs.getInt(index));
+        }
+
+        @Override
+        public Integer dbElement(TradeId input) {
+            return input.getId();
+        }
+    }
+
+    static class TypeColumn<T extends Enum<T>> extends AbstractColumn<T, String> {
+
+        private final Class<T> clazz;
+
+        protected TypeColumn(Class<T> clazz, String dbName) {
+            super(dbName);
+            this.clazz = clazz;
+        }
+
+        @Override
+        public T get(ResultSet rs, int index) throws SQLException {
+            return Enum.valueOf(clazz, rs.getString(index));
+        }
+
+        @Override
+        public String dbElement(T input) {
+            return input.name();
+        }
+    }
 
 }

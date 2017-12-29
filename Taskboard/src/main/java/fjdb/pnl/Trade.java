@@ -9,6 +9,7 @@ import java.util.Currency;
 public class Trade {
 
     private TradeId id;
+    private TradeType type;
     private String instrument;
     private LocalDate tradeDate;
     private double quantity;
@@ -16,12 +17,13 @@ public class Trade {
     private Currency currency;
     private double fixing;
 
-    public Trade(String instrument, LocalDate tradeDate, double quantity, double price, Currency currency, double fixing) {
-        this(TradeId.NULL, instrument, tradeDate, quantity, price, currency, fixing);
+    public Trade(TradeType type, String instrument, LocalDate tradeDate, double quantity, double price, Currency currency, double fixing) {
+        this(TradeId.NULL, type, instrument, tradeDate, quantity, price, currency, fixing);
     }
 
-    public Trade(TradeId id, String instrument, LocalDate tradeDate, double quantity, double price, Currency currency, double fixing) {
+    public Trade(TradeId id, TradeType type, String instrument, LocalDate tradeDate, double quantity, double price, Currency currency, double fixing) {
         this.id = id;
+        this.type = type;
         this.instrument = instrument;
         this.tradeDate = tradeDate;
         this.quantity = quantity;
@@ -61,5 +63,9 @@ public class Trade {
     @Override
     public String toString() {
         return String.format("%s %s %s %s %s %s", instrument, tradeDate, quantity, price, currency, fixing);
+    }
+
+    public LocalDate minimumExitDate() {
+        return type.equals(TradeType.EQUITY) ? tradeDate.plusMonths(1) : tradeDate;
     }
 }
