@@ -18,19 +18,40 @@ import javafx.stage.Stage;
  */
 public class MainGame extends Application {
 
+    /*
+    GameEngine
+    - Units
+
+
+    Graphics Engine
+    -Glyphs, each have units
+
+
+
+
+
+     */
+
+
+
+
     private static final int GRID_SCALE = 50;
     public static void main(String[] args) {
         launch(args);
     }
 
-//TODO make a quandl fetcher
+    /*
+    Use the selected Node to mark a player glyph as selected and when another space is selected, execute a move to that location.
+    Check for a right-click trigger or a click outside the game area, and if so clear the selected node.
+
+     */
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Drawing Operations Test");
         Group root = new Group();
-//TODO have a canvas whcih will be a static picture in the background. Then we have nodes on top of that.
-        Canvas canvas = new Canvas(600, 600);
+//TODO have a canvas which will be a static picture in the background. Then we have nodes on top of that.
+        Canvas canvas = new Canvas(700, 700);
         GraphicsContext gc = canvas.getGraphicsContext2D();
         int rows = 12;
         int columns = 12;
@@ -39,38 +60,51 @@ public class MainGame extends Application {
         engine.addGrid(gc, rows, columns);
         root.getChildren().add(canvas);
 
+        final Unit[] selectedNode = {null};
 
         canvas.addEventHandler(MouseEvent.MOUSE_CLICKED,
                 new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent t) {
                         System.out.println(String.format("%s %s", t.getSceneX(), t.getSceneY()));
-                        engine.getLocationAtPoint(t.getSceneX(), t.getSceneY());
+                        Location locationAtPoint = engine.getLocationAtPoint(t.getSceneX(), t.getSceneY());
+                        if (Location.isNull(locationAtPoint)) {
+                            selectedNode[0] = null;
+                        } else {
+                            if (selectedNode[0]!= null) {
+                                selectedNode[0].setLocation(locationAtPoint);
+                                engine.updateUnit(selectedNode[0]);
+                            }
+                        }
                     }
                 });
-
 
 
         Location location00 = gridManager.get(0, 0);
         Location location35 = gridManager.get(3, 5);
 
 
-        Player player = new Player(NodeFactory.playerGlyph(GRID_SCALE/2.0f));
-        Node playerGlypth = player.getGlyph();
-        player.setLocation(location00);
-        engine.updateUnit(player);
+        //TODO continue refactor of removing glyphs from units, and instead have units in glyph as a model for the glyph.
+        Player player = new Player();
+        Node playerGlyph = addPlayerGlyph(player, GRID_SCALE / 2.0f);
 
-        Enemy enemy = new Enemy(NodeFactory.enemyGlyph(GRID_SCALE/2.0f));
+        player.setLocation(location00);
+        engine.addUnit(player, playerGlyph);
+
+        Enemy enemy = new Enemy(addEnemyGlyph(GRID_SCALE/2.0f));
         Node enemyGlypth = enemy.getGlyph();
         enemy.setLocation(location35);
-        engine.updateUnit(enemy);
-        root.getChildren().add(playerGlypth);
+        engine.addUnit(enemy, enemyGlypth);
+        root.getChildren().add(playerGlyph);
         root.getChildren().add(enemyGlypth);
 
-        playerGlypth.addEventHandler(MouseEvent.MOUSE_CLICKED,
+        //TODO the event handlers should be registered somewhere else...but where?
+        playerGlyph.addEventHandler(MouseEvent.MOUSE_CLICKED,
                 new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent t) {
+                        selectedNode[0] = player;
+                        player.setSelected();
                         System.out.println(String.format("%s %s", t.getSceneX(), t.getSceneY()));
                         engine.getLocationAtPoint(t.getSceneX(), t.getSceneY());
                     }
@@ -80,6 +114,7 @@ public class MainGame extends Application {
                 new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent t) {
+                        selectedNode[0] = enemy;
                         System.out.println(String.format("%s %s", t.getSceneX(), t.getSceneY()));
                         engine.getLocationAtPoint(t.getSceneX(), t.getSceneY());
                     }
@@ -97,8 +132,8 @@ public class MainGame extends Application {
 
 
 
-    private Node addPlayerGlyph(float radius) {
-        return NodeFactory.playerGlyph(radius);
+    private Node addPlayerGlyph(Player player, float radius) {
+        return NodeFactory.playerGlyph(player, radius);
     }
 
     private Node addEnemyGlyph(float radius) {
@@ -141,11 +176,14 @@ alt+command+t
             return new Position(_glyph.getTranslateX(), _glyph.getTranslateY());
         }
 
+        public void setSelected() {
+        }
     }
 
     public static class Player extends Unit {
-        public Player(Node glyph) {
-            super(glyph);
+        public Player() {
+            //TODO remove glyph from unit
+            super(null);
         }
 
     }
@@ -154,43 +192,6 @@ alt+command+t
 
         public Enemy(Node glyph) {
             super(glyph);
-        }
-    }
-
-    private static class GraphicsEngine {
-
-        private int _gridSize;
-        private int _xInset;
-        private int _yInset;
-        private GridManager _gridManager;
-
-        public GraphicsEngine(int gridSize, GridManager gridManager) {
-            _gridSize = gridSize;
-            _xInset = gridSize;
-            _yInset = gridSize;
-            _gridManager = gridManager;
-        }
-
-        private void addGrid(GraphicsContext gc, int rows, int columns) {
-            NodeFactory.addGrid(gc, _xInset, _yInset, _gridSize, rows, columns);
-        }
-
-        public void updateUnit(Unit unit) {
-            Location location = unit.getLocation();
-            Node node = unit.getGlyph();
-            node.setTranslateX(_xInset + location.getX() * _gridSize);
-            node.setTranslateY(_yInset + location.getY() * _gridSize);
-        }
-
-        public Location getLocationAtPoint(double sceneX, double sceneY) {
-            /*
-            (sceneX - xInset) / gridSize will give the location
-             */
-            double xPos = (sceneX - _xInset) / _gridSize;
-            double yPos = (sceneY - _yInset) / _gridSize;
-            Location location = _gridManager.get((int) xPos, (int) yPos);
-            System.out.println(location);
-            return location;
         }
     }
 

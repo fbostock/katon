@@ -13,6 +13,10 @@ public class Location {
         this.nothCoord = nothCoord;
     }
 
+    public static boolean isNull(Location location) {
+        return location == NULL;
+    }
+
     public int getX() {
         return eastCoord;
     }
@@ -21,7 +25,12 @@ public class Location {
         return nothCoord;
     }
 
-    public static Location NULL  = new Location(-1, -1);
+    public static Location NULL  = new Location(-1, -1){
+        @Override
+        public String toString() {
+            return "NULL Location";
+        }
+    };
 
     @Override
     public String toString() {
