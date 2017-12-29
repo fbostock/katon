@@ -2,7 +2,6 @@ package fjdb.battlegame;
 
 import fjdb.battlegame.coords.GridManager;
 import fjdb.battlegame.coords.Location;
-import fjdb.graphics.NodeFactory;
 import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 

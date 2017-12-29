@@ -1,4 +1,4 @@
-package fjdb.graphics;
+package fjdb.battlegame;
 
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -31,8 +31,8 @@ public class NodeFactory {
         return g;
     }
 
-    public static Node playerGlyph(float radius) {
-        Group group = new Group();
+    public static Node playerGlyph(MainGame.Player player, float radius) {
+        /*Group group = new Group();
 
         DropShadow ds = new DropShadow();
         ds.setOffsetY(3.0);
@@ -62,7 +62,8 @@ public class NodeFactory {
 
         group.getChildren().add(c);
         group.getChildren().add(top);
-        return group;
+        return group;*/
+        return new PlayerGlyph(player, radius);
     }
 
     public static Node enemyGlyph(float radius) {
@@ -95,6 +96,9 @@ public class NodeFactory {
 
     public static void addGrid(GraphicsContext gc, int xInset, int yInset, int gridSize, int rows, int columns) {
         gc.setLineWidth(0.5);
+        //for 10 rows we require 11 lines
+        rows +=1;
+        columns +=1;
         int squareX = gridSize;
         int squareY = gridSize;
         //draw horizontal lines
@@ -110,4 +114,45 @@ public class NodeFactory {
 
     }
 
+    public static class PlayerGlyph extends Group {
+
+        private final MainGame.Player player;
+
+        public PlayerGlyph(MainGame.Player player, float radius) {
+            this.player = player;
+
+            DropShadow ds = new DropShadow();
+            ds.setOffsetY(3.0);
+            ds.setOffsetX(3.0);
+            ds.setColor(Color.GRAY);
+
+            DropShadow ds1 = new DropShadow();
+            ds1.setOffsetY(4.0f);
+            ds1.setOffsetX(4.0f);
+            ds1.setColor(Color.DARKSLATEBLUE);
+
+            Circle c = new Circle();
+            c.setEffect(ds1);
+            c.setCenterX(radius + 0.0f);
+            c.setCenterY(radius + 0.0f);
+            c.setRadius(radius);
+            c.setFill(Color.BLUE);
+            c.setCache(true);
+
+            Circle top = new Circle();
+            top.setEffect(ds1);
+            top.setCenterX(radius + 0.0f);
+            top.setCenterY(radius + 0.0f);
+            top.setRadius(radius/2);
+            top.setFill(Color.PURPLE);
+            top.setCache(true);
+
+            getChildren().add(c);
+            getChildren().add(top);
+        }
+
+        public MainGame.Unit getUnit() {
+            return player;
+        }
+    }
 }
