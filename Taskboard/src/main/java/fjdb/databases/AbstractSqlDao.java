@@ -119,6 +119,7 @@ public abstract class AbstractSqlDao {
 
 
         public void resolve(PreparedStatement statement, int index, Object object) throws SQLException {
+
             if (object instanceof LocalDate) {
                 LocalDate localDate = (LocalDate) object;
                 statement.setDate(index, DateTimeUtil.makeDate(localDate));
@@ -128,8 +129,13 @@ public abstract class AbstractSqlDao {
             } else if (object instanceof Currency){
                 Currency currency = (Currency) object;
                 statement.setString(index, currency.getCurrencyCode());
+            } else if (object instanceof Double){
+                statement.setDouble(index, (Double) object);
+            } else if (object instanceof Integer){
+                statement.setInt(index, (Integer) object);
             } else {
                 //if all else fails. Should handle strings, ints, doubles, floats,
+                System.out.println(object.getClass());
                 statement.setObject(index, object);
             }
         }
