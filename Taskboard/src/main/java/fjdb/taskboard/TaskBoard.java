@@ -12,7 +12,10 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.HashMap;
@@ -73,7 +76,6 @@ public class TaskBoard extends Application {
         });
 
         panelsPane.setOnContextMenuRequested(event -> {
-                    System.out.println("This was called");
                     ContextMenu contextMenu = new ContextMenu();
                     MenuItem item1 = new MenuItem("Create new task");
                     item1.setOnAction(new EventHandler<ActionEvent>() {
@@ -83,7 +85,6 @@ public class TaskBoard extends Application {
 
                         }
                     });
-                    contextMenu.getItems().add(item1);
                     contextMenu.show(panelsPane.getScene().getWindow(), event.getScreenX(), event.getScreenY());
                 }
         );
@@ -157,6 +158,14 @@ public class TaskBoard extends Application {
                     @Override
                     public void handle(ActionEvent event) {
                         manager.deleteTask(taskItem);
+                    }
+                });
+                MenuItem addChild = new MenuItem("Add child task");
+                addChild.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        TaskItem child = manager.createNewTask(taskItem.getTaskId());
+                        //TODO open in editor, using code from edit method (but for the child task)
                     }
                 });
                 MenuItem edit = new MenuItem("Edit");

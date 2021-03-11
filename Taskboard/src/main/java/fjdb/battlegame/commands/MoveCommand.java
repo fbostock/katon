@@ -1,6 +1,6 @@
 package fjdb.battlegame.commands;
 
-import fjdb.battlegame.MainGame;
+import fjdb.battlegame.units.Unit;
 import fjdb.battlegame.coords.Location;
 
 /**
@@ -8,15 +8,15 @@ import fjdb.battlegame.coords.Location;
  */
 public class MoveCommand extends Command {
 
-    private final MainGame.Unit unitToMove;
+    private final Unit unitToMove;
     private final Location to;
 
-    public MoveCommand(MainGame.Unit unitToMove, Location to) {
+    public MoveCommand(Unit unitToMove, Location to) {
         this.unitToMove = unitToMove;
         this.to = to;
     }
 
-    public MainGame.Unit getUnit() {
+    public Unit getUnit() {
         return unitToMove;
     }
 

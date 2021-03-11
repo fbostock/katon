@@ -1,5 +1,7 @@
 package fjdb.battlegame;
 
+import fjdb.battlegame.units.Player;
+import fjdb.battlegame.units.Unit;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
@@ -16,6 +18,10 @@ import javafx.scene.text.Text;
  */
 public class NodeFactory {
 
+    public static abstract class Glyph extends Group {
+        public abstract void setSelected(boolean selected);
+    }
+
     public static Node addText() {
         Group g = new Group();
         DropShadow ds = new DropShadow();
@@ -31,67 +37,12 @@ public class NodeFactory {
         return g;
     }
 
-    public static Node playerGlyph(MainGame.Player player, float radius) {
-        /*Group group = new Group();
-
-        DropShadow ds = new DropShadow();
-        ds.setOffsetY(3.0);
-        ds.setOffsetX(3.0);
-        ds.setColor(Color.GRAY);
-
-        DropShadow ds1 = new DropShadow();
-        ds1.setOffsetY(4.0f);
-        ds1.setOffsetX(4.0f);
-        ds1.setColor(Color.DARKSLATEBLUE);
-
-        Circle c = new Circle();
-        c.setEffect(ds1);
-        c.setCenterX(radius + 0.0f);
-        c.setCenterY(radius + 0.0f);
-        c.setRadius(radius);
-        c.setFill(Color.BLUE);
-        c.setCache(true);
-
-        Circle top = new Circle();
-        top.setEffect(ds1);
-        top.setCenterX(radius + 0.0f);
-        top.setCenterY(radius + 0.0f);
-        top.setRadius(radius/2);
-        top.setFill(Color.PURPLE);
-        top.setCache(true);
-
-        group.getChildren().add(c);
-        group.getChildren().add(top);
-        return group;*/
+    public static NodeFactory.Glyph playerGlyph(Player player, float radius) {
         return new PlayerGlyph(player, radius);
     }
 
-    public static Node enemyGlyph(float radius) {
-        Group group = new Group();
-
-        DropShadow ds = new DropShadow();
-        ds.setOffsetY(3.0);
-        ds.setOffsetX(3.0);
-        ds.setColor(Color.GRAY);
-
-
-        DropShadow ds1 = new DropShadow();
-        ds1.setOffsetY(4.0f);
-        ds1.setOffsetX(4.0f);
-        ds1.setColor(Color.CORAL);
-
-        Rectangle box = new Rectangle();
-        box.setEffect(ds1);
-        box.setHeight(radius);
-        box.setWidth(radius);
-        box.setArcHeight(radius/2);
-        box.setArcWidth(radius/2);
-
-        box.setFill(Color.RED);
-        box.setCache(true);
-
-        group.getChildren().add(box);
-        return group;
+    public static NodeFactory.Glyph enemyGlyph(float radius) {
+        return new EnemyGlyph(radius);
     }
 
     public static void addGrid(GraphicsContext gc, int xInset, int yInset, int gridSize, int rows, int columns) {
@@ -114,11 +65,48 @@ public class NodeFactory {
 
     }
 
-    public static class PlayerGlyph extends Group {
+    public static class EnemyGlyph extends Glyph {
 
-        private final MainGame.Player player;
+        private final DropShadow ds1;
 
-        public PlayerGlyph(MainGame.Player player, float radius) {
+        public EnemyGlyph(float radius) {
+            DropShadow ds = new DropShadow();
+            ds.setOffsetY(3.0);
+            ds.setOffsetX(3.0);
+            ds.setColor(Color.GRAY);
+
+
+            ds1 = new DropShadow();
+            ds1.setOffsetY(4.0f);
+            ds1.setOffsetX(4.0f);
+            ds1.setColor(Color.CORAL);
+
+            Rectangle box = new Rectangle();
+            box.setEffect(ds1);
+            box.setHeight(radius);
+            box.setWidth(radius);
+            box.setArcHeight(radius/2);
+            box.setArcWidth(radius/2);
+
+            box.setFill(Color.RED);
+            box.setCache(true);
+
+            getChildren().add(box);
+        }
+
+        @Override
+        public void setSelected(boolean selected) {
+            ds1.setColor(selected ? Color.MAGENTA : Color.CORAL);
+        }
+    }
+
+
+    public static class PlayerGlyph extends Glyph {
+
+        private final Player player;
+        private final DropShadow ds1;
+
+        public PlayerGlyph(Player player, float radius) {
             this.player = player;
 
             DropShadow ds = new DropShadow();
@@ -126,7 +114,7 @@ public class NodeFactory {
             ds.setOffsetX(3.0);
             ds.setColor(Color.GRAY);
 
-            DropShadow ds1 = new DropShadow();
+            ds1 = new DropShadow();
             ds1.setOffsetY(4.0f);
             ds1.setOffsetX(4.0f);
             ds1.setColor(Color.DARKSLATEBLUE);
@@ -151,7 +139,11 @@ public class NodeFactory {
             getChildren().add(top);
         }
 
-        public MainGame.Unit getUnit() {
+        public void setSelected(boolean selected) {
+            ds1.setColor(selected ? Color.MAGENTA: Color.DARKSLATEBLUE);
+        }
+
+        public Unit getUnit() {
             return player;
         }
     }

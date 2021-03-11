@@ -1,5 +1,12 @@
 package fjdb.battlegame.coords;
 
+import fjdb.battlegame.units.Unit;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Created by francisbostock on 04/09/2016.
  */
@@ -59,4 +66,34 @@ public class GridManager {
         return getNorth(location, -x);
     }
 
+    public Set<Location> getAdjacent(Location location) {
+        Set<Location> locations = new HashSet<>();
+        locations.add(getNorth(location));
+        locations.add(getEast(location));
+        locations.add(getSouth(location));
+        locations.add(getWest(location));
+        return locations;
+    }
+
+    public Set<Location> getAdjacentNotNull(Location location) {
+        Set<Location> locations = new HashSet<>();
+        locations.add(getNorth(location));
+        locations.add(getEast(location));
+        locations.add(getSouth(location));
+        locations.add(getWest(location));
+        locations.remove(Location.NULL);
+        return locations;
+    }
+
+    public List<Unit> getUnit(Location location) {
+        return location.getUnits();
+    }
+
+    public List<Unit> getUnits(Set<Location> locations) {
+        List<Unit> units = new ArrayList<>();
+        for (Location location : locations) {
+            units.addAll(location.getUnits());
+        }
+        return units;
+    }
 }

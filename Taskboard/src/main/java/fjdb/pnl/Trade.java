@@ -36,6 +36,10 @@ public class Trade {
         return id;
     }
 
+    public TradeType getType() {
+        return type;
+    }
+
     public String getInstrument() {
         return instrument;
     }

@@ -60,6 +60,8 @@ programs' performance change over time with changes in engines etc. If a new cha
 //        dao.create(new Trade(TradeType.EQUITY, "CLLN", LocalDate.of(2017, 10, 26), 6500, 0.4560, Currency.getInstance("GBP"), 1.0));
 //        dao.create(new Trade(TradeType.EQUITY, "MERL", LocalDate.of(2017, 10, 30), 550, 3.7342, Currency.getInstance("GBP"), 1.0));
 //        dao.create(new Trade(TradeType.EQUITY, "TEST", LocalDate.of(2017, 11, 12), 550, 3.7342, Currency.getInstance("GBP"), 1.0));
+//        dao.create(new Trade(TradeType.EQUITY, "CITY", LocalDate.of(2018, 1, 15), 8400, 59.6, Currency.getInstance("GBP"), 1.0));
+//        dao.create(new Trade(TradeType.EQUITY, "BMK", LocalDate.of(2018, 1, 16), 8000, 75.15, Currency.getInstance("GBP"), 1.0));
 
 //        DateTimeFormatter.ofPattern("yyyyMMdd").
 //dao.setup();
@@ -118,7 +120,7 @@ programs' performance change over time with changes in engines etc. If a new cha
     }
 
     private String getColumns() {
-        return "INSTRUMENT VARCHAR(256), TRADE_DATE DATE, QUANTITY DOUBLE, PRICE DOUBLE, CURRENCY VARCHAR(3), FIXING DOUBLE";
+        return "TRADETYPE, INSTRUMENT VARCHAR(256), TRADE_DATE DATE, QUANTITY DOUBLE, PRICE DOUBLE, CURRENCY VARCHAR(3), FIXING DOUBLE";
     }
 
     public void setup() {
@@ -141,6 +143,20 @@ programs' performance change over time with changes in engines etc. If a new cha
 
     /*
     perhaps we can register columns with a class to store the object type so we can construct the trader from a map of columns class references
+
+
+    similar to row columns, we could supply an extractor which extracts an object of type Clazz from an object associated
+    with the row definition. Then, for writing to the database, we have a set of classes which we register for a particular
+    class type, that will handle the reading and writing for that class type.
+    register(Class<T> clazz, RWclass rwClazz)
+    where RWClass had a read method and write method
+    T read(ResultSet rs, index) {//construct T from rs.getXXX(index)//}
+    void write(T obj) {//extract from T such that the result feeds into the read method to generate T}
+
+    So for a Currency Column, we could register a RWClass as above to create the Currency from a 3 char string, then
+    we define a Currency Column object with an extractor from Trade: trade.getCurrency(), with the Column object having
+    various other properties such as visible, editable etc. for table displays.
+
      */
     private static class Columns {
         private final List<AbstractColumn> columns = new ArrayList<>();
@@ -196,6 +212,7 @@ programs' performance change over time with changes in engines etc. If a new cha
         public List<Object> getTradeObjects(Trade trade) {
             ArrayList<Object> list = Lists.newArrayList();
 //            list.add(idColumn.dbElement(trade.getId()));
+            list.add(tradetype.dbElement(trade.getType()));
             list.add(instrumentColumn.dbElement(trade.getInstrument()));
             list.add(tradeDateColumn.dbElement(trade.getTradeDate()));
             list.add(quantityColumn.dbElement(trade.getQuantity()));
@@ -208,8 +225,15 @@ programs' performance change over time with changes in engines etc. If a new cha
         public String getColumnLabels() {
             return Joiner.on(",").join(Lists.transform(columns, Functions.toStringFunction()));
         }
+
+        public int columnCount() {
+            return columns.size();
+        }
     }
 
+    public int getColumnCount() {
+        return columns.columnCount();
+    }
 
     private List<Object> getTradeObjects(Trade trade) {
        return columns.getTradeObjects(trade);
@@ -225,9 +249,13 @@ programs' performance change over time with changes in engines etc. If a new cha
 
     @Override
     public void create(Trade trade) {
+
         try {
             List<Object> tradeObjects = getTradeObjects(trade);
-            String insert = "INSERT INTO "+ getTableName() +" (" + getColumnLabels() + ") values " + SqlUtil.makeQuestionMarks(6);
+            if (tradeObjects.size() != getColumnCount()) {
+                throw new RuntimeException(String.format("Arguments and columns different size: %s %s", tradeObjects.size(), getColumnCount()));
+            }
+            String insert = "INSERT INTO "+ getTableName() +" (" + getColumnLabels() + ") values " + SqlUtil.makeQuestionMarks(getColumnCount());
             doUpdate(insert, tradeObjects);
         } catch (SQLException e) {
             //TODO should propagate the exception

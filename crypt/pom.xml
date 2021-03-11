@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>katon</artifactId>
+        <groupId>katon</groupId>
+        <version>1.0.1</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>crypt</artifactId>
+
+    <build>
+
+    <plugins>
+    <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+            <archive>
+                <manifest>
+                    <mainClass>Crypt</mainClass>
+                </manifest>
+            </archive>
+            <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+            </descriptorRefs>
+        </configuration>
+    </plugin>
+    </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>my-local-repo</id>
+            <url>file://${basedir}/my-repo</url>
+        </repository>
+    </repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>interfascia</groupId>
+        <artifactId>interfascia</artifactId>
+        <version>1.0</version>
+        <scope>system</scope>
+        <systemPath>/Users/francisbostock/Code/katon/crypt/src/main/resources/interfascia.jar</systemPath>
+    </dependency>
+
+    <dependency>
+        <groupId>com.jogamp</groupId>
+        <artifactId>gluegen-natives</artifactId>
+        <version>1.0</version>
+        <scope>system</scope>
+        <systemPath>/Users/francisbostock/Code/katon/crypt/src/main/resources/gluegen-rt-natives-macosx-universal.jar</systemPath>
+    </dependency>
+
+    <dependency>
+        <groupId>com.jogamp</groupId>
+        <artifactId>gluegen</artifactId>
+        <version>1.0</version>
+        <scope>system</scope>
+        <systemPath>/Users/francisbostock/Code/katon/crypt/src/main/resources/gluegen-rt.jar</systemPath>
+    </dependency>
+
+    <dependency>
+        <groupId>com.jogamp</groupId>
+        <artifactId>jogl</artifactId>
+        <version>1.0</version>
+        <scope>system</scope>
+        <systemPath>/Users/francisbostock/Code/katon/crypt/src/main/resources/jogl-all.jar</systemPath>
+    </dependency>
+
+
+    <dependency>
+        <groupId>processing</groupId>
+        <artifactId>core</artifactId>
+        <version>1.0</version>
+        <scope>system</scope>
+        <systemPath>/Users/francisbostock/Code/katon/crypt/src/main/resources/core.jar</systemPath>
+    </dependency>
+
+
+</dependencies>
+
+</project>

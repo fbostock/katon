@@ -1,9 +1,6 @@
 package fjdb.taskboard;
 
-import fjdb.taskboard.tasks.TaskBuilder;
-import fjdb.taskboard.tasks.TaskEvent;
-import fjdb.taskboard.tasks.TaskItem;
-import fjdb.taskboard.tasks.TaskListener;
+import fjdb.taskboard.tasks.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +28,13 @@ public class TaskManager {
 
     public TaskItem createNewTask() {
         TaskBuilder builder = new TaskBuilder();
+        TaskItem task = builder.makeTask();
+        return taskDao.addTask(task);
+    }
+
+    public TaskItem createNewTask(TaskId parent) {
+        TaskBuilder builder = new TaskBuilder();
+        builder.setParentTaskId(parent);
         TaskItem task = builder.makeTask();
         return taskDao.addTask(task);
     }
