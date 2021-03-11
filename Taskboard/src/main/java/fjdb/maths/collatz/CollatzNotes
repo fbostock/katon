@@ -1,0 +1,395 @@
+1,3,9,27,81, 243
+Conjecture: for {p,q} = {3,q}, for every q = 3^n, n = 0,1,2.., there is only one root, q.
+
+For {p,q}  = {5,1}, the algo breaks down (appears to) at 7 - it doesn't converge. Can we work out why?
+
+{3,1}
+Total Roots: 1
+ROOT 1 (3 steps): Hits 1000000
+
+{3,3}
+Total Roots: 1
+ROOT 3 (3 steps): Hits 1000000
+
+{3,5}
+Total Roots: 6
+ROOT 1 (4 steps): Hits 140991
+ROOT 5 (3 steps): Hits 200000
+ROOT 19 (8 steps): Hits 496421
+ROOT 23 (8 steps): Hits 92970
+ROOT 187 (44 steps): Hits 32530
+ROOT 347 (44 steps): Hits 37088
+
+{3,7}
+Total Roots: 2
+ROOT 5 (6 steps): Hits 857143
+ROOT 7 (3 steps): Hits 142857
+
+{3,9}
+Total Roots: 1
+ROOT 9 (3 steps): Hits 1000000
+
+{3,11}
+Total Roots: 3
+ROOT 1 (8 steps): Hits 197520
+ROOT 11 (3 steps): Hits 90909
+ROOT 13 (22 steps): Hits 711571
+
+{3,13}
+Total Roots: 10
+ROOT 1 (5 steps): Hits 476859
+ROOT 13 (3 steps): Hits 76923
+ROOT 131 (39 steps): Hits 252152
+ROOT 211 (13 steps): Hits 33401
+ROOT 227 (13 steps): Hits 19107
+ROOT 251 (13 steps): Hits 19709
+ROOT 259 (13 steps): Hits 38848
+ROOT 283 (13 steps): Hits 25406
+ROOT 287 (13 steps): Hits 43010
+ROOT 319 (13 steps): Hits 14585
+
+
+{3,15}
+Total Roots: 6
+ROOT 3 (4 steps): Hits 141344
+ROOT 15 (3 steps): Hits 200000
+ROOT 57 (8 steps): Hits 495195
+ROOT 69 (8 steps): Hits 93219
+ROOT 561 (44 steps): Hits 32591
+ROOT 1041 (44 steps): Hits 37651
+
+{3,17}
+Total Roots: 3
+ROOT 1 (9 steps): Hits 328141
+ROOT 17 (3 steps): Hits 58823
+ROOT 23 (49 steps): Hits 613036
+
+{3,19}
+Total Roots: 2
+ROOT 5 (16 steps): Hits 947369
+ROOT 19 (3 steps): Hits 52631
+
+Analysis for {3,21}
+Total Roots: 2
+ROOT 15 (6 steps): Hits 857143
+ROOT 21 (3 steps): Hits 142857
+
+Analysis for {3,23}
+Total Roots: 4
+ROOT 5 (7 steps): Hits 64446
+ROOT 7 (7 steps): Hits 413813
+ROOT 23 (3 steps): Hits 43478
+ROOT 41 (69 steps): Hits 478263
+
+Analysis for {3,25}
+Total Roots: 8
+ROOT 5 (4 steps): Hits 28286
+ROOT 7 (24 steps): Hits 423991
+ROOT 17 (12 steps): Hits 376009
+ROOT 25 (3 steps): Hits 40000
+ROOT 95 (8 steps): Hits 99078
+ROOT 115 (8 steps): Hits 18673
+ROOT 935 (44 steps): Hits 6457
+ROOT 1735 (44 steps): Hits 7506
+
+Analysis for {3,27}
+Total Roots: 1
+ROOT 27 (3 steps): Hits 1000000
+
+Analysis for {3,29}
+Total Roots: 5
+ROOT 1 (6 steps): Hits 79556
+ROOT 11 (26 steps): Hits 879336
+ROOT 29 (3 steps): Hits 34482
+ROOT 3811 (106 steps): Hits 3757
+ROOT 7055 (106 steps): Hits 2869
+
+Analysis for {3,31}
+Total Roots: 2
+ROOT 13 (35 steps): Hits 967742
+ROOT 31 (3 steps): Hits 32258
+
+Analysis for {3,33}
+Total Roots: 3
+ROOT 3 (8 steps): Hits 197672
+ROOT 33 (3 steps): Hits 90909
+ROOT 39 (22 steps): Hits 711419
+
+Analysis for {3,35}
+Total Roots: 9
+ROOT 7 (4 steps): Hits 20250
+ROOT 13 (12 steps): Hits 175232
+ROOT 17 (12 steps): Hits 510482
+ROOT 25 (6 steps): Hits 171429
+ROOT 35 (3 steps): Hits 28571
+ROOT 133 (8 steps): Hits 70813
+ROOT 161 (8 steps): Hits 13231
+ROOT 1309 (44 steps): Hits 4633
+ROOT 2429 (44 steps): Hits 5359
+
+Analysis for {3,37}
+Total Roots: 4
+ROOT 19 (9 steps): Hits 474146
+ROOT 23 (9 steps): Hits 240234
+ROOT 29 (9 steps): Hits 258593
+ROOT 37 (3 steps): Hits 27027
+
+Analysis for {3,39}
+Total Roots: 10
+ROOT 3 (5 steps): Hits 476284
+ROOT 39 (3 steps): Hits 76923
+ROOT 393 (39 steps): Hits 253185
+ROOT 633 (13 steps): Hits 33287
+ROOT 681 (13 steps): Hits 19092
+ROOT 753 (13 steps): Hits 19789
+ROOT 777 (13 steps): Hits 38875
+ROOT 849 (13 steps): Hits 25194
+ROOT 861 (13 steps): Hits 43031
+ROOT 957 (13 steps): Hits 14340
+
+Analysis for {3,41}
+Total Roots: 2
+ROOT 1 (28 steps): Hits 975610
+ROOT 41 (3 steps): Hits 24390
+
+Analysis for {3,43}
+Total Roots: 2
+ROOT 1 (14 steps): Hits 976745
+ROOT 43 (3 steps): Hits 23255
+
+Analysis for {3,45}
+Total Roots: 6
+ROOT 9 (4 steps): Hits 141631
+ROOT 45 (3 steps): Hits 200000
+ROOT 171 (8 steps): Hits 493761
+ROOT 207 (8 steps): Hits 93171
+ROOT 1683 (44 steps): Hits 33193
+ROOT 3123 (44 steps): Hits 38244
+
+Analysis for {3,47}
+Total Roots: 8
+ROOT 5 (25 steps): Hits 389265
+ROOT 25 (44 steps): Hits 261744
+ROOT 47 (3 steps): Hits 21276
+ROOT 65 (11 steps): Hits 131996
+ROOT 73 (11 steps): Hits 61127
+ROOT 85 (11 steps): Hits 38966
+ROOT 89 (11 steps): Hits 61372
+ROOT 101 (11 steps): Hits 34254
+
+Analysis for {3,49}
+Total Roots: 3
+ROOT 25 (60 steps): Hits 857143
+ROOT 35 (6 steps): Hits 122449
+ROOT 49 (3 steps): Hits 20408
+
+Analysis for {3,51}
+Total Roots: 3
+ROOT 3 (9 steps): Hits 328521
+ROOT 51 (3 steps): Hits 58823
+ROOT 69 (49 steps): Hits 612656
+
+Analysis for {3,53}
+Total Roots: 2
+ROOT 53 (3 steps): Hits 18867
+ROOT 103 (46 steps): Hits 981133
+
+Analysis for {3,55}
+Total Roots: 11
+ROOT 1 (16 steps): Hits 158375
+ROOT 5 (8 steps): Hits 39569
+ROOT 7 (8 steps): Hits 390745
+ROOT 11 (4 steps): Hits 12918
+ROOT 41 (44 steps): Hits 178152
+ROOT 55 (3 steps): Hits 18181
+ROOT 65 (22 steps): Hits 142250
+ROOT 209 (8 steps): Hits 45086
+ROOT 253 (8 steps): Hits 8358
+ROOT 2057 (44 steps): Hits 2947
+ROOT 3817 (44 steps): Hits 3419
+
+Analysis for {3,57}
+Total Roots: 2
+ROOT 15 (16 steps): Hits 947369
+ROOT 57 (3 steps): Hits 52631
+
+Analysis for {3,59}
+Total Roots: 8
+ROOT 1 (39 steps): Hits 228982
+ROOT 59 (3 steps): Hits 16949
+ROOT 133 (16 steps): Hits 544854
+ROOT 149 (16 steps): Hits 23071
+ROOT 181 (16 steps): Hits 104246
+ROOT 185 (16 steps): Hits 35156
+ROOT 217 (16 steps): Hits 23601
+ROOT 221 (16 steps): Hits 23141
+
+Analysis for {3,61}
+Total Roots: 3
+ROOT 1 (7 steps): Hits 933675
+ROOT 61 (3 steps): Hits 16393
+ROOT 235 (107 steps): Hits 49932
+
+Analysis for {3,63}
+Total Roots: 2
+ROOT 45 (6 steps): Hits 857143
+ROOT 63 (3 steps): Hits 142857
+
+Analysis for {3,65}
+Total Roots: 16
+ROOT 5 (5 steps): Hits 95162
+ROOT 13 (4 steps): Hits 10920
+ROOT 19 (36 steps): Hits 738461
+ROOT 65 (3 steps): Hits 15384
+ROOT 247 (8 steps): Hits 38179
+ROOT 299 (8 steps): Hits 7053
+ROOT 655 (39 steps): Hits 50658
+ROOT 1055 (13 steps): Hits 6689
+ROOT 1135 (13 steps): Hits 3819
+ROOT 1255 (13 steps): Hits 3951
+ROOT 1295 (13 steps): Hits 7792
+ROOT 1415 (13 steps): Hits 5058
+ROOT 1435 (13 steps): Hits 8614
+ROOT 1595 (13 steps): Hits 2873
+ROOT 2431 (44 steps): Hits 2485
+ROOT 4511 (44 steps): Hits 2902
+
+Analysis for {3,67}
+Total Roots: 2
+ROOT 17 (46 steps): Hits 985075
+ROOT 67 (3 steps): Hits 14925
+
+Analysis for {3,69}
+Total Roots: 4
+ROOT 15 (7 steps): Hits 63996
+ROOT 21 (7 steps): Hits 414263
+ROOT 69 (3 steps): Hits 43478
+ROOT 123 (69 steps): Hits 478263
+
+Analysis for {3,71}
+Total Roots: 8
+ROOT 29 (15 steps): Hits 467522
+ROOT 31 (15 steps): Hits 482610
+ROOT 71 (3 steps): Hits 14084
+ROOT 2585 (44 steps): Hits 4519
+ROOT 2809 (44 steps): Hits 15924
+ROOT 3985 (44 steps): Hits 3060
+ROOT 4121 (44 steps): Hits 1937
+ROOT 4409 (44 steps): Hits 10344
+
+Analysis for {3,73}
+Total Roots: 4
+ROOT 5 (16 steps): Hits 98006
+ROOT 19 (92 steps): Hits 493150
+ROOT 47 (23 steps): Hits 395146
+ROOT 73 (3 steps): Hits 13698
+
+Analysis for {3,75}
+Total Roots: 8
+ROOT 15 (4 steps): Hits 28359
+ROOT 21 (24 steps): Hits 424735
+ROOT 51 (12 steps): Hits 375265
+ROOT 75 (3 steps): Hits 40000
+ROOT 285 (8 steps): Hits 98802
+ROOT 345 (8 steps): Hits 18596
+ROOT 2805 (44 steps): Hits 6597
+ROOT 5205 (44 steps): Hits 7646
+
+Analysis for {3,77}
+Total Roots: 5
+ROOT 1 (54 steps): Hits 779221
+ROOT 7 (8 steps): Hits 28312
+ROOT 55 (6 steps): Hits 77922
+ROOT 77 (3 steps): Hits 12987
+ROOT 91 (22 steps): Hits 101558
+
+Analysis for {3,79}
+Total Roots: 5
+ROOT 1 (64 steps): Hits 475862
+ROOT 7 (64 steps): Hits 451652
+ROOT 79 (3 steps): Hits 12658
+ROOT 233 (37 steps): Hits 30911
+ROOT 265 (37 steps): Hits 28917
+
+Analysis for {3,81}
+Total Roots: 1
+ROOT 81 (3 steps): Hits 1000000
+
+Analysis for {3,83}
+Total Roots: 4
+ROOT 65 (38 steps): Hits 137621
+ROOT 83 (3 steps): Hits 12048
+ROOT 109 (19 steps): Hits 638525
+ROOT 157 (19 steps): Hits 211806
+
+Analysis for {3,85}
+Total Roots: 9
+ROOT 5 (9 steps): Hits 65611
+ROOT 7 (156 steps): Hits 752941
+ROOT 17 (4 steps): Hits 8357
+ROOT 85 (3 steps): Hits 11764
+ROOT 115 (49 steps): Hits 122625
+ROOT 323 (8 steps): Hits 29143
+ROOT 391 (8 steps): Hits 5433
+ROOT 3179 (44 steps): Hits 1892
+ROOT 5899 (44 steps): Hits 2234
+
+Analysis for {3,87}
+Total Roots: 5
+ROOT 3 (6 steps): Hits 79681
+ROOT 33 (26 steps): Hits 879442
+ROOT 87 (3 steps): Hits 34482
+ROOT 11433 (106 steps): Hits 3602
+ROOT 21165 (106 steps): Hits 2793
+
+Analysis for {3,89}
+Total Roots: 2
+ROOT 17 (25 steps): Hits 988765
+ROOT 89 (3 steps): Hits 11235
+
+Analysis for {3,91}
+Total Roots: 14
+ROOT 1 (72 steps): Hits 450863
+ROOT 7 (5 steps): Hits 67871
+ROOT 25 (18 steps): Hits 217268
+ROOT 59 (18 steps): Hits 123078
+ROOT 65 (6 steps): Hits 65934
+ROOT 91 (3 steps): Hits 10989
+ROOT 917 (39 steps): Hits 36305
+ROOT 1477 (13 steps): Hits 4744
+ROOT 1589 (13 steps): Hits 2703
+ROOT 1757 (13 steps): Hits 2844
+ROOT 1813 (13 steps): Hits 5579
+ROOT 1981 (13 steps): Hits 3619
+ROOT 2009 (13 steps): Hits 6170
+ROOT 2233 (13 steps): Hits 2033
+
+Analysis for {3,93}
+Total Roots: 2
+ROOT 39 (35 steps): Hits 967742
+ROOT 93 (3 steps): Hits 32258
+
+Analysis for {3,95}
+Total Roots: 10
+ROOT 1 (108 steps): Hits 378952
+ROOT 17 (16 steps): Hits 205305
+ROOT 19 (4 steps): Hits 7468
+ROOT 23 (16 steps): Hits 173638
+ROOT 25 (16 steps): Hits 189474
+ROOT 95 (3 steps): Hits 10526
+ROOT 361 (8 steps): Hits 26039
+ROOT 437 (8 steps): Hits 4863
+ROOT 3553 (44 steps): Hits 1717
+ROOT 6593 (44 steps): Hits 2018
+
+Analysis for {3,97}
+Total Roots: 3
+ROOT 1 (24 steps): Hits 494847
+ROOT 13 (12 steps): Hits 494844
+ROOT 97 (3 steps): Hits 10309
+
+Analysis for {3,99}
+Total Roots: 3
+ROOT 9 (8 steps): Hits 197666
+ROOT 99 (3 steps): Hits 90909
+ROOT 117 (22 steps): Hits 711425
