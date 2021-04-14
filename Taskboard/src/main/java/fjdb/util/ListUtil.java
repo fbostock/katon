@@ -1,7 +1,5 @@
 package fjdb.util;
 
-import sun.awt.SunHints;
-
 import java.util.List;
 
 /**

@@ -46,7 +46,7 @@
     </build>
     <modules>
         <module>Taskboard</module>
-        <module>crypt</module>
+<!--        <module>crypt</module>-->
     </modules>
 
     <properties>
@@ -66,6 +66,12 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>19.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>11</version>
         </dependency>
 
         <dependency>

@@ -12,7 +12,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
-import javafx.scene.media.AudioClip;
+//import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
@@ -35,6 +35,7 @@ public class FamilyFortunes extends Application {
         Polygon triangle = new Polygon();
         double height = small ? 130.0 : 180;
         triangle.getPoints().addAll(0.0, 0.0, 100.0, height, 50.0, height / 2, 100.0, 0.0, 0.0, height, 50.0, height / 2);
+        triangle.setFill(Color.WHITE);
         triangle.setFill(Color.WHITE);
         triangle.setStroke(Color.YELLOW);
         triangle.setStrokeWidth(10.0);
@@ -248,8 +249,8 @@ public class FamilyFortunes extends Application {
 
     private static void playClip(String file) {
         URL clip = FamilyFortunes.class.getResource(file);
-        AudioClip mApplause = new AudioClip(clip.toExternalForm());
-        mApplause.play();
+//        AudioClip mApplause = new AudioClip(clip.toExternalForm());
+//        mApplause.play();
     }
     /*
     Grid needs to be 10 by 30
@@ -430,12 +431,12 @@ public class FamilyFortunes extends Application {
 
     private static class Audio {
 
-        private final AudioClip mApplause;
+//        private final AudioClip mApplause;
         private boolean playing = false;
 
         public Audio(String file) {
             URL clip = FamilyFortunes.class.getResource(file);
-            mApplause = new AudioClip(clip.toExternalForm());
+//            mApplause = new AudioClip(clip.toExternalForm());
         }
 
         public boolean isPlaying() {
@@ -452,12 +453,12 @@ public class FamilyFortunes extends Application {
 
         public void play() {
             playing = true;
-            mApplause.play();
+//            mApplause.play();
         }
 
         public void stop() {
             playing = false;
-            mApplause.stop();
+//            mApplause.stop();
         }
     }
 }
