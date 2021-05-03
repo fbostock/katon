@@ -82,6 +82,7 @@ programs' performance change over time with changes in engines etc. If a new cha
 
 
     public Dao() {
+        super(DatabaseAccess.TRADE_ACCESS);
         columns = new Columns();
     }
 
@@ -120,7 +121,7 @@ programs' performance change over time with changes in engines etc. If a new cha
     }
 
     private String getColumns() {
-        return "TRADETYPE, INSTRUMENT VARCHAR(256), TRADE_DATE DATE, QUANTITY DOUBLE, PRICE DOUBLE, CURRENCY VARCHAR(3), FIXING DOUBLE";
+        return "TRADETYPE VARCHAR(32), INSTRUMENT VARCHAR(256), TRADE_DATE DATE, QUANTITY DOUBLE, PRICE DOUBLE, CURRENCY VARCHAR(3), FIXING DOUBLE";
     }
 
     public void setup() {

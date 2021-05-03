@@ -13,6 +13,11 @@ public class MealPlanner {
     Possible features
     A way to modify a meal - e.g. the meals represent templates, which can be modified, like taking the
     template pella recipe (with chorizo and chicken) and swapping the chicken for prawns.
+
+    Dishes should have tags e.g. breakfast, brunch
+
+    A Meal would be a Dish for a particular time/day, with potential modifications to the default Dish.
+    e.g. Paella but with prawns instead of chicken.
      */
     public static void main(String[] args) {
         //TODO make meal list, add dialog showing list of five meals.
@@ -22,13 +27,13 @@ public class MealPlanner {
 
 
     public static void launch() {
-        List<Meal> meals = Lists.newArrayList();
-        meals.add(new Meal("Chilli con carne"));
-        meals.add(new Meal("Lasagne"));
-        meals.add(new Meal("Paella"));
-        meals.add(new Meal("Pizza"));
-        meals.add(new Meal("Takeaway"));
-        meals.add(new Meal("Leftovers"));
+        List<Dish> meals = Lists.newArrayList();
+        meals.add(new Dish("Chilli con carne", ""));
+        meals.add(new Dish("Lasagne", ""));
+        meals.add(new Dish("Paella", ""));
+        meals.add(new Dish("Pizza", ""));
+        meals.add(new Dish("Takeaway", ""));
+        meals.add(new Dish("Leftovers", ""));
 
         List<String> columnNames = Lists.newArrayList("Meal","Description");
         JTable table = new JTable(new AbstractTableModel() {
@@ -50,7 +55,7 @@ public class MealPlanner {
             @Override
             public Object getValueAt(int rowIndex, int columnIndex) {
                 if (columnIndex == 0) {
-                    return meals.get(rowIndex).name;
+                    return meals.get(rowIndex).getName();
                 } else if (columnIndex == 1) {
                     return "";
                 }
@@ -69,20 +74,11 @@ public class MealPlanner {
     }
 
 
-    private static class Meal {
-        private String name;
+    private static class Leftovers extends Dish {
+        private Dish parent;
 
-        public Meal(String name) {
-            this.name = name;
-        }
-
-    }
-
-    private static class Leftovers extends Meal {
-        private Meal parent;
-
-        public Leftovers(Meal parent) {
-            super(parent.name + " leftovers");
+        public Leftovers(Dish parent) {
+            super(parent.getName() + " leftovers", parent.getDescription());
             this.parent = parent;
         }
     }

@@ -10,8 +10,10 @@ public class DatabaseConnection {
 
     //TODO pass in this from a main settings class where the user can configure the database storage file.
     private static final String sqlSource = "BOST.sql";
-    private static DatabaseConnection instance = new DatabaseConnection();
+    private static final DatabaseConnection instance = new DatabaseConnection(sqlSource);
 
+    //TODO deprecate
+    @Deprecated //users should use the public constructor to pass in the DatabaseAccess
     public static DatabaseConnection getInstance() {
         return instance;
     }
@@ -19,11 +21,15 @@ public class DatabaseConnection {
     private Connection connection;
 
 
-    private DatabaseConnection() {
-        makeConnection();
+    public DatabaseConnection(String sqlSource) {
+        makeConnection(sqlSource);
     }
 
-    private Connection makeConnection() {
+    public DatabaseConnection(DatabaseAccess access) {
+        makeConnection(access.getSqlSource());
+    }
+
+    private Connection makeConnection(String sqlSource) {
         connection = null;
         try {
             Class.forName("org.hsqldb.jdbcDriver").newInstance();
