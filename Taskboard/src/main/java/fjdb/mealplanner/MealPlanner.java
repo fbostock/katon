@@ -35,6 +35,8 @@ public class MealPlanner {
         meals.add(new Dish("Takeaway", ""));
         meals.add(new Dish("Leftovers", ""));
 
+        List<Dish> dishes = new DishLoader().loadDishes();
+        meals.addAll(dishes);
         List<String> columnNames = Lists.newArrayList("Meal","Description");
         JTable table = new JTable(new AbstractTableModel() {
             @Override
@@ -57,7 +59,7 @@ public class MealPlanner {
                 if (columnIndex == 0) {
                     return meals.get(rowIndex).getName();
                 } else if (columnIndex == 1) {
-                    return "";
+                    return meals.get(rowIndex).getDescription();
                 }
                 return null;
             }

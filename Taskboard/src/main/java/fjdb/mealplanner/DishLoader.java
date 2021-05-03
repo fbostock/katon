@@ -16,12 +16,15 @@ public class DishLoader {
 
     /*
     TODO list
+    - Add ability to edit meals from table
+        + Add method to DishDao to update dish entries in db.
+        + wire in method to dish table, ensuring table is updated.
     - Rename Dao to TradeDao
     - Extract Column classes from Dao class
     - Add abstract layer between AbstractSqlDao and Dao (TradeDao) to handle Columns
     -
-    -
-    -
+    - Add method to delete entry from DishDao.
+    - Refactor DishDao to use column machinery. 
     -
     - (having created a table for Meals) configure the path so that the working directory can be a folder on the desktop
     or anywhere else.
@@ -72,6 +75,17 @@ public class DishLoader {
         //Need to check tables exist before writing them, having loaded the file in the first place.
         dao.shutdown();
 
+    }
+
+    public List<Dish> loadDishes() {
+        List<Dish> dishes = Lists.newArrayList();
+        DatabaseAccess access = new DatabaseAccess("Meals.sql");
+        DishDao dao = new DishDao(access);
+        List<List<Object>> stuff = dao.debugLoad();
+        for (List<Object> objects : stuff) {
+            dishes.add(new Dish(objects.get(1).toString(), objects.get(2).toString()));
+        }
+        return dishes;
     }
 
     private static class DishDao extends AbstractSqlDao {
