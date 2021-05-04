@@ -9,6 +9,15 @@ public class Dish {
         this.description = description;
     }
 
+    /**
+     * Copy constructor
+     * @param oldDish
+     */
+    public Dish(Dish oldDish) {
+        this.name = oldDish.name;
+        this.description = oldDish.description;
+    }
+
     public String getName() {
         return name;
     }

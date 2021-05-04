@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Currency;
@@ -21,6 +22,9 @@ public abstract class AbstractSqlDao {
 
 //    TODO should the DatabaseConnection live in here?
 
+    /**
+     * Constructors should not throw Sql exceptions. that should be down to methods only.
+     */
     public AbstractSqlDao(DatabaseAccess access) {
         sqlResolver = new SqlResolver();
         databaseConnection = new DatabaseConnection(access);
@@ -174,6 +178,20 @@ public abstract class AbstractSqlDao {
             e.printStackTrace();
         }
         return lineItems;
+    }
+
+    protected abstract String createTable();
+
+    public boolean writeTable() {
+        try {
+            Statement stmt = getDatabaseConnection().createStatement();
+            String table = createTable();
+            stmt.execute(table);
+            stmt.close();
+        } catch (SQLException throwables) {
+            return false;
+        }
+        return true;
     }
 
     public Boolean checkTableExists() throws SQLException {
