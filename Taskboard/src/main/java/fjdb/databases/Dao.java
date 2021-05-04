@@ -5,18 +5,13 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import fjdb.pnl.Trade;
-import fjdb.pnl.TradeId;
 import fjdb.pnl.TradeType;
-import fjdb.util.DateTimeUtil;
 import fjdb.util.SqlUtil;
 
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import java.util.Map;
 
@@ -294,152 +289,5 @@ programs' performance change over time with changes in engines etc. If a new cha
         }
     }
 
-
-    /**
-     *
-     * @param <V> The user object
-     * @param <X> The data type used to store V in the database
-     */
-    static abstract class AbstractColumn<V, X> {
-        private String dbName;
-
-        protected AbstractColumn(String dbName) {
-            this.dbName = dbName;
-        }
-        public abstract V get(ResultSet rs, int index) throws SQLException;
-        public abstract X dbElement(V input);
-
-        @Override
-        public String toString() {
-            return dbName;
-        }
-
-        public String getName() {
-            return dbName;
-        }
-    }
-
-    static class IntColumn extends AbstractColumn<Integer, Integer> {
-
-        protected IntColumn(String dbName) {
-            super(dbName);
-        }
-
-        @Override
-        public Integer get(ResultSet rs, int index) throws SQLException {
-            return rs.getInt(index);
-        }
-
-        @Override
-        public Integer dbElement(Integer input) {
-            return input;
-        }
-    }
-
-    static class DoubleColumn extends AbstractColumn<Double, Double> {
-
-        protected DoubleColumn(String dbName) {
-            super(dbName);
-        }
-
-        @Override
-        public Double get(ResultSet rs, int index) throws SQLException {
-            return rs.getDouble(index);
-        }
-
-        @Override
-        public Double dbElement(Double input) {
-            return input;
-        }
-    }
-
-    static class CurrencyColumn extends AbstractColumn<Currency, String> {
-
-        protected CurrencyColumn(String dbName) {
-            super(dbName);
-        }
-
-        @Override
-        public Currency get(ResultSet rs, int index) throws SQLException {
-            return Currency.getInstance(rs.getString(index));
-        }
-
-        @Override
-        public String dbElement(Currency input) {
-            return input.getCurrencyCode();
-        }
-    }
-
-    static class StringColumn extends AbstractColumn<String, String> {
-
-        protected StringColumn(String dbName) {
-            super(dbName);
-        }
-
-        @Override
-        public String get(ResultSet rs, int index) throws SQLException {
-            return rs.getString(index);
-        }
-
-        @Override
-        public String dbElement(String input) {
-            return input;
-        }
-
-    }
-
-    static class DateColumn extends AbstractColumn<LocalDate, Date> {
-
-        protected DateColumn(String dbName) {
-            super(dbName);
-        }
-
-        @Override
-        public LocalDate get(ResultSet rs, int index) throws SQLException {
-            return DateTimeUtil.date(rs.getDate(index));
-        }
-
-        @Override
-        public Date dbElement(LocalDate input) {
-            return DateTimeUtil.makeDate(input);
-        }
-    }
-
-    static class TradeIdColumn extends AbstractColumn<TradeId, Integer> {
-
-        protected TradeIdColumn(String dbName) {
-            super(dbName);
-        }
-
-        @Override
-        public TradeId get(ResultSet rs, int index) throws SQLException {
-            return new TradeId(rs.getInt(index));
-        }
-
-        @Override
-        public Integer dbElement(TradeId input) {
-            return input.getId();
-        }
-    }
-
-    static class TypeColumn<T extends Enum<T>> extends AbstractColumn<T, String> {
-
-        private final Class<T> clazz;
-
-        protected TypeColumn(Class<T> clazz, String dbName) {
-            super(dbName);
-            this.clazz = clazz;
-        }
-
-        @Override
-        public T get(ResultSet rs, int index) throws SQLException {
-            return Enum.valueOf(clazz, rs.getString(index));
-        }
-
-        @Override
-        public String dbElement(T input) {
-            return input.name();
-        }
-    }
 
 }
