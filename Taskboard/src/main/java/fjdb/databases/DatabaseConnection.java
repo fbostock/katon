@@ -25,7 +25,7 @@ public class DatabaseConnection {
 
     public DatabaseConnection(String sqlSource) {
         makeConnection(sqlSource);
-        CleanUtils.getCleaner().register(this, () -> {
+        CleanUtils.register(this, () -> {
             try {
                 connection.close();
             } catch (SQLException throwables) {

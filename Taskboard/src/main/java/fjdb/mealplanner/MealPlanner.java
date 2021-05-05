@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.util.List;
+import java.util.Map;
 
 public class MealPlanner {
 
@@ -19,21 +20,19 @@ public class MealPlanner {
     A Meal would be a Dish for a particular time/day, with potential modifications to the default Dish.
     e.g. Paella but with prawns instead of chicken.
      */
-    public static void main(String[] args) {
-        //TODO make meal list, add dialog showing list of five meals.
-        launch();
 
+    public static void main(String[] args) {
+        Map<String, String> getenv = System.getenv();
+        for (Map.Entry<String, String> entry : getenv.entrySet()) {
+            System.out.println(String.format("KEY %s \t\t VALUE %s", entry.getKey(), entry.getValue()));
+        }
+
+        launch();
     }
 
 
     public static void launch() {
         List<Dish> meals = Lists.newArrayList();
-//        meals.add(new Dish("Chilli con carne", ""));
-//        meals.add(new Dish("Lasagne", ""));
-//        meals.add(new Dish("Paella", ""));
-//        meals.add(new Dish("Pizza", ""));
-//        meals.add(new Dish("Takeaway", ""));
-//        meals.add(new Dish("Leftovers", ""));
         meals.add(new Leftovers(new StubDish()));
 
         DishLoader dishLoader = new DishLoader();
@@ -71,10 +70,10 @@ public class MealPlanner {
     }
 
     private static class DishModel extends AbstractTableModel {
-        private List<String> columnNames;
-        private List<Dish> initialDishes;
-        private List<Dish> dishes = Lists.newArrayList();
-        private DishLoader dishLoader;
+        private final List<String> columnNames;
+        private final List<Dish> initialDishes;
+        private final List<Dish> dishes = Lists.newArrayList();
+        private final DishLoader dishLoader;
 
         public DishModel(List<String> columnNames, List<Dish> initialDishes, DishLoader dishLoader) {
             this.columnNames = columnNames;
@@ -113,7 +112,6 @@ public class MealPlanner {
         }
 
 
-
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             if (columnIndex == 0) {
@@ -130,12 +128,12 @@ public class MealPlanner {
             Dish newDish;
             if (columnIndex == 0) {
                 newDish = new Dish(oldDish.getId(), aValue.toString(), oldDish.getDescription());
-            } else if (columnIndex ==1) {
+            } else if (columnIndex == 1) {
                 newDish = new Dish(oldDish.getId(), oldDish.getName(), aValue.toString());
             } else {
                 return;
             }
-            dishLoader.updateDish(newDish, oldDish);
+            dishLoader.updateDish(newDish);
             refresh();
         }
     }
@@ -148,11 +146,15 @@ public class MealPlanner {
     }
 
     private static class Leftovers extends Dish {
-        private Dish parent;
+        private final Dish parent;
 
         public Leftovers(Dish parent) {
             super(parent.getName() + " leftovers", parent.getDescription());
             this.parent = parent;
+        }
+
+        public Dish getParent() {
+            return parent;
         }
     }
 }

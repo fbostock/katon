@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public class DateColumn extends AbstractColumn<LocalDate, Date> {
 
     public DateColumn(String dbName) {
-        super(dbName);
+        super(dbName, "DATE");
     }
 
     @Override

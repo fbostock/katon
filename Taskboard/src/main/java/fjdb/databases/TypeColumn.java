@@ -7,8 +7,8 @@ public class TypeColumn<T extends Enum<T>> extends AbstractColumn<T, String> {
 
     private final Class<T> clazz;
 
-    public TypeColumn(Class<T> clazz, String dbName) {
-        super(dbName);
+    public TypeColumn(Class<T> clazz, String dbName, String dbType) {
+        super(dbName, dbType);
         this.clazz = clazz;
     }
 

@@ -6,10 +6,10 @@ import java.util.function.Function;
 
 public class IdColumn<I extends DataId> extends AbstractColumn<I, Integer>{
 
-    private Function<Integer, I> idMaker;
+    private final Function<Integer, I> idMaker;
 
     public IdColumn(String dbName, Function<Integer, I> idMaker) {
-        super(dbName);
+        super(dbName, "INT");
         this.idMaker = idMaker;
     }
 

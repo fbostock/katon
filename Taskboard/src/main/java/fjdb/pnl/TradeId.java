@@ -1,22 +1,19 @@
 package fjdb.pnl;
 
-import fjdb.databases.Id;
+import fjdb.databases.DataId;
 
 /**
  * Created by francisbostock on 29/10/2017.
  */
-public class TradeId extends Id {
+public class TradeId extends DataId {
 
-    public static final TradeId NULL  = new TradeId(-1);
+    public static final TradeId NULL = new TradeId(-1);
 
     private final int id;
 
     public TradeId(int id) {
+        super(id);
         this.id = id;
-    }
-
-    public int getId() {
-        return id;
     }
 
     @Override
@@ -27,8 +24,4 @@ public class TradeId extends Id {
         return id == tradeId.id;
     }
 
-    @Override
-    public int hashCode() {
-        return id;
-    }
 }

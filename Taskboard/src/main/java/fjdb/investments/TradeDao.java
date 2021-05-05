@@ -1,27 +1,20 @@
 package fjdb.investments;
 
-import com.google.common.base.Functions;
-import com.google.common.base.Joiner;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import fjdb.databases.*;
 import fjdb.pnl.Trade;
 import fjdb.pnl.TradeType;
-import fjdb.util.SqlUtil;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by francisbostock on 01/10/2017.
  */
-public class TradeDao extends AbstractSqlDao implements DaoIF<Trade> {
-    private final Columns columns;
+public class TradeDao extends ColumnDao<Trade> implements DaoIF<Trade> {
+//    private final Columns1 columns;
 
     /*
 
@@ -79,8 +72,8 @@ programs' performance change over time with changes in engines etc. If a new cha
 
 
     public TradeDao() {
-        super(DatabaseAccess.TRADE_ACCESS);
-        columns = new Columns();
+        super(DatabaseAccess.TRADE_ACCESS, Columns1.of());
+//        columns = Columns1.of();
     }
 
     /*
@@ -90,14 +83,15 @@ programs' performance change over time with changes in engines etc. If a new cha
      */
 
     public List<Trade> load() {
-        List<Trade> trades = new ArrayList<>();
-        try {
-            String selectQuery = "SELECT * FROM " + getTableName();
-            trades.addAll(doSelect(selectQuery, new ArrayList<>(), columns::handle));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return trades;
+        return super.load();
+//        List<Trade> trades = new ArrayList<>();
+//        try {
+//            String selectQuery = "SELECT * FROM " + getTableName();
+//            trades.addAll(doSelect(selectQuery, new ArrayList<>(), columns::handle));
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return trades;
     }
 
 
@@ -131,10 +125,10 @@ programs' performance change over time with changes in engines etc. If a new cha
         }
     }
 
-    private String getColumnLabels() {
-        return columns.getColumnLabels();
-//        return "INSTRUMENT, TRADE_DATE, QUANTITY, PRICE, CURRENCY, FIXING";
-    }
+//    private String getColumnLabels() {
+//        return columns.getColumnLabels();
+////        return "INSTRUMENT, TRADE_DATE, QUANTITY, PRICE, CURRENCY, FIXING";
+//    }
 
 
     /*
@@ -154,134 +148,166 @@ programs' performance change over time with changes in engines etc. If a new cha
     various other properties such as visible, editable etc. for table displays.
 
      */
-    private static class Columns {
-        private final List<AbstractColumn> columns = new ArrayList<>();
+
+    private static class Columns1 extends ColumnGroup<Trade> {
+
         private final TradeIdColumn idColumn;
-        private final StringColumn instrumentColumn;
-        private final CurrencyColumn currencyColumn;
-        private final DateColumn tradeDateColumn;
-        private final DoubleColumn quantityColumn;
-        private final DoubleColumn priceColumn;
-        private final DoubleColumn fixingColumn;
-        private final Map<AbstractColumn, Integer> columnIntegerMap;
-        private final TypeColumn<TradeType> tradetype;
+        private final StringColumn instrumentColumn = new StringColumn("INSTRUMENT", "VARCHAR(256)");
+        private final CurrencyColumn currencyColumn = new CurrencyColumn("CURRENCY");
+        private final DateColumn tradeDateColumn = new DateColumn("TRADE_DATE");
+        private final DoubleColumn quantityColumn = new DoubleColumn("QUANTITY");
+        private final DoubleColumn priceColumn = new DoubleColumn("PRICE");
+        private final DoubleColumn fixingColumn = new DoubleColumn("FIXING");
+        private final TypeColumn<TradeType> tradetype = new TypeColumn<>(TradeType.class, "TRADETYPE", "VARCHAR (32)");
 
-        //TODO pass in the id column in the constructor? Or have a builder which has a setIdColumn method, as well as
-        //addColumn method which adds the column to the columnInt map as well as columns list.
-        public Columns() {
-            idColumn = new TradeIdColumn("id");
-            tradetype = new TypeColumn<>(TradeType.class, "TRADETYPE");
-            instrumentColumn = new StringColumn("INSTRUMENT");
-            tradeDateColumn = new DateColumn("TRADE_DATE");
-            quantityColumn = new DoubleColumn("QUANTITY");
-            priceColumn = new DoubleColumn("PRICE");
-            currencyColumn = new CurrencyColumn("CURRENCY");
-            fixingColumn = new DoubleColumn("FIXING");
-//            columns.add(idColumn);
-
-            columnIntegerMap = HashBiMap.create();
-            columnIntegerMap.put(idColumn, 1);
-            addColumn(tradetype).addColumn(instrumentColumn);
-            addColumn(tradeDateColumn).addColumn(quantityColumn);
-            addColumn(priceColumn).addColumn(currencyColumn);
-            addColumn(fixingColumn);
+        public static Columns1 of() {
+            TradeIdColumn idColumn = new TradeIdColumn("ID");
+            return new Columns1(idColumn);
         }
 
-        private Columns addColumn(AbstractColumn column) {
-            columns.add(column);
-            columnIntegerMap.put(column, columnIntegerMap.size() + 1);
-            return this;
+        public Columns1(TradeIdColumn idColumn) {
+            super(idColumn);
+            this.idColumn = idColumn;
+            addColumn(instrumentColumn).addColumn(currencyColumn).addColumn(tradeDateColumn).addColumn(quantityColumn);
+            addColumn(priceColumn).addColumn(fixingColumn).addColumn(tradetype);
         }
 
+        @Override
         public Trade handle(ResultSet rs) throws SQLException {
-
-            //TODO add index in Columns class to track this
             return new Trade(resolve(idColumn, rs), resolve(tradetype, rs), resolve(instrumentColumn, rs), resolve(tradeDateColumn, rs),
-                    resolve(quantityColumn, rs), resolve(priceColumn, rs),
-                    resolve(currencyColumn, rs), resolve(fixingColumn, rs));
+                    resolve(quantityColumn, rs), resolve(priceColumn, rs), resolve(currencyColumn, rs), resolve(fixingColumn, rs));
         }
 
-        private <V> V resolve(AbstractColumn<V, ?> column, ResultSet rs) throws SQLException {
-            return column.get(rs, columnIntegerMap.get(column));
-        }
-
-        public List<Object> getTradeObjects(Trade trade) {
-            ArrayList<Object> list = Lists.newArrayList();
-//            list.add(idColumn.dbElement(trade.getId()));
-            list.add(tradetype.dbElement(trade.getType()));
-            list.add(instrumentColumn.dbElement(trade.getInstrument()));
-            list.add(tradeDateColumn.dbElement(trade.getTradeDate()));
-            list.add(quantityColumn.dbElement(trade.getQuantity()));
-            list.add(priceColumn.dbElement(trade.getPrice()));
-            list.add(currencyColumn.dbElement(trade.getCurrency()));
-            list.add(fixingColumn.dbElement(trade.getFixing()));
-            return list;
-        }
-
-        public String getColumnLabels() {
-            return Joiner.on(",").join(columns.stream().map(Functions.toStringFunction()::apply).collect(Collectors.toList()));
-        }
-
-        public int columnCount() {
-            return columns.size();
-        }
-    }
-
-    public int getColumnCount() {
-        return columns.columnCount();
-    }
-
-    private List<Object> getTradeObjects(Trade trade) {
-        return columns.getTradeObjects(trade);
-//        ArrayList<Object> list = Lists.newArrayList();
-//        list.add(trade.getInstrument());
-//        list.add(trade.getTradeDate());
-//        list.add(trade.getQuantity());
-//        list.add(trade.getPrice());
-//        list.add(trade.getCurrency());
-//        list.add(trade.getFixing());
-//        return list;
-    }
-
-    @Override
-    public void insert(Trade trade) {
-
-        try {
-            List<Object> tradeObjects = getTradeObjects(trade);
-            if (tradeObjects.size() != getColumnCount()) {
-                throw new RuntimeException(String.format("Arguments and columns different size: %s %s", tradeObjects.size(), getColumnCount()));
-            }
-            String insert = "INSERT INTO " + getTableName() + " (" + getColumnLabels() + ") values " + SqlUtil.makeQuestionMarks(getColumnCount());
-            doUpdate(insert, tradeObjects);
-        } catch (SQLException e) {
-            //TODO should propagate the exception
-            e.printStackTrace();
+        @Override
+        public List<Object> getDataItemObjects(Trade dataItem) {
+            return Lists.newArrayList(instrumentColumn.dbElement(dataItem.getInstrument()), currencyColumn.dbElement(dataItem.getCurrency()),
+                    tradeDateColumn.dbElement(dataItem.getTradeDate()), quantityColumn.dbElement(dataItem.getQuantity()),
+                    priceColumn.dbElement(dataItem.getPrice()), fixingColumn.dbElement(dataItem.getFixing()), tradetype.dbElement(dataItem.getType()));
         }
     }
 
 
-    @Override
-    public void delete(Trade trade) {
-//TODO
-    }
+//    private static class Columns {
+//        private final List<AbstractColumn> columns = new ArrayList<>();
+//        private final TradeIdColumn idColumn;
+//        private final StringColumn instrumentColumn;
+//        private final CurrencyColumn currencyColumn;
+//        private final DateColumn tradeDateColumn;
+//        private final DoubleColumn quantityColumn;
+//        private final DoubleColumn priceColumn;
+//        private final DoubleColumn fixingColumn;
+//        private final TypeColumn<TradeType> tradetype;
+//        private final Map<AbstractColumn, Integer> columnIntegerMap;
+//
+//        //TODO pass in the id column in the constructor? Or have a builder which has a setIdColumn method, as well as
+//        //addColumn method which adds the column to the columnInt map as well as columns list.
+//        public Columns() {
+//            idColumn = new TradeIdColumn("id");
+//            tradetype = new TypeColumn<>(TradeType.class, "TRADETYPE", "VARCHAR (32)");
+//            instrumentColumn = new StringColumn("INSTRUMENT", "VARCHAR(256)");
+//            tradeDateColumn = new DateColumn("TRADE_DATE");
+//            quantityColumn = new DoubleColumn("QUANTITY");
+//            priceColumn = new DoubleColumn("PRICE");
+//            currencyColumn = new CurrencyColumn("CURRENCY");
+//            fixingColumn = new DoubleColumn("FIXING");
+////            columns.add(idColumn);
+//
+//            columnIntegerMap = HashBiMap.create();
+//            columnIntegerMap.put(idColumn, 1);
+//            addColumn(tradetype).addColumn(instrumentColumn);
+//            addColumn(tradeDateColumn).addColumn(quantityColumn);
+//            addColumn(priceColumn).addColumn(currencyColumn);
+//            addColumn(fixingColumn);
+//        }
+//
+//        private Columns addColumn(AbstractColumn column) {
+//            columns.add(column);
+//            columnIntegerMap.put(column, columnIntegerMap.size() + 1);
+//            return this;
+//        }
+//
+//        public Trade handle(ResultSet rs) throws SQLException {
+//
+//            //TODO add index in Columns class to track this
+//            return new Trade(resolve(idColumn, rs), resolve(tradetype, rs), resolve(instrumentColumn, rs), resolve(tradeDateColumn, rs),
+//                    resolve(quantityColumn, rs), resolve(priceColumn, rs),
+//                    resolve(currencyColumn, rs), resolve(fixingColumn, rs));
+//        }
+//
+//        private <V> V resolve(AbstractColumn<V, ?> column, ResultSet rs) throws SQLException {
+//            return column.get(rs, columnIntegerMap.get(column));
+//        }
+//
+//        public List<Object> getTradeObjects(Trade trade) {
+//            ArrayList<Object> list = Lists.newArrayList();
+////            list.add(idColumn.dbElement(trade.getId()));
+//            list.add(tradetype.dbElement(trade.getType()));
+//            list.add(instrumentColumn.dbElement(trade.getInstrument()));
+//            list.add(tradeDateColumn.dbElement(trade.getTradeDate()));
+//            list.add(quantityColumn.dbElement(trade.getQuantity()));
+//            list.add(priceColumn.dbElement(trade.getPrice()));
+//            list.add(currencyColumn.dbElement(trade.getCurrency()));
+//            list.add(fixingColumn.dbElement(trade.getFixing()));
+//            return list;
+//        }
+//
+//        public String getColumnLabels() {
+//            return Joiner.on(",").join(columns.stream().map(Functions.toStringFunction()::apply).collect(Collectors.toList()));
+//        }
+//
+//        public int columnCount() {
+//            return columns.size();
+//        }
+//    }
 
-    @Override
-    public void update(Trade trade) {
-        try {
-            List<Object> tradeObjects = getTradeObjects(trade);
-            tradeObjects.add(trade.getId().getId());
-            List<AbstractColumn> columnList = this.columns.columns;
-            String sql = "";
-            for (AbstractColumn column : columnList) {
-                sql = column.getName() + " = ?,";
-            }
-            String insert = "UPDATE " + getTableName() + " SET (" + sql + ") WHERE " + columns.idColumn.getName() + " = ? ";
-            doUpdate(insert, tradeObjects);
-        } catch (SQLException e) {
-            //TODO should propagate the exception
-            e.printStackTrace();
-        }
-    }
+//    public int getColumnCount() {
+//
+//        return columns.columnCount();
+//    }
+
+//    private List<Object> getTradeObjects(Trade trade) {
+//        return columns.getDataItemObjects(trade);
+//    }
+
+//    @Override
+//    public void insert(Trade trade) {
+//
+//        try {
+//            List<Object> tradeObjects = getTradeObjects(trade);
+//            if (tradeObjects.size() != getColumnCount()) {
+//                throw new RuntimeException(String.format("Arguments and columns different size: %s %s", tradeObjects.size(), getColumnCount()));
+//            }
+//            String insert = "INSERT INTO " + getTableName() + " (" + getColumnLabels() + ") values " + SqlUtil.makeQuestionMarks(getColumnCount());
+//            doUpdate(insert, tradeObjects);
+//        } catch (SQLException e) {
+//            //TODO should propagate the exception
+//            e.printStackTrace();
+//        }
+//    }
+
+
+//    @Override
+//    public void delete(Trade trade) {
+////TODO
+//    }
+
+//    @Override
+//    public void update(Trade trade) {
+//        try {
+//            List<Object> tradeObjects = getTradeObjects(trade);
+//            tradeObjects.add(trade.getId().getId());
+//            List<AbstractColumn> columnList = this.columns.columns;
+//            String sql = "";
+//            for (AbstractColumn column : columnList) {
+//                sql = column.getName() + " = ?,";
+//            }
+//            String insert = "UPDATE " + getTableName() + " SET (" + sql + ") WHERE " + columns.idColumn.getName() + " = ? ";
+//            doUpdate(insert, tradeObjects);
+//        } catch (SQLException e) {
+//            //TODO should propagate the exception
+//            e.printStackTrace();
+//        }
+//    }
 
 
 }

@@ -5,8 +5,8 @@ import java.sql.SQLException;
 
 public class IntColumn extends AbstractColumn<Integer, Integer> {
 
-    public IntColumn(String dbName) {
-        super(dbName);
+    public IntColumn(String dbName, int size) {
+        super(dbName, String.valueOf(size));
     }
 
     @Override

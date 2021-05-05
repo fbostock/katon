@@ -5,10 +5,10 @@ import fjdb.pnl.TradeId;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class TradeIdColumn extends AbstractColumn<TradeId, Integer> {
+public class TradeIdColumn extends IdColumn<TradeId> {
 
     public TradeIdColumn(String dbName) {
-        super(dbName);
+        super(dbName, TradeId::new);
     }
 
     @Override

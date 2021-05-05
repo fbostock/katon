@@ -1,21 +1,23 @@
 package fjdb.pnl;
 
+import fjdb.databases.DataItemIF;
+
 import java.time.LocalDate;
 import java.util.Currency;
 
 /**
  * Created by francisbostock on 30/09/2017.
  */
-public class Trade {
+public class Trade implements DataItemIF {
 
-    private TradeId id;
-    private TradeType type;
-    private String instrument;
-    private LocalDate tradeDate;
-    private double quantity;
-    private double price;
-    private Currency currency;
-    private double fixing;
+    private final TradeId id;
+    private final TradeType type;
+    private final String instrument;
+    private final LocalDate tradeDate;
+    private final double quantity;
+    private final double price;
+    private final Currency currency;
+    private final double fixing;
 
     public Trade(TradeType type, String instrument, LocalDate tradeDate, double quantity, double price, Currency currency, double fixing) {
         this(TradeId.NULL, type, instrument, tradeDate, quantity, price, currency, fixing);

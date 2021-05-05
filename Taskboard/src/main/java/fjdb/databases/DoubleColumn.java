@@ -6,7 +6,7 @@ import java.sql.SQLException;
 public class DoubleColumn extends AbstractColumn<Double, Double> {
 
     public DoubleColumn(String dbName) {
-        super(dbName);
+        super(dbName, "DOUBLE");
     }
 
     @Override

@@ -6,7 +6,8 @@ public class CleanUtils {
 
     private static final Cleaner cleaner = Cleaner.create();
 
-    public static final Cleaner getCleaner() {
-        return cleaner;
+    public static void register(Object obj, Runnable action) {
+        cleaner.register(obj, action);
     }
+
 }
