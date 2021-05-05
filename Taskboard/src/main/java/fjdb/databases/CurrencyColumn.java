@@ -4,9 +4,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Currency;
 
-class CurrencyColumn extends AbstractColumn<Currency, String> {
+public class CurrencyColumn extends AbstractColumn<Currency, String> {
 
-    protected CurrencyColumn(String dbName) {
+    public CurrencyColumn(String dbName) {
         super(dbName);
     }
 

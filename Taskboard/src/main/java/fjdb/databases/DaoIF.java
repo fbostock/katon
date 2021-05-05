@@ -1,11 +1,16 @@
 package fjdb.databases;
 
+import java.util.List;
+
 /**
  * Created by francisbostock on 11/11/2017.
  */
 public interface DaoIF<T> {
-    void create(T data);
+    void insert(T data);
+
     void delete(T data);
+
     void update(T data);
 
+    List<T> load();
 }

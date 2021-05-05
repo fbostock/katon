@@ -1,5 +1,7 @@
 package fjdb.pnl;
 
+import fjdb.databases.Id;
+
 /**
  * Created by francisbostock on 29/10/2017.
  */

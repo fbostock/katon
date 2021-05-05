@@ -3,9 +3,9 @@ package fjdb.databases;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-class StringColumn extends AbstractColumn<String, String> {
+public class StringColumn extends AbstractColumn<String, String> {
 
-    protected StringColumn(String dbName) {
+    public StringColumn(String dbName) {
         super(dbName);
     }
 

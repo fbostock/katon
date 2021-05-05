@@ -3,11 +3,11 @@ package fjdb.databases;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-class TypeColumn<T extends Enum<T>> extends AbstractColumn<T, String> {
+public class TypeColumn<T extends Enum<T>> extends AbstractColumn<T, String> {
 
     private final Class<T> clazz;
 
-    protected TypeColumn(Class<T> clazz, String dbName) {
+    public TypeColumn(Class<T> clazz, String dbName) {
         super(dbName);
         this.clazz = clazz;
     }

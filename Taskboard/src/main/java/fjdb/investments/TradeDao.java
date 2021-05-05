@@ -1,9 +1,10 @@
-package fjdb.databases;
+package fjdb.investments;
 
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
+import fjdb.databases.*;
 import fjdb.pnl.Trade;
 import fjdb.pnl.TradeType;
 import fjdb.util.SqlUtil;
@@ -14,11 +15,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by francisbostock on 01/10/2017.
  */
-public class Dao extends AbstractSqlDao implements DaoIF<Trade> {
+public class TradeDao extends AbstractSqlDao implements DaoIF<Trade> {
     private final Columns columns;
 
     /*
@@ -46,7 +48,7 @@ programs' performance change over time with changes in engines etc. If a new cha
      */
 
     public static void main(String[] args) throws SQLException {
-        Dao dao = new Dao();
+        TradeDao tradeDao = new TradeDao();
 //        dao.setup();
 //        DatabaseConnection.setupDatabase(Lists.newArrayList(dao));
 //        dao.create(new Trade(TradeType.ETF, "VSUD", LocalDate.of(2017, 9, 25), 550, 47.437, Currency.getInstance("USD"), 1.12));
@@ -61,7 +63,7 @@ programs' performance change over time with changes in engines etc. If a new cha
 //        DateTimeFormatter.ofPattern("yyyyMMdd").
 //dao.setup();
 
-        List<Trade> trades = dao.load();
+        List<Trade> trades = tradeDao.load();
         for (Trade trade : trades) {
             System.out.println(trade);
         }
@@ -76,7 +78,7 @@ programs' performance change over time with changes in engines etc. If a new cha
      */
 
 
-    public Dao() {
+    public TradeDao() {
         super(DatabaseAccess.TRADE_ACCESS);
         columns = new Columns();
     }
@@ -91,19 +93,12 @@ programs' performance change over time with changes in engines etc. If a new cha
         List<Trade> trades = new ArrayList<>();
         try {
             String selectQuery = "SELECT * FROM " + getTableName();
-            trades.addAll(doSelect(selectQuery, new ArrayList<>(), new ResultHandler<Trade>() {
-
-                @Override
-                public Trade handle(ResultSet rs) throws SQLException {
-                    return columns.handle(rs);
-                }
-            }));
+            trades.addAll(doSelect(selectQuery, new ArrayList<>(), columns::handle));
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return trades;
     }
-
 
 
     public String getTableName() {
@@ -126,12 +121,11 @@ programs' performance change over time with changes in engines etc. If a new cha
     }
 
     public void setup() {
-        try{
+        try {
             Statement stmt = DatabaseConnection.getInstance().createStatement();
             stmt.execute(createDB());
             stmt.close();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             System.out.println("Exception: " + e);
             e.printStackTrace();
         }
@@ -195,16 +189,16 @@ programs' performance change over time with changes in engines etc. If a new cha
 
         private Columns addColumn(AbstractColumn column) {
             columns.add(column);
-            columnIntegerMap.put(column, columnIntegerMap.size()+1);
+            columnIntegerMap.put(column, columnIntegerMap.size() + 1);
             return this;
         }
 
         public Trade handle(ResultSet rs) throws SQLException {
 
             //TODO add index in Columns class to track this
-            return new Trade(resolve(idColumn, rs), resolve(tradetype, rs), resolve(instrumentColumn,rs), resolve(tradeDateColumn, rs),
-                   resolve(quantityColumn,rs), resolve(priceColumn,rs),
-                    resolve(currencyColumn,rs), resolve(fixingColumn,rs));
+            return new Trade(resolve(idColumn, rs), resolve(tradetype, rs), resolve(instrumentColumn, rs), resolve(tradeDateColumn, rs),
+                    resolve(quantityColumn, rs), resolve(priceColumn, rs),
+                    resolve(currencyColumn, rs), resolve(fixingColumn, rs));
         }
 
         private <V> V resolve(AbstractColumn<V, ?> column, ResultSet rs) throws SQLException {
@@ -225,7 +219,7 @@ programs' performance change over time with changes in engines etc. If a new cha
         }
 
         public String getColumnLabels() {
-            return Joiner.on(",").join(Lists.transform(columns, Functions.toStringFunction()));
+            return Joiner.on(",").join(columns.stream().map(Functions.toStringFunction()::apply).collect(Collectors.toList()));
         }
 
         public int columnCount() {
@@ -238,7 +232,7 @@ programs' performance change over time with changes in engines etc. If a new cha
     }
 
     private List<Object> getTradeObjects(Trade trade) {
-       return columns.getTradeObjects(trade);
+        return columns.getTradeObjects(trade);
 //        ArrayList<Object> list = Lists.newArrayList();
 //        list.add(trade.getInstrument());
 //        list.add(trade.getTradeDate());
@@ -250,14 +244,14 @@ programs' performance change over time with changes in engines etc. If a new cha
     }
 
     @Override
-    public void create(Trade trade) {
+    public void insert(Trade trade) {
 
         try {
             List<Object> tradeObjects = getTradeObjects(trade);
             if (tradeObjects.size() != getColumnCount()) {
                 throw new RuntimeException(String.format("Arguments and columns different size: %s %s", tradeObjects.size(), getColumnCount()));
             }
-            String insert = "INSERT INTO "+ getTableName() +" (" + getColumnLabels() + ") values " + SqlUtil.makeQuestionMarks(getColumnCount());
+            String insert = "INSERT INTO " + getTableName() + " (" + getColumnLabels() + ") values " + SqlUtil.makeQuestionMarks(getColumnCount());
             doUpdate(insert, tradeObjects);
         } catch (SQLException e) {
             //TODO should propagate the exception
@@ -268,7 +262,7 @@ programs' performance change over time with changes in engines etc. If a new cha
 
     @Override
     public void delete(Trade trade) {
-
+//TODO
     }
 
     @Override
@@ -281,7 +275,7 @@ programs' performance change over time with changes in engines etc. If a new cha
             for (AbstractColumn column : columnList) {
                 sql = column.getName() + " = ?,";
             }
-            String insert = "UPDATE "+ getTableName() +" SET (" + sql + ") WHERE " + columns.idColumn.getName() + " = ? ";
+            String insert = "UPDATE " + getTableName() + " SET (" + sql + ") WHERE " + columns.idColumn.getName() + " = ? ";
             doUpdate(insert, tradeObjects);
         } catch (SQLException e) {
             //TODO should propagate the exception

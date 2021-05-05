@@ -1,5 +1,8 @@
 package fjdb.databases;
 
+import fjdb.CleanUtils;
+import fjdb.investments.TradeDao;
+
 import java.sql.*;
 import java.util.List;
 
@@ -20,13 +23,19 @@ public class DatabaseConnection {
 
     private Connection connection;
 
-
     public DatabaseConnection(String sqlSource) {
         makeConnection(sqlSource);
+        CleanUtils.getCleaner().register(this, () -> {
+            try {
+                connection.close();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        });
     }
 
     public DatabaseConnection(DatabaseAccess access) {
-        makeConnection(access.getSqlSource());
+        this(access.getSqlSource());
     }
 
     private Connection makeConnection(String sqlSource) {
@@ -48,29 +57,23 @@ public class DatabaseConnection {
      * Creates the tables for all the daos
      * TODO add an option to check for the presence of the table, and dropping if necessary or skipping if present.
      */
-    public void setupDatabase(List<Dao> daos) throws SQLException {
-        for (Dao dao : daos) {
+    public void setupDatabase(List<TradeDao> tradeDaos) throws SQLException {
+//TODO this needs to be AbstractSqlDaos, and need to decide what mechanism to use when setting up db tables.
+        for (TradeDao tradeDao : tradeDaos) {
             Statement stmt = connection.createStatement();
-            stmt.execute(dao.createDB());
+            stmt.execute(tradeDao.createDB());
         }
 //        connection.close();
 
     }
 
     public void shutdown() {
-        Statement statement = null;
         try {
-            statement = connection.createStatement();
+            Statement statement = connection.createStatement();
             statement.execute("SHUTDOWN");
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        connection.close();
     }
 
     public Statement createStatement() throws SQLException {
@@ -88,7 +91,5 @@ public class DatabaseConnection {
     public PreparedStatement prepareStatement(String sql) throws SQLException {
         return connection.prepareStatement(sql);
     }
-
-//    public void
 
 }

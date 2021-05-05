@@ -5,9 +5,9 @@ import fjdb.pnl.TradeId;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-class TradeIdColumn extends AbstractColumn<TradeId, Integer> {
+public class TradeIdColumn extends AbstractColumn<TradeId, Integer> {
 
-    protected TradeIdColumn(String dbName) {
+    public TradeIdColumn(String dbName) {
         super(dbName);
     }
 

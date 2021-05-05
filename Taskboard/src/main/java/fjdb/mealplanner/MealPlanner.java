@@ -127,11 +127,11 @@ public class MealPlanner {
         @Override
         public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
             Dish oldDish = dishes.get(rowIndex);
-            Dish newDish = null;
+            Dish newDish;
             if (columnIndex == 0) {
-                newDish = new Dish(aValue.toString(), oldDish.getDescription());
+                newDish = new Dish(oldDish.getId(), aValue.toString(), oldDish.getDescription());
             } else if (columnIndex ==1) {
-                newDish = new Dish(oldDish.getName(), aValue.toString());
+                newDish = new Dish(oldDish.getId(), oldDish.getName(), aValue.toString());
             } else {
                 return;
             }

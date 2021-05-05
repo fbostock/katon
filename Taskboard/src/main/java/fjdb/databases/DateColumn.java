@@ -7,9 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
-class DateColumn extends AbstractColumn<LocalDate, Date> {
+public class DateColumn extends AbstractColumn<LocalDate, Date> {
 
-    protected DateColumn(String dbName) {
+    public DateColumn(String dbName) {
         super(dbName);
     }
 

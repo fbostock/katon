@@ -1,4 +1,4 @@
-package fjdb.pnl;
+package fjdb.databases;
 
 /**
  * Created by francisbostock on 06/11/2017.

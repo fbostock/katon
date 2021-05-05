@@ -1,21 +1,20 @@
 package fjdb.mealplanner;
 
-public class Dish {
+import fjdb.databases.DataItemIF;
+
+public class Dish implements DataItemIF {
+    private DishId dishId;
     private final String name;
     private final String description;
 
-    public Dish(String name, String description) {
+    public Dish(DishId dishId, String name, String description) {
+        this.dishId = dishId;
         this.name = name;
         this.description = description;
     }
 
-    /**
-     * Copy constructor
-     * @param oldDish
-     */
-    public Dish(Dish oldDish) {
-        this.name = oldDish.name;
-        this.description = oldDish.description;
+    public Dish(String name, String description) {
+        this(DishId.STUB, name, description);
     }
 
     public String getName() {
@@ -24,5 +23,10 @@ public class Dish {
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public DishId getId() {
+        return dishId;
     }
 }
