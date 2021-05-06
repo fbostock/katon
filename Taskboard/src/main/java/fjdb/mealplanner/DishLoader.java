@@ -15,15 +15,10 @@ public class DishLoader {
 
     /*
     TODO list
-    - Add ability to edit meals from table
-        + Add method to DishDao to update dish entries in db.
-        + wire in method to dish table, ensuring table is updated.
-    - Rename Dao to TradeDao
-    - Extract Column classes from Dao class
-    - Add abstract layer between AbstractSqlDao and Dao (TradeDao) to handle Columns
-    -
     - Add method to delete entry from DishDao.
-    - Refactor DishDao to use column machinery. 
+    -
+    - Create a column dao structure for a table without a primary id - e.g. for storing ingredients for a dish where the table may contain a dish id and
+    an ingredient id.
     -
     - (having created a table for Meals) configure the path so that the working directory can be a folder on the desktop
     or anywhere else.
@@ -81,7 +76,7 @@ public class DishLoader {
         dao.update(dish);
     }
 
-    private static class DishDao extends ColumnDao<Dish> implements DaoIF<Dish> {
+    private static class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
 
         public DishDao(DatabaseAccess access) {
             super(access, Columns.of());
@@ -107,7 +102,7 @@ public class DishLoader {
             super.insert(dish);
         }
 
-        private static class Columns extends ColumnGroup<Dish> {
+        private static class Columns extends IdColumnGroup<Dish> {
 
             public StringColumn nameColumn = new StringColumn("NAME", "VARCHAR(256)");
             public StringColumn descriptionColumn = new StringColumn("DESCRIPTION", "VARCHAR(1024)");

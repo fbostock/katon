@@ -8,11 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class ColumnDao<T extends DataItemIF> extends AbstractSqlDao implements DaoIF<T> {
+/**
+ * A column dao based around a primary id field.
+ * @param <T>
+ */
+public abstract class IdColumnDao<T extends DataItemIF> extends AbstractSqlDao implements DaoIF<T> {
 
-    private final ColumnGroup<T> columnGroup;
+    private final IdColumnGroup<T> columnGroup;
 
-    public ColumnDao(DatabaseAccess access, ColumnGroup<T> columnGroup) {
+    public IdColumnDao(DatabaseAccess access, IdColumnGroup<T> columnGroup) {
         super(access);
         this.columnGroup = columnGroup;
     }
@@ -73,7 +77,7 @@ public abstract class ColumnDao<T extends DataItemIF> extends AbstractSqlDao imp
     }
 
 
-    public ColumnGroup<T> getColumnGroup() {
+    public IdColumnGroup<T> getColumnGroup() {
         return columnGroup;
     }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by francisbostock on 01/10/2017.
  */
-public class TradeDao extends ColumnDao<Trade> implements DaoIF<Trade> {
+public class TradeDao extends IdColumnDao<Trade> implements DaoIF<Trade> {
 //    private final Columns1 columns;
 
     /*
@@ -72,7 +72,7 @@ programs' performance change over time with changes in engines etc. If a new cha
 
 
     public TradeDao() {
-        super(DatabaseAccess.TRADE_ACCESS, Columns1.of());
+        super(DatabaseAccess.TRADE_ACCESS, Columns.of());
 //        columns = Columns1.of();
     }
 
@@ -84,14 +84,6 @@ programs' performance change over time with changes in engines etc. If a new cha
 
     public List<Trade> load() {
         return super.load();
-//        List<Trade> trades = new ArrayList<>();
-//        try {
-//            String selectQuery = "SELECT * FROM " + getTableName();
-//            trades.addAll(doSelect(selectQuery, new ArrayList<>(), columns::handle));
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//        return trades;
     }
 
 
@@ -149,7 +141,7 @@ programs' performance change over time with changes in engines etc. If a new cha
 
      */
 
-    private static class Columns1 extends ColumnGroup<Trade> {
+    private static class Columns extends IdColumnGroup<Trade> {
 
         private final TradeIdColumn idColumn;
         private final StringColumn instrumentColumn = new StringColumn("INSTRUMENT", "VARCHAR(256)");
@@ -160,12 +152,12 @@ programs' performance change over time with changes in engines etc. If a new cha
         private final DoubleColumn fixingColumn = new DoubleColumn("FIXING");
         private final TypeColumn<TradeType> tradetype = new TypeColumn<>(TradeType.class, "TRADETYPE", "VARCHAR (32)");
 
-        public static Columns1 of() {
+        public static Columns of() {
             TradeIdColumn idColumn = new TradeIdColumn("ID");
-            return new Columns1(idColumn);
+            return new Columns(idColumn);
         }
 
-        public Columns1(TradeIdColumn idColumn) {
+        public Columns(TradeIdColumn idColumn) {
             super(idColumn);
             this.idColumn = idColumn;
             addColumn(instrumentColumn).addColumn(currencyColumn).addColumn(tradeDateColumn).addColumn(quantityColumn);
@@ -185,129 +177,5 @@ programs' performance change over time with changes in engines etc. If a new cha
                     priceColumn.dbElement(dataItem.getPrice()), fixingColumn.dbElement(dataItem.getFixing()), tradetype.dbElement(dataItem.getType()));
         }
     }
-
-
-//    private static class Columns {
-//        private final List<AbstractColumn> columns = new ArrayList<>();
-//        private final TradeIdColumn idColumn;
-//        private final StringColumn instrumentColumn;
-//        private final CurrencyColumn currencyColumn;
-//        private final DateColumn tradeDateColumn;
-//        private final DoubleColumn quantityColumn;
-//        private final DoubleColumn priceColumn;
-//        private final DoubleColumn fixingColumn;
-//        private final TypeColumn<TradeType> tradetype;
-//        private final Map<AbstractColumn, Integer> columnIntegerMap;
-//
-//        //TODO pass in the id column in the constructor? Or have a builder which has a setIdColumn method, as well as
-//        //addColumn method which adds the column to the columnInt map as well as columns list.
-//        public Columns() {
-//            idColumn = new TradeIdColumn("id");
-//            tradetype = new TypeColumn<>(TradeType.class, "TRADETYPE", "VARCHAR (32)");
-//            instrumentColumn = new StringColumn("INSTRUMENT", "VARCHAR(256)");
-//            tradeDateColumn = new DateColumn("TRADE_DATE");
-//            quantityColumn = new DoubleColumn("QUANTITY");
-//            priceColumn = new DoubleColumn("PRICE");
-//            currencyColumn = new CurrencyColumn("CURRENCY");
-//            fixingColumn = new DoubleColumn("FIXING");
-////            columns.add(idColumn);
-//
-//            columnIntegerMap = HashBiMap.create();
-//            columnIntegerMap.put(idColumn, 1);
-//            addColumn(tradetype).addColumn(instrumentColumn);
-//            addColumn(tradeDateColumn).addColumn(quantityColumn);
-//            addColumn(priceColumn).addColumn(currencyColumn);
-//            addColumn(fixingColumn);
-//        }
-//
-//        private Columns addColumn(AbstractColumn column) {
-//            columns.add(column);
-//            columnIntegerMap.put(column, columnIntegerMap.size() + 1);
-//            return this;
-//        }
-//
-//        public Trade handle(ResultSet rs) throws SQLException {
-//
-//            //TODO add index in Columns class to track this
-//            return new Trade(resolve(idColumn, rs), resolve(tradetype, rs), resolve(instrumentColumn, rs), resolve(tradeDateColumn, rs),
-//                    resolve(quantityColumn, rs), resolve(priceColumn, rs),
-//                    resolve(currencyColumn, rs), resolve(fixingColumn, rs));
-//        }
-//
-//        private <V> V resolve(AbstractColumn<V, ?> column, ResultSet rs) throws SQLException {
-//            return column.get(rs, columnIntegerMap.get(column));
-//        }
-//
-//        public List<Object> getTradeObjects(Trade trade) {
-//            ArrayList<Object> list = Lists.newArrayList();
-////            list.add(idColumn.dbElement(trade.getId()));
-//            list.add(tradetype.dbElement(trade.getType()));
-//            list.add(instrumentColumn.dbElement(trade.getInstrument()));
-//            list.add(tradeDateColumn.dbElement(trade.getTradeDate()));
-//            list.add(quantityColumn.dbElement(trade.getQuantity()));
-//            list.add(priceColumn.dbElement(trade.getPrice()));
-//            list.add(currencyColumn.dbElement(trade.getCurrency()));
-//            list.add(fixingColumn.dbElement(trade.getFixing()));
-//            return list;
-//        }
-//
-//        public String getColumnLabels() {
-//            return Joiner.on(",").join(columns.stream().map(Functions.toStringFunction()::apply).collect(Collectors.toList()));
-//        }
-//
-//        public int columnCount() {
-//            return columns.size();
-//        }
-//    }
-
-//    public int getColumnCount() {
-//
-//        return columns.columnCount();
-//    }
-
-//    private List<Object> getTradeObjects(Trade trade) {
-//        return columns.getDataItemObjects(trade);
-//    }
-
-//    @Override
-//    public void insert(Trade trade) {
-//
-//        try {
-//            List<Object> tradeObjects = getTradeObjects(trade);
-//            if (tradeObjects.size() != getColumnCount()) {
-//                throw new RuntimeException(String.format("Arguments and columns different size: %s %s", tradeObjects.size(), getColumnCount()));
-//            }
-//            String insert = "INSERT INTO " + getTableName() + " (" + getColumnLabels() + ") values " + SqlUtil.makeQuestionMarks(getColumnCount());
-//            doUpdate(insert, tradeObjects);
-//        } catch (SQLException e) {
-//            //TODO should propagate the exception
-//            e.printStackTrace();
-//        }
-//    }
-
-
-//    @Override
-//    public void delete(Trade trade) {
-////TODO
-//    }
-
-//    @Override
-//    public void update(Trade trade) {
-//        try {
-//            List<Object> tradeObjects = getTradeObjects(trade);
-//            tradeObjects.add(trade.getId().getId());
-//            List<AbstractColumn> columnList = this.columns.columns;
-//            String sql = "";
-//            for (AbstractColumn column : columnList) {
-//                sql = column.getName() + " = ?,";
-//            }
-//            String insert = "UPDATE " + getTableName() + " SET (" + sql + ") WHERE " + columns.idColumn.getName() + " = ? ";
-//            doUpdate(insert, tradeObjects);
-//        } catch (SQLException e) {
-//            //TODO should propagate the exception
-//            e.printStackTrace();
-//        }
-//    }
-
 
 }

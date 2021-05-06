@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class ColumnGroup<T> {
+public abstract class IdColumnGroup<T> {
     protected final List<AbstractColumn> columns = new ArrayList<>();
     private final Map<AbstractColumn, Integer> columnIntegerMap = HashBiMap.create();
     protected AbstractColumn idColumn;
 
-    public ColumnGroup(AbstractColumn idColumn) {
+    public IdColumnGroup(AbstractColumn idColumn) {
         this.idColumn = idColumn;
         columnIntegerMap.put(idColumn, 1);
     }
 
-    public ColumnGroup<T> addColumn(AbstractColumn column) {
+    public IdColumnGroup<T> addColumn(AbstractColumn column) {
         columns.add(column);
         columnIntegerMap.put(column, columnIntegerMap.size() + 1);
         return this;
