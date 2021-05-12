@@ -3,14 +3,15 @@ package fjdb.mealplanner;
 import com.google.common.collect.Lists;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 import java.util.Vector;
+import java.util.function.Function;
 
-public class SearchSelector {
+public class SearchSelector<T> {
+    private final Function<T, String> searcher;
+    private T selectedItem;
 
     /*
     TODO
@@ -27,52 +28,43 @@ public class SearchSelector {
         JDialog dialog = new JDialog();
 
         List<Dish> dishes = new DishLoader().loadDishes();
-//        JFrame frame = new JFrame("");
         dialog.setPreferredSize(new Dimension(500, 500));
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         JPanel panel = new JPanel();
-        SearchSelector searchSelector = new SearchSelector();
-        ListSelectionListener listSelectionListener = new ListSelectionListener() {
-
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                dialog.dispose();
-                Dish selectedDish = searchSelector.getSelectedDish();
-                System.out.println("The selected dish is " + selectedDish);
-            }
+        SearchSelector<Dish> searchSelector = new SearchSelector<>(Dish::getName);
+        SelectionListener<Dish> listSelectionListener = item -> {
+            dialog.dispose();
+            Dish selectedDish = searchSelector.getSelectedItem();
+            System.out.println("The selected dish is " + selectedDish);
         };
         panel.add(searchSelector.makePanel(dishes, listSelectionListener));
         dialog.add(panel);
         dialog.pack();
         dialog.setVisible(true);
-
-
     }
 
-    private Dish selectedDish;
 
-    public Dish getSelectedDish() {
-        return selectedDish;
+    public T getSelectedItem() {
+        return selectedItem;
     }
 
-    public JPanel makePanel(List<Dish> inputDishes, ListSelectionListener selectionListener) {
+    public SearchSelector(Function<T, String> searcher) {
+        this.searcher = searcher;
+    }
+
+    public JPanel makePanel(List<T> inputItems, SelectionListener<T> selectionListener) {
         JPanel panel = new JPanel();
         JTextField field = new JTextField(20);
-        Vector<Dish> dishes = new Vector<>(inputDishes);
-        JList<Dish> list = new JList<>(dishes);
-//        list.addListSelectionListener(e -> {
-//
-//            selectedDish = list.getSelectedValue();
-//            selectionListener.valueChanged(e);
-//        });
+        Vector<T> items = new Vector<>(inputItems);
+        JList<T> list = new JList<>(items);
         list.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 Point mousePosition = list.getMousePosition();
                 int i = list.locationToIndex(mousePosition);
                 list.setSelectedIndex(i);
-                selectedDish = list.getSelectedValue();
-                selectionListener.valueChanged(null);
+                selectedItem = list.getSelectedValue();
+                selectionListener.update(selectedItem);
 
             }
         });
@@ -91,9 +83,9 @@ public class SearchSelector {
             public void keyReleased(KeyEvent e) {
                 //TODO move this to diferent thread if performance is an issue
                 String searchText = field.getText();
-                List<Dish> results = performSearch(searchText, inputDishes);
-                dishes.clear();
-                dishes.addAll(results);
+                List<T> results = performSearch(searchText, inputItems, searcher);
+                items.clear();
+                items.addAll(results);
                 list.repaint();
             }
         });
@@ -102,7 +94,7 @@ public class SearchSelector {
         panel.add(list);
         JButton ok = new JButton("OK");
         ok.addActionListener(e -> {
-            for (Dish dish : dishes) {
+            for (T dish : items) {
                 System.out.println(dish.toString());
             }
         });
@@ -110,14 +102,18 @@ public class SearchSelector {
         return panel;
     }
 
-    private static List<Dish> performSearch(String search, List<Dish> dishes) {
+    private static <T> List<T> performSearch(String search, List<T> dishes, Function<T, String> searcher) {
         String lowerCaseSearch = search.toLowerCase();
-        List<Dish> list = Lists.newArrayList();
-        for (Dish dish : dishes) {
-            if (dish.getName().toLowerCase().contains(lowerCaseSearch)) {
-                list.add(dish);
+        List<T> list = Lists.newArrayList();
+        for (T item : dishes) {
+            if (searcher.apply(item).toLowerCase().contains(lowerCaseSearch)) {
+                list.add(item);
             }
         }
         return list;
+    }
+
+    public interface SelectionListener<T> {
+        void update(T selected);
     }
 }
