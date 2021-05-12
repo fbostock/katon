@@ -43,6 +43,7 @@ public class MealPlanner {
         JFrame frame = new JFrame("");
         frame.setPreferredSize(new Dimension(500, 500));
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        JTabbedPane tabs = new JTabbedPane();
         JPanel panel = new JPanel();
         panel.add(new JScrollPane(table));
         JButton ok = new JButton("OK");
@@ -64,7 +65,9 @@ public class MealPlanner {
         });
 
         panel.add(ok);
-        frame.add(panel);
+        tabs.addTab("Dishes", panel);
+        tabs.addTab("", new MealPlanPanel());
+        frame.add(tabs);
         frame.pack();
         frame.setVisible(true);
     }
