@@ -29,4 +29,9 @@ public class Dish implements DataItemIF {
     public DishId getId() {
         return dishId;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s: %s", getName(), getDescription());
+    }
 }
