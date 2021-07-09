@@ -1,8 +1,10 @@
 package fjdb.databases;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import fjdb.util.SqlUtil;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,42 @@ public abstract class IdColumnDao<T extends DataItemIF> extends AbstractSqlDao i
             //TODO should propagate the exception
             e.printStackTrace();
         }
+    }
+
+    public DataId findId(T dataItem) {
+        IdColumn<?> idColumn = columnGroup.idColumn;
+        String idColumnName = idColumn.getName();
+        List<Object> tradeObjects = columnGroup.getDataItemObjects(dataItem);
+        String select = "SELECT " + idColumnName + " FROM " + getTableName() + " WHERE ";
+        List<String> columnNames = columnGroup.getColumnNames();
+        List<Object> args = Lists.newArrayList();
+        select += Joiner.on(" AND ").join(columnNames.stream().map(name->name + "=?").collect(Collectors.toList()));
+        for (int i = 0; i < columnNames.size(); i++) {
+            String name = columnNames.get(i);
+            Object value = tradeObjects.get(i);
+//            select += "?=?";
+//            args.add(name);
+            args.add(value);
+        }
+        try {
+//            columnGroup.idColumn.get()
+            List<DataId> ts = doSelect(select, args, new ResultHandler<DataId>() {
+                @Override
+                public DataId handle(ResultSet rs) throws SQLException {
+                    DataId resolve = columnGroup.resolve(idColumn, rs);
+                    return resolve;
+                }
+            });
+            if (ts.size() != 1) {
+                //TODO replace with warn log output
+                System.out.println(String.format("WARNING Found %s entries for %s (%s)", ts.size(), dataItem, ts));
+            } else {
+                return ts.get(0);
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return null;
     }
 
     @Override

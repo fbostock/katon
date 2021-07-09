@@ -1,6 +1,10 @@
-package fjdb.mealplanner;
+package fjdb.mealplanner.fx;
 
 import com.google.common.collect.Lists;
+import fjdb.mealplanner.DaoManager;
+import fjdb.mealplanner.Dish;
+import fjdb.mealplanner.loaders.CompositeDishLoader;
+import fjdb.mealplanner.swing.SearchSelector;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +13,8 @@ import java.util.List;
 import java.util.Vector;
 import java.util.function.Function;
 
-public class SearchSelector<T> {
+public class DishFxSelector<T> {
+
     private final Function<T, String> searcher;
     private T selectedItem;
 
@@ -27,12 +32,12 @@ public class SearchSelector<T> {
 
         JDialog dialog = new JDialog();
 
-        List<Dish> dishes = new DishLoader().loadDishes();
+        List<Dish> dishes = new CompositeDishLoader(DaoManager.PRODUCTION).getDishes();
         dialog.setPreferredSize(new Dimension(500, 500));
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         JPanel panel = new JPanel();
         SearchSelector<Dish> searchSelector = new SearchSelector<>(Dish::getName);
-        SelectionListener<Dish> listSelectionListener = item -> {
+        SearchSelector.SelectionListener<Dish> listSelectionListener = item -> {
             dialog.dispose();
             Dish selectedDish = searchSelector.getSelectedItem();
             System.out.println("The selected dish is " + selectedDish);
@@ -43,16 +48,15 @@ public class SearchSelector<T> {
         dialog.setVisible(true);
     }
 
-
     public T getSelectedItem() {
         return selectedItem;
     }
 
-    public SearchSelector(Function<T, String> searcher) {
+    public DishFxSelector(Function<T, String> searcher) {
         this.searcher = searcher;
     }
 
-    public JPanel makePanel(List<T> inputItems, SelectionListener<T> selectionListener) {
+    public JPanel makePanel(List<T> inputItems, SearchSelector.SelectionListener<T> selectionListener) {
         JPanel panel = new JPanel();
         JTextField field = new JTextField(20);
         Vector<T> items = new Vector<>(inputItems);
@@ -86,8 +90,13 @@ public class SearchSelector<T> {
                 List<T> results = performSearch(searchText, inputItems, searcher);
                 items.clear();
                 items.addAll(results);
+                list.setSelectedIndex(0);
                 list.repaint();
             }
+        });
+        field.addActionListener(e -> {
+            selectedItem = list.getSelectedValue();
+            selectionListener.update(selectedItem);
         });
 
         panel.add(field);

@@ -11,17 +11,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class IdColumnGroup<T> {
+public abstract class ColumnGroup<T> {
+
     protected final List<AbstractColumn> columns = new ArrayList<>();
     private final Map<AbstractColumn, Integer> columnIntegerMap = HashBiMap.create();
-    protected IdColumn idColumn;
 
-    public IdColumnGroup(IdColumn idColumn) {
-        this.idColumn = idColumn;
-        columnIntegerMap.put(idColumn, 1);
+    public ColumnGroup() {
+//        columnIntegerMap.put(idColumn, 1);
     }
 
-    public IdColumnGroup<T> addColumn(AbstractColumn column) {
+    public ColumnGroup<T> addColumn(AbstractColumn column) {
         columns.add(column);
         columnIntegerMap.put(column, columnIntegerMap.size() + 1);
         return this;
@@ -36,11 +35,7 @@ public abstract class IdColumnGroup<T> {
     public abstract List<Object> getDataItemObjects(T dataItem);
 
     public String getColumnLabels() {
-        return Joiner.on(",").join(getColumnNames());
-    }
-
-    public List<String> getColumnNames() {
-        return columns.stream().map(Functions.toStringFunction()::apply).collect(Collectors.toList());
+        return Joiner.on(",").join(columns.stream().map(Functions.toStringFunction()::apply).collect(Collectors.toList()));
     }
 
     public String getColumnDeclarations() {

@@ -1,5 +1,7 @@
 package fjdb.databases;
 
+import java.util.Objects;
+
 public class DatabaseAccess {
 
     //TODO this should contain or have access to the path (e.g. release directory) of the application
@@ -16,5 +18,18 @@ public class DatabaseAccess {
 
     public String getSqlSource() {
         return sqlSource;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DatabaseAccess that = (DatabaseAccess) o;
+        return Objects.equals(sqlSource, that.sqlSource);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sqlSource);
     }
 }

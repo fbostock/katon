@@ -1,6 +1,9 @@
-package fjdb.mealplanner;
+package fjdb.mealplanner.swing;
 
 import com.google.common.collect.Lists;
+import fjdb.mealplanner.DaoManager;
+import fjdb.mealplanner.Dish;
+import fjdb.mealplanner.loaders.CompositeDishLoader;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,7 +29,7 @@ public class DishSelector<T> extends JPanel {
         frame.setPreferredSize(new Dimension(500, 500));
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         JPanel panel = new JPanel();
-        panel.add(new DishSelector<>(new DishLoader().loadDishes(), Comparator.comparing(Dish::getName), Dish::getName));
+        panel.add(new DishSelector<>(new CompositeDishLoader(DaoManager.PRODUCTION).getDishes(), Comparator.comparing(Dish::getName), Dish::getName));
         frame.add(panel);
         frame.pack();
         frame.setVisible(true);

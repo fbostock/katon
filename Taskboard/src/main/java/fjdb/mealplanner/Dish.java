@@ -2,15 +2,17 @@ package fjdb.mealplanner;
 
 import fjdb.databases.DataItemIF;
 
-public class Dish implements DataItemIF {
-    private DishId dishId;
+//TODO I think we should have a Dish and DishBean, where the DishBean contains the DishId (or is mapped to it in the dao),
+//and a Dish can be equated to it.
+public class Dish implements DataItemIF, Comparable<Dish> {
+    private final DishId dishId;
     private final String name;
-    private final String description;
+    private final String details;
 
-    public Dish(DishId dishId, String name, String description) {
+    public Dish(DishId dishId, String name, String details) {
         this.dishId = dishId;
         this.name = name;
-        this.description = description;
+        this.details = details;
     }
 
     public Dish(String name, String description) {
@@ -22,7 +24,11 @@ public class Dish implements DataItemIF {
     }
 
     public String getDescription() {
-        return description;
+        return toString();
+    }
+
+    public String getDetails() {
+        return details;
     }
 
     @Override
@@ -32,6 +38,20 @@ public class Dish implements DataItemIF {
 
     @Override
     public String toString() {
-        return String.format("%s: %s", getName(), getDescription());
+        String details = getDetails();
+        if (details.isEmpty()) {
+            return String.format("%s", getName());
+        } else {
+            return String.format("%s: %s", getName(), details);
+        }
+    }
+
+    @Override
+    public int compareTo(Dish o) {
+        int result = getName().compareTo(o.getName());
+        if (result == 0) {
+            result = getDescription().compareTo(o.getDescription());
+        }
+        return result;
     }
 }

@@ -20,14 +20,12 @@ public abstract class AbstractSqlDao {
     private final SqlResolver sqlResolver;
     private final DatabaseConnection databaseConnection;
 
-//    TODO should the DatabaseConnection live in here?
-
     /**
      * Constructors should not throw Sql exceptions. that should be down to methods only.
      */
     public AbstractSqlDao(DatabaseAccess access) {
         sqlResolver = new SqlResolver();
-        databaseConnection = new DatabaseConnection(access);
+        databaseConnection = DatabaseConnection.get(access);
     }
 
     public abstract String getTableName();
@@ -150,7 +148,7 @@ public abstract class AbstractSqlDao {
                 statement.setInt(index, (Integer) object);
             } else {
                 //if all else fails. Should handle strings, ints, doubles, floats,
-                System.out.println(object.getClass());
+                System.out.println("Resolving as " + object.getClass());
                 statement.setObject(index, object);
             }
         }
@@ -188,7 +186,8 @@ public abstract class AbstractSqlDao {
             String table = createTable();
             stmt.execute(table);
             stmt.close();
-        } catch (SQLException throwables) {
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -199,6 +198,7 @@ public abstract class AbstractSqlDao {
     }
 
     public Boolean checkTableExists(String table) throws SQLException {
+        table = table.toUpperCase();
         String command = String.format("Select * From INFORMATION_SCHEMA.SYSTEM_TABLES Where TABLE_NAME = '%s'",
                 table);
 

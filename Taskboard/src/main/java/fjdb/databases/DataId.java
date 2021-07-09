@@ -25,4 +25,8 @@ public class DataId extends Id {
         return id;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getName() + ": " + id;
+    }
 }

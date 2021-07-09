@@ -14,7 +14,8 @@ public class TypeColumn<T extends Enum<T>> extends AbstractColumn<T, String> {
 
     @Override
     public T get(ResultSet rs, int index) throws SQLException {
-        return Enum.valueOf(clazz, rs.getString(index));
+        String string = rs.getString(index);
+        return Enum.valueOf(clazz, string);
     }
 
     @Override
