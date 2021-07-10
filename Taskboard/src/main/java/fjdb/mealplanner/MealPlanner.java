@@ -35,6 +35,18 @@ public class MealPlanner extends Application {
     private final DaoManager daoManager;
 
     /*
+            TODO list for Center Parcs
+            1) In this class, add another tab for the DishTagDao, and mirror the machinery for the DishHistory tab, where
+            we have a table of dishes and their tags.
+            2) Continuing from 1) - For the table, I want some generic machinery which can take a dao and its
+            columns, and automatically generate a viewable table.
+            3) Spend some time working through some TODOs scattered around, either addressing them or consolidating them
+            into this list.
+            4) Add a side panel to the meal planner containing all the dishes, and a field at the top to filter the list.
+            Also, there should be a dropdown of tags to add to the filter list. Adding a tag should add a button towards the top.
+            Clicking on that button should remove the filter/tag. Clicking on any dish in the list should automatically populate
+            the selected (or last selected) field in the table).
+
             TODO features/work
             - if dishes know what ingredients they need, you could create an "ingredients to use" list, and the planner
             suggests dishes that use that, like pesto.
@@ -60,39 +72,11 @@ public class MealPlanner extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         List<Dish> meals = Lists.newArrayList();
         meals.add(new MealPlannerTest.Leftovers(new MealPlannerTest.StubDish()));
 
         meals.addAll(new CompositeDishLoader(daoManager).getDishes());
-//        List<String> columnNames = Lists.newArrayList("Meal", "Description");
-//        MealPlanner.DishModel model = new MealPlanner.DishModel(columnNames, meals, dishLoader);
-//        JTable table = new JTable(model);
-
-//        JFrame frame = new JFrame("");
-//        frame.setPreferredSize(new Dimension(500, 500));
-//        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-//        JTabbedPane tabs = new JTabbedPane();
-//        JPanel panel = new JPanel();
-//        panel.add(new JScrollPane(table));
-//        JButton ok = new JButton("OK");
-//        ok.addActionListener(e -> {
-//            Box box = Box.createHorizontalBox();
-//            box.add(new JLabel("Name"));
-//            JTextField nameField = new JTextField();
-//            box.add(nameField);
-//            box.add(new JLabel("Description"));
-//            JTextField descriptionField = new JTextField();
-//            box.add(descriptionField);
-//
-//            int result = JOptionPane.showConfirmDialog(null, box, "Add Dish", JOptionPane.OK_CANCEL_OPTION);
-//            if (result == JOptionPane.OK_OPTION) {
-//                Dish dish = new Dish(nameField.getText(), descriptionField.getText());
-//                dishLoader.addDish(dish);
-//                model.refresh();
-//            }
-//        });
 
         ObservableList<Dish> dishList = FXCollections.observableList(meals);
         TableView<Dish> dishTableView = new TableView<>(dishList);
@@ -112,17 +96,6 @@ public class MealPlanner extends Application {
         tabPane.getTabs().add(new Tab("Configure", new MealPlanConfigurator()));
         tabPane.getTabs().add(new Tab("Meal Plan Test", new MealPlanPanel(MealPlanConfigurator.Configuration.defaultConfig(), dishList)));
         tabPane.getTabs().add(new Tab("Dish History", getDishHistoryPanel()));
-
-
-//        panel.add(ok);
-//        tabs.addTab("DB Dishes", panel);
-//        tabs.addTab("Configure a plan", new JLabel("TODO"));
-//
-//        tabs.addTab("Table Planner", new MealPlanPanel());
-//        tabs.addTab("Plan Editor", new JLabel("TODO"));
-//        frame.add(tabs);
-//        frame.pack();
-//        frame.setVisible(true);
 
         final BorderPane sceneRoot = new BorderPane();
         sceneRoot.setCenter(tabPane);
@@ -158,7 +131,6 @@ public class MealPlanner extends Application {
                 DishHistoryDao.DishEntry dataItem = new DishHistoryDao.DishEntry(dish, date);
                 dishHistoryDao.insert(dataItem);
                 dishList.add(dataItem);
-                //TODO refresh the table, and ensure it works.
                 table.refresh();
             }
         });
