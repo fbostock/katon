@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DishHistoryDao extends ColumnDao<DishHistoryDao.DishEntry> {
 
@@ -34,6 +36,11 @@ public class DishHistoryDao extends ColumnDao<DishHistoryDao.DishEntry> {
     @Override
     public String getTableName() {
         return "DISH_HISTORY";
+    }
+
+    public Map<Dish, DishEntry> dishEntries() {
+        List<DishEntry> load = load();
+        return load.stream().collect(Collectors.toMap(DishEntry::getDish, entry -> entry));
     }
 
     private static ColumnGroup<DishEntry> of(DishDao dishDao) {
