@@ -9,17 +9,24 @@ import java.util.concurrent.*;
  */
 public class Threading {
 
-    public static void run(List<Runnable> runnables) {
-        ExecutorService executorService = Executors.newFixedThreadPool(runnables.size());
+    public static int RUNTIME_THREADS = Runtime.getRuntime().availableProcessors();
+
+    public static void run(List<Runnable> runnables, int numberThreads) {
+        ExecutorService executorService = Executors.newFixedThreadPool(numberThreads);
         for (Runnable runnable : runnables) {
             executorService.submit(runnable);
         }
         try {
-            executorService.awaitTermination(10, TimeUnit.MINUTES);
             executorService.shutdown();
+            executorService.awaitTermination(10, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+    }
+
+    public static void run(List<Runnable> runnables) {
+        run(runnables, RUNTIME_THREADS);
     }
 
     /**
