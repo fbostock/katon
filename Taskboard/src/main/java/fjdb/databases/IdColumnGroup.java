@@ -29,6 +29,8 @@ public abstract class IdColumnGroup<T> {
 
     public abstract T handle(ResultSet rs) throws SQLException;
 
+    public abstract DataId handleId(ResultSet rs) throws SQLException;
+
     protected <V> V resolve(AbstractColumn<V, ?> column, ResultSet rs) throws SQLException {
         return column.get(rs, columnIntegerMap.get(column));
     }

@@ -3,9 +3,11 @@ package fjdb.mealplanner;
 import fjdb.util.Pool;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class MealPlanBuilder {
 
@@ -16,12 +18,34 @@ public class MealPlanBuilder {
         }
     };
 
+    public MealPlanBuilder() {
+    }
+
+    public MealPlanBuilder(MealPlan plan) {
+        List<LocalDate> dates = plan.getDates();
+        for (LocalDate date : dates) {
+            setDayPlan(date, plan.getPlan(date));
+        }
+    }
+
+    private void setDayPlan(LocalDate date, DayPlanIF dayPlan) {
+        setUnfreeze(date, dayPlan.getUnfreeze());
+        setCook(date, dayPlan.getToCook());
+        setBreakfast(date, dayPlan.getBreakfast());
+        setLunch(date, dayPlan.getLunch());
+        setDinner(date, dayPlan.getDinner());
+    }
+
     private MutableDayPlan getPlan(LocalDate date) {
         return mealPlan.get(date);
     }
 
     public void setBreakfast(LocalDate date, Meal breakfast) {
         getPlan(date).breakfast = breakfast;
+    }
+
+    public List<LocalDate> getDates() {
+        return mealPlan.getPool().keySet().stream().sorted().collect(Collectors.toList());
     }
 
     public void setLunch(LocalDate date, Meal lunch) {
@@ -56,11 +80,11 @@ public class MealPlanBuilder {
 
     private static class MutableDayPlan implements DayPlanIF {
 
-        private  String toCook = "";
-        private  String unfreeze = "";
-        private  Meal breakfast = Meal.stub(MealType.BREAKFAST);
-        private  Meal lunch = Meal.stub(MealType.LUNCH);
-        private  Meal dinner = Meal.stub(MealType.DINNER);
+        private String toCook = "";
+        private String unfreeze = "";
+        private Meal breakfast = Meal.stub(MealType.BREAKFAST);
+        private Meal lunch = Meal.stub(MealType.LUNCH);
+        private Meal dinner = Meal.stub(MealType.DINNER);
 
         public MutableDayPlan() {
 

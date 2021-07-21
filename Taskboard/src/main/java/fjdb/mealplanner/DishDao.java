@@ -19,6 +19,10 @@ public class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
 //    private final Map<DishId, Dish> cache = new ConcurrentHashMap<>();
     private final BiMap<DishId, Dish> idBeanMap = HashBiMap.create();
 
+    public static void main(String[] args) {
+        DishDao dishDao = new DishDao(null);
+        dishDao.insert(null);
+    }
     private final Object lock = new Object();
 
     public DishDao(DatabaseAccess access) {
@@ -91,6 +95,10 @@ public class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
             }
         }
     }
+    /*
+    We want to retrieve both the id and bean details
+     */
+
 
     private static class Columns extends IdColumnGroup<Dish> {
 
@@ -114,6 +122,11 @@ public class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
         public Dish handle(ResultSet rs) throws SQLException {
             DishId resolve = resolve(idColumn, rs);
             return new Dish(resolve, resolve(nameColumn, rs), resolve(descriptionColumn, rs));
+        }
+
+        @Override
+        public DataId handleId(ResultSet rs) throws SQLException {
+            return resolve(idColumn, rs);
         }
 
         @Override

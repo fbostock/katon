@@ -1,4 +1,4 @@
-package fjdb.maths.collatz;
+package fjdb.util;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

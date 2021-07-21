@@ -1,15 +1,19 @@
 package fjdb.mealplanner.fx;
 
+import fjdb.mealplanner.Dish;
+import fjdb.mealplanner.MealPlanManager;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 
 import java.time.LocalDate;
+import java.util.function.Consumer;
 
 public class MealPlanConfigurator extends FlowPane {
 
-    public MealPlanConfigurator() {
+    public MealPlanConfigurator(Consumer<MealPlanPanel> consumer, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
 
         //TODO a selector to define start date
         //a selector to set num days
@@ -37,6 +41,7 @@ public class MealPlanConfigurator extends FlowPane {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setContentText("Some message");
                 alert.show();
+                consumer.accept(new MealPlanPanel(configuration, dishList, mealPlanManager));
             }
         });
         getChildren().add(ok);

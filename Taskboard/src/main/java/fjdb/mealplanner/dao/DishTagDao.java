@@ -10,6 +10,7 @@ import fjdb.mealplanner.DishTag;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 
 public class DishTagDao extends ColumnDao<DishTagDao.TagEntry> {
 
@@ -28,6 +29,20 @@ public class DishTagDao extends ColumnDao<DishTagDao.TagEntry> {
     @Override
     public String getTableName() {
         return "DISH_TAG_ENTRIES";
+    }
+
+    /**
+     * Returns all known DishTags. This method retrieves them from the cached map in the DishTag class. If this dao
+     * has not previously loaded its data, then the DishTags may not all have been created, in which case users should
+     * set load to true to force all the entries in this table to be loaded, which will store the tags.
+     * @param load
+     * @return
+     */
+    public Set<DishTag> getTags(boolean load) {
+        if (load) {
+            load();
+        }
+        return DishTag.getTags();
     }
 
     private static ColumnGroup<TagEntry> of(DishDao dishDao) {

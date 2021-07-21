@@ -16,7 +16,6 @@ public class Dishes {
 
     //Breakfasts
     public static final Dish PANCAKES = of("Pancakes", "");
-    public static final Dish POACHED = of("Poached Eggs", "");
     public static final Dish SCRAMBLED = of("Scrambled Eggs", "");
     public static final Dish FRYUP = of("Fry up", "");
     //TODO a soup should be a DishWithOptions

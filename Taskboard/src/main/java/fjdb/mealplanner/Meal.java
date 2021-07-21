@@ -2,9 +2,11 @@ package fjdb.mealplanner;
 
 import fjdb.mealplanner.swing.MealPlannerTest;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class Meal {
+public class Meal implements Serializable {
+    private static final long serialVersionUID = 20210720L;
 
     //TODO we may want another object between Dish and Meal, encapsulating the Dish and some notes.
     //Then when editing a meal in the table, we would edit that object, and afterwards we can generate the meal
@@ -41,6 +43,10 @@ public class Meal {
         return notes;
     }
 
+    //TODO remove type and date from meal - it just wraps a Dish and notes.
+    //TODO modify the editor the breakfast/lunch dinner so that it is a free text field to edit, which we will
+    //attempt to interpret as a Dish and notes. If we can't parse the Dish, we should use a NULL Dish object, which
+    //should be handled accordingly e.g. display should be blank. 
     public MealType getType() {
         return type;
     }

@@ -1,19 +1,24 @@
 package fjdb.mealplanner.fx;
 
 import fjdb.mealplanner.*;
+import fjdb.util.ListUtil;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Callback;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -21,20 +26,44 @@ public class MealPlanPanel extends FlowPane {
 
     private final MealPlanBuilder mealPlanBuilder;
     private final ObservableList<Dish> dishList;
-private static final double PREFERRED_COL_WIDTH = 200.0;
+    private static final double PREFERRED_COL_WIDTH = 150.0;
 
-    public MealPlanPanel(MealPlanConfigurator.Configuration configuration, ObservableList<Dish> dishList) {
+    public MealPlanPanel(MealPlanConfigurator.Configuration configuration, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
+        this(new MealPlanBuilder(), configuration.getDate(), configuration.getDays(), dishList, mealPlanManager);
+    }
+
+    public MealPlanPanel(MealPlan mealPlan, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
+        this(new MealPlanBuilder(mealPlan), mealPlan.getStart(), mealPlan.getDates().size(), dishList, mealPlanManager);
+    }
+
+    private MealPlanPanel(MealPlanBuilder builder, LocalDate startDate, int days, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
         this.dishList = dishList;
-        LocalDate startDate = configuration.getDate();
-        int days = configuration.getDays();
-        mealPlanBuilder = new MealPlanBuilder();
-        mealPlanBuilder.setBreakfast(startDate, new Meal(Dishes.PANCAKES, MealType.BREAKFAST, startDate, ""));
-        mealPlanBuilder.setLunch(startDate, new Meal(Dishes.FRYUP, MealType.LUNCH, startDate, ""));
-        mealPlanBuilder.setDinner(startDate, new Meal(Dishes.LASAGNE, MealType.DINNER, startDate, ""));
+//        LocalDate startDate = builder.getDate();
+//        int days = configuration.getDays();
+//        mealPlanBuilder = new MealPlanBuilder();
+        mealPlanBuilder = builder;
 
-        //TODO make panel with given number of days entries.
         TableView<DatedDayPlan> dayPlansTable = new TableView<>();
-//        dayPlans.selec
+        DishListener dishListener = dish -> {
+            ObservableList<TablePosition> selectedCells = dayPlansTable.getSelectionModel().getSelectedCells();
+            for (TablePosition selectedCell : selectedCells) {
+                /* TODO
+What is the best way to know the properties of the selected cell e.g. whether it's dinner or lunch, whcih day etc.
+                 */
+                DatedDayPlan selectedItem = dayPlansTable.getSelectionModel().getSelectedItem();
+                LocalDate date = selectedItem.getDate();
+                //TODO replace magic constants.
+                if (selectedCell.getColumn() == 3) {
+                    mealPlanBuilder.setBreakfast(date, new Meal(dish, MealType.BREAKFAST, date, ""));
+                } else if (selectedCell.getColumn() == 4) {
+                    mealPlanBuilder.setLunch(date, new Meal(dish, MealType.LUNCH, date, ""));
+                } else if (selectedCell.getColumn() == 5) {
+                    mealPlanBuilder.setDinner(date, new Meal(dish, MealType.DINNER, date, ""));
+                }
+                dayPlansTable.refresh();
+            }
+
+        };
         LocalDate endDate = startDate.plusDays(days - 1);
         LocalDate date = startDate;
         while (date.isBefore(endDate)) {
@@ -47,8 +76,9 @@ private static final double PREFERRED_COL_WIDTH = 200.0;
         //required to show individual cells highlighted on their own, rather than the whole row:
         dayPlansTable.getSelectionModel().setCellSelectionEnabled(true);
 
-        TableColumn<DatedDayPlan, LocalDate> dateColumn = new TableColumn<>("Date");
-        dateColumn.setCellValueFactory(x -> Bindings.createObjectBinding(() -> x.getValue().getDate()));
+        TableColumn<DatedDayPlan, String> dateColumn = new TableColumn<>("Date");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E yyyyMMdd");
+        dateColumn.setCellValueFactory(x -> Bindings.createObjectBinding(() -> formatter.format(x.getValue().getDate())));
 
         Callback<TableColumn<DatedDayPlan, String>, TableCell<DatedDayPlan, String>> cellFactory =
                 new Callback<TableColumn<DatedDayPlan, String>, TableCell<DatedDayPlan, String>>() {
@@ -82,9 +112,9 @@ private static final double PREFERRED_COL_WIDTH = 200.0;
                 mealPlanBuilder.setCook(t.getRowValue().getDate(), t.getNewValue());
             }
         });
-        TableColumn<DatedDayPlan, Dish> breakfast = makeColumn("Breakfast", datedDayPlan->datedDayPlan.getBreakfast().getDish());
+        TableColumn<DatedDayPlan, Dish> breakfast = makeColumn("Breakfast", datedDayPlan -> datedDayPlan.getBreakfast().getDish());
         TableColumn<DatedDayPlan, Dish> lunchColumn = makeColumn("Lunch", datedDayPlan -> datedDayPlan.getLunch().getDish());
-        TableColumn<DatedDayPlan, Dish> dinner = makeColumn("Dinner", datedDayPlan->datedDayPlan.getDinner().getDish());
+        TableColumn<DatedDayPlan, Dish> dinner = makeColumn("Dinner", datedDayPlan -> datedDayPlan.getDinner().getDish());
 
 
         breakfast.setEditable(true);
@@ -97,17 +127,67 @@ private static final double PREFERRED_COL_WIDTH = 200.0;
         dinner.setCellFactory(cb -> getDishCombo(mealPlanBuilder::setDinner));
         dayPlansTable.getColumns().addAll(dateColumn, unfreeze, cook, breakfast, lunchColumn, dinner);
 
-        getChildren().add(dayPlansTable);
         Button makePlan = new Button("Make MealPlan");
         makePlan.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
                 MealPlan mealPlan = mealPlanBuilder.makePlan();
-                mealPlan.print();
+                //TODO add to MealPlanManager, and get application tabs to update.
+//                mealPlan.print();
+                mealPlanManager.addMealPlan(mealPlan);
             }
         });
-        getChildren().add(makePlan);
+        Button csvPlan = new Button("Create CSV");
+        csvPlan.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                MealPlan mealPlan = mealPlanBuilder.makePlan();
+                //TODO add to MealPlanManager, and get application tabs to update.
+                mealPlanManager.toCSV(mealPlan);
+                try {
+                    Runtime.getRuntime().exec("open " + mealPlanManager.getDirectory());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
+        FlowPane flowPane = new FlowPane(Orientation.VERTICAL);
+        flowPane.getChildren().add(dayPlansTable);
+        flowPane.getChildren().add(getDishSidePane(dishListener));
+        getChildren().add(flowPane);
+        getChildren().add(makePlan);
+        getChildren().add(csvPlan);
+
+    }
+
+    public LocalDate getStart() {
+        return ListUtil.first(mealPlanBuilder.getDates());
+    }
+
+    /*
+   Add a side panel to the meal planner containing all the dishes, and a field at the top to filter the list.
+   Also, there should be a dropdown of tags to add to the filter list. Adding a tag should add a button
+   towards the top.
+   Clicking on that button should remove the filter/tag. Clicking on any dish in the list should
+   automatically populate the selected (or last selected) field in the table).
+     */
+    private FlowPane getDishSidePane(DishListener dishListener) {
+        FlowPane flowPane = new FlowPane(Orientation.HORIZONTAL);
+        TableView<Dish> table = new TableView<>(FXCollections.observableArrayList(dishList));
+        flowPane.getChildren().add(table);
+        table.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Dish>() {
+            @Override
+            public void changed(ObservableValue<? extends Dish> observableValue, Dish oldDish, Dish newDish) {
+                dishListener.update(newDish);
+            }
+        });
+
+
+        TableColumn<Dish, String> column = new TableColumn<>("Dish");
+        column.setCellValueFactory(x -> Bindings.createObjectBinding(() -> x.getValue().getName()));
+        table.getColumns().add(column);
+        return flowPane;
     }
 
 
@@ -230,7 +310,7 @@ private static final double PREFERRED_COL_WIDTH = 200.0;
         }
     }
 
-     static class DatedDayPlan implements DayPlanIF {
+    static class DatedDayPlan implements DayPlanIF {
         final LocalDate date;
         final DayPlanIF dayPlan;
 

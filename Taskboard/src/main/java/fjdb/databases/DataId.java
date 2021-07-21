@@ -1,8 +1,9 @@
 package fjdb.databases;
 
 public class DataId extends Id {
+    private static final long serialVersionUID = 20210720L;
 
-    private int id;
+    private final int id;
 
     public DataId(int id) {
         this.id = id;

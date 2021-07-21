@@ -3,12 +3,21 @@ package fjdb.mealplanner;
 import com.google.common.collect.Lists;
 import fjdb.util.ListUtil;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-public class MealPlan {
+public class MealPlan implements Serializable {
+    private static final long serialVersionUID = 20210720L;
+
+    public static final String DATE = "Date";
+    public static final String UNFREEZE = "Unfreeze";
+    public static final String COOK = "Cook";
+    public static final String BREAKFAST = "Breakfast";
+    public static final String LUNCH = "Lunch";
+    public static final String DINNER = "Dinner";
 
     private final TreeMap<LocalDate, DayPlanIF> mealPlan;
 
@@ -34,6 +43,10 @@ public class MealPlan {
 
     public DayPlanIF getPlan(LocalDate date) {
         return mealPlan.get(date);
+    }
+
+    public String getName() {
+        return String.format("Plan-%s-%s", getStart(), getEnd());
     }
 
     public void print() {

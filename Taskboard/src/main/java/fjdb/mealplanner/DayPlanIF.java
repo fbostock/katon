@@ -1,6 +1,8 @@
 package fjdb.mealplanner;
 
-public interface DayPlanIF {
+import java.io.Serializable;
+
+public interface DayPlanIF extends Serializable {
     String getToCook();
 
     String getUnfreeze();

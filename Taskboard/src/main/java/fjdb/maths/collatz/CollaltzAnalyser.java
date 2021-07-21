@@ -1,6 +1,7 @@
 package fjdb.maths.collatz;
 
 import com.google.common.collect.Lists;
+import fjdb.util.Pool;
 
 import java.util.List;
 import java.util.Map;

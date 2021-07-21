@@ -1,6 +1,8 @@
 package fjdb.databases;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import fjdb.util.SqlUtil;
 
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
 public abstract class IdColumnDao<T extends DataItemIF> extends AbstractSqlDao implements DaoIF<T> {
 
     private final IdColumnGroup<T> columnGroup;
+    //TODO access to this needs to be protected (read/write lock?)
+    protected final BiMap<DataId, T> idBeanMap = HashBiMap.create();
 
     public IdColumnDao(DatabaseAccess access, IdColumnGroup<T> columnGroup) {
         super(access);
@@ -27,13 +31,24 @@ public abstract class IdColumnDao<T extends DataItemIF> extends AbstractSqlDao i
         List<T> dataItems = new ArrayList<>();
         try {
             String selectQuery = "SELECT * FROM " + getTableName();
-            dataItems.addAll(doSelect(selectQuery, new ArrayList<>(), columnGroup::handle));
+            dataItems.addAll(doSelect(selectQuery, new ArrayList<>(), handler()));
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return dataItems;
     }
 
+    private ResultHandler<T> handler() {
+        return rs -> {
+            DataId id = columnGroup.handleId(rs);
+            T handle = columnGroup.handle(rs);
+            idBeanMap.put(id, handle);
+            return handle;
+        };
+    }
+
+    //TODO 10 July 21: when inserting at a caching layer, we want to lock the table, do the insert, then do a findId to get the id for the item
+    //so we can store both the new item and id.
 
     @Override
     public void insert(T dataItem) {

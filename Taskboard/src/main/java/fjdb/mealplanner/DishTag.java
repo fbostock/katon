@@ -1,11 +1,12 @@
 package fjdb.mealplanner;
 
 import com.google.common.collect.ImmutableSet;
-import fjdb.maths.collatz.Pool;
+import fjdb.util.Pool;
 
+import java.util.Objects;
 import java.util.Set;
 
-public class DishTag {
+public class DishTag implements Comparable<DishTag> {
     //TODO A DishTag will be like "Lunch", "Breakfast", "Batch", "Vegan", "Meat-free", "Pasta"
     //Tags would be things you can search or categorise dishes by if you're trying to find something
     //suitable for a particular meal/occasion e.g. "we need a vegetarian dish", "a pasta dish", "a fish dish"
@@ -23,6 +24,10 @@ public class DishTag {
     public static final DishTag PASTA = of("Pasta");
     public static final DishTag VEGAN = of("Vegan");
     public static final DishTag MEATFREE = of("MeatFree");
+    /*Dishes Ivy can eat*/
+    public static final DishTag IVY = of("Ivy");
+    /*Dishes Ivy really likes*/
+    public static final DishTag IVY_FAVOURITE = of("Ivy Favourite");
 
     private final String label;
 
@@ -40,5 +45,28 @@ public class DishTag {
 
     public String getLabel() {
         return label;
+    }
+
+    @Override
+    public int compareTo(DishTag o) {
+        return getLabel().compareTo(o.getLabel());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DishTag dishTag = (DishTag) o;
+        return Objects.equals(label, dishTag.label);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(label);
+    }
+
+    @Override
+    public String toString() {
+        return getLabel();
     }
 }

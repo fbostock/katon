@@ -2,6 +2,8 @@ package fjdb.mealplanner;
 
 public class DayPlan implements DayPlanIF {
 
+    private static final long serialVersionUID = 20210720L;
+
     private final String toCook;
     private final String unfreeze;
     private final Meal breakfast;

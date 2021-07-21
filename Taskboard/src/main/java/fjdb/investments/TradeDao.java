@@ -3,6 +3,7 @@ package fjdb.investments;
 import com.google.common.collect.Lists;
 import fjdb.databases.*;
 import fjdb.pnl.Trade;
+import fjdb.pnl.TradeId;
 import fjdb.pnl.TradeType;
 
 import java.sql.ResultSet;
@@ -155,8 +156,13 @@ programs' performance change over time with changes in engines etc. If a new cha
 
         @Override
         public Trade handle(ResultSet rs) throws SQLException {
-            return new Trade(resolve(idColumn, rs), resolve(tradetype, rs), resolve(instrumentColumn, rs), resolve(tradeDateColumn, rs),
+            return new Trade((TradeId) handleId(rs), resolve(tradetype, rs), resolve(instrumentColumn, rs), resolve(tradeDateColumn, rs),
                     resolve(quantityColumn, rs), resolve(priceColumn, rs), resolve(currencyColumn, rs), resolve(fixingColumn, rs));
+        }
+
+        @Override
+        public DataId handleId(ResultSet rs) throws SQLException {
+            return resolve(idColumn, rs);
         }
 
         //TODO if we can specify the dbElement calls as lambdas when constructing the Columns, we can do away with this, or rather
