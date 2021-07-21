@@ -75,7 +75,7 @@ public class MealEditingCell extends TableCell<MealPlanPanel.DatedDayPlan, Meal>
         String text = textField.getText();
 
         //TODO add notes
-        return new Meal(dish, type, null, "");
+        return new Meal(dish,"");
     }
 
     private void createTextField() {

@@ -82,9 +82,9 @@ public class MealPlanBuilder {
 
         private String toCook = "";
         private String unfreeze = "";
-        private Meal breakfast = Meal.stub(MealType.BREAKFAST);
-        private Meal lunch = Meal.stub(MealType.LUNCH);
-        private Meal dinner = Meal.stub(MealType.DINNER);
+        private Meal breakfast = Meal.stub();
+        private Meal lunch = Meal.stub();
+        private Meal dinner = Meal.stub();
 
         public MutableDayPlan() {
 

@@ -54,11 +54,11 @@ What is the best way to know the properties of the selected cell e.g. whether it
                 LocalDate date = selectedItem.getDate();
                 //TODO replace magic constants.
                 if (selectedCell.getColumn() == 3) {
-                    mealPlanBuilder.setBreakfast(date, new Meal(dish, MealType.BREAKFAST, date, ""));
+                    mealPlanBuilder.setBreakfast(date, new Meal(dish, ""));
                 } else if (selectedCell.getColumn() == 4) {
-                    mealPlanBuilder.setLunch(date, new Meal(dish, MealType.LUNCH, date, ""));
+                    mealPlanBuilder.setLunch(date, new Meal(dish, ""));
                 } else if (selectedCell.getColumn() == 5) {
-                    mealPlanBuilder.setDinner(date, new Meal(dish, MealType.DINNER, date, ""));
+                    mealPlanBuilder.setDinner(date, new Meal(dish, ""));
                 }
                 dayPlansTable.refresh();
             }
@@ -211,7 +211,7 @@ What is the best way to know the properties of the selected cell e.g. whether it
                 int index = tableRow.getIndex();
                 DatedDayPlan plan = tableView.getItems().get(index);
                 LocalDate date = plan.getDate();
-                consumer.accept(date, new Meal(newValue, null, date, ""));
+                consumer.accept(date, new Meal(newValue, ""));
             }
         };
 

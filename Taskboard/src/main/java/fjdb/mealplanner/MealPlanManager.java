@@ -35,7 +35,7 @@ public class MealPlanManager {
     public void load() {
         File[] files = directory.listFiles();
         for (File file : files) {
-            if (file.getName().contains("Plan-")) {
+            if (file.getName().contains("Plan-") && !file.getName().toLowerCase().contains("csv")) {
                 try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
                     MealPlan deserialize = SerializationUtils.deserialize(bufferedInputStream.readAllBytes());
                     mealPlans.add(deserialize);
