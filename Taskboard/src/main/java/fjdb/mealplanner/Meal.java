@@ -40,4 +40,12 @@ public class Meal implements Serializable {
     public String toString() {
         return dish.getName();
     }
+
+    public String getDescription() {
+        if (notes.contains(dish.getName())) {
+            return getNotes();
+        } else {
+            return String.format("%s %s", dish.getName(), notes.isEmpty() ? "" : ": " + notes);
+        }
+    }
 }

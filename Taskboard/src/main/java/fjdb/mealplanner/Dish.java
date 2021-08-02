@@ -3,6 +3,7 @@ package fjdb.mealplanner;
 import fjdb.databases.DataItemIF;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 //TODO I think we should have a Dish and DishBean, where the DishBean contains the DishId (or is mapped to it in the dao),
 //and a Dish can be equated to it.
@@ -57,5 +58,19 @@ public class Dish implements DataItemIF, Comparable<Dish>, Serializable {
             result = getDescription().compareTo(o.getDescription());
         }
         return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Dish dish = (Dish) o;
+        return Objects.equals(name, dish.name) &&
+                Objects.equals(details, dish.details);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, details);
     }
 }

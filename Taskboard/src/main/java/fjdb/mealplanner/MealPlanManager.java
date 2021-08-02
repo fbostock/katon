@@ -72,7 +72,7 @@ public class MealPlanManager {
             List<LocalDate> dates = plan.getDates();
             for (LocalDate date : dates) {
                 DayPlanIF dayPlan = plan.getPlan(date);
-                Object[] details = new Object[]{formatter.format(date), dayPlan.getUnfreeze(), dayPlan.getToCook(), dayPlan.getBreakfast(), dayPlan.getLunch(), dayPlan.getDinner()};
+                Object[] details = new Object[]{formatter.format(date), dayPlan.getUnfreeze(), dayPlan.getToCook(), dayPlan.getBreakfast().getDescription(), dayPlan.getLunch().getDescription(), dayPlan.getDinner().getDescription()};
                 printer.printRecord(details);
             }
         } catch (IOException e) {

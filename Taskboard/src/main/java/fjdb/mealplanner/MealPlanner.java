@@ -1,10 +1,13 @@
 package fjdb.mealplanner;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import fjdb.databases.ColumnDao;
 import fjdb.databases.ColumnGroup;
 import fjdb.mealplanner.dao.DishHistoryDao;
 import fjdb.mealplanner.dao.DishTagDao;
+import fjdb.mealplanner.fx.FilterPanel;
 import fjdb.mealplanner.fx.MealPlanConfigurator;
 import fjdb.mealplanner.fx.MealPlanPanel;
 import fjdb.mealplanner.fx.Selectors;
@@ -31,8 +34,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -85,6 +87,14 @@ public class MealPlanner extends Application {
             suggests dishes that use that, like pesto.
             - Make cell editor for Meal or Dish objects. Could start by a dish and see uf we can add a combo box which searchs
             as you type.
+            - Add a panel to the MealPlanPanel to store a list of Dishes - dishes we want to have but not assigned to a day yet.
+                - This dish list should be saved along with the MealPlan object
+            - Add a panel to the MealPlanPanel to store notes - a string
+                - These notes list should be saved along with the MealPlan object
+            - Implement undoable operations. Start with adding/removing items from the temp dish panel.
+            - autosave feature - save modified meal plans after a few minutes.
+            - modify dish selector table so that each row contains two dishes, to compactify the table and show more dishes in the view.
+            - add a text search field to the dish selector in the mealPlanPanel.
 
             TABLE IMPROVEMENTS
             - delete on a cell should remove the content. It should be undoable.
@@ -191,7 +201,6 @@ public class MealPlanner extends Application {
                 dialogVbox.getChildren().add(dishDetails);
 
 
-
                 HBox okCancel = new HBox();
                 Button ok = new Button("OK");
                 Button cancel = new Button("Cancel");
@@ -223,7 +232,6 @@ public class MealPlanner extends Application {
                 dialog.show();
 
 
-
 //                daoManager.getDishDao().insert();
             }
         });
@@ -242,19 +250,18 @@ public class MealPlanner extends Application {
          */
 
         List<DishHistoryDao.DishEntry> load = dishHistoryDao.load();
-        ObservableList<DishHistoryDao.DishEntry> dishList = FXCollections.observableList(load);
-        TableView<DishHistoryDao.DishEntry> table = new TableView<>(dishList);
+        ObservableList<DishHistoryDao.DishEntry> dishEntries = FXCollections.observableList(load);
+        TableView<DishHistoryDao.DishEntry> table = new TableView<>(dishEntries);
 
         DatePicker dateSelector = Selectors.getDateSelector();
-        List<Dish> dishes = daoManager.getDishDao().load().stream().sorted().collect(Collectors.toList());
-        ComboBox<Dish> dishComboBox = new ComboBox<>(FXCollections.observableArrayList(dishes));
+        ComboBox<Dish> dishComboBox = new ComboBox<>(dishList);
         Button insertButton = new Button("Insert");
         insertButton.setOnAction(actionEvent -> {
             LocalDate date = dateSelector.getValue();
             Dish dish = dishComboBox.getValue();
             DishHistoryDao.DishEntry dataItem = new DishHistoryDao.DishEntry(dish, date);
             dishHistoryDao.insert(dataItem);
-            dishList.add(dataItem);
+            dishEntries.add(dataItem);
             table.refresh();
         });
 
@@ -282,29 +289,45 @@ public class MealPlanner extends Application {
         DishTagDao dishTagDao = daoManager.getDishTagDao();
 
         List<DishTagDao.TagEntry> load = dishTagDao.load();
-        ObservableList<DishTagDao.TagEntry> dishList = FXCollections.observableList(load);
-        TableView<DishTagDao.TagEntry> table = new TableView<>(dishList);
+        ObservableList<DishTagDao.TagEntry> dishTagList = FXCollections.observableList(load);
+        TableView<DishTagDao.TagEntry> table = new TableView<>(dishTagList);
 
+        Multimap<Dish, DishTag> tagMap = ArrayListMultimap.create();
+        for (DishTagDao.TagEntry tagEntry : dishTagList) {
+            tagMap.put(tagEntry.getDish(), tagEntry.getTag());
+        }
         Set<DishTag> tags = dishTagDao.getTags(false);
 
-        ComboBox<DishTag> tagComboBox = Selectors.getDropDown(tags);
-        List<Dish> dishes = daoManager.getDishDao().load().stream().sorted().collect(Collectors.toList());
-        ComboBox<Dish> dishComboBox = Selectors.getDropDown(dishes);
+        FilterPanel abPanel = new FilterPanel(tags, tagMap);
+
+        ComboBox<Dish> dishComboBox = new ComboBox<>(dishList);
+        dishComboBox.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                Dish selectedItem = dishComboBox.getValue();
+                abPanel.update(selectedItem);
+            }
+        });
         Button insertButton = new Button("Insert");
         insertButton.setOnAction(actionEvent -> {
-            DishTag tag = tagComboBox.getValue();
             Dish dish = dishComboBox.getValue();
-            DishTagDao.TagEntry dataItem = new DishTagDao.TagEntry(dish, tag);
-            dishTagDao.insert(dataItem);
-            dishList.add(dataItem);
+
+            List<DishTag> selectedTags = abPanel.getSelectedTags();
+            Collection<DishTag> currentTags = tagMap.get(dish);
+            selectedTags.removeAll(currentTags);
+            for (DishTag selectedTag : selectedTags) {
+                DishTagDao.TagEntry dataItem = new DishTagDao.TagEntry(dish, selectedTag);
+                dishTagDao.insert(dataItem);
+                dishTagList.add(dataItem);
+            }
+            abPanel.addTags(dish, selectedTags);
             table.refresh();
         });
 
-        FlowPane insertPanel = new FlowPane(Orientation.HORIZONTAL);
+        VBox insertPanel = new VBox();
         insertPanel.getChildren().add(dishComboBox);
-        insertPanel.getChildren().add(tagComboBox);
+        insertPanel.getChildren().add(abPanel);
         insertPanel.getChildren().add(insertButton);
-        flowPane.getChildren().add(insertPanel);
 
         TableColumn<DishTagDao.TagEntry, Dish> dishColumn = new TableColumn<>("Dish");
         TableColumn<DishTagDao.TagEntry, DishTag> tagColumn = new TableColumn<>("Tag");
@@ -313,7 +336,11 @@ public class MealPlanner extends Application {
         table.getColumns().add(dishColumn);
         table.getColumns().add(tagColumn);
 
-        flowPane.getChildren().add(table);
+        VBox vbox = new VBox();
+
+        vbox.getChildren().add(insertPanel);
+        vbox.getChildren().add(table);
+        flowPane.getChildren().add(vbox);
 
         return flowPane;
     }

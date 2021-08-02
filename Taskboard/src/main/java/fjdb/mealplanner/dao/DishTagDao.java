@@ -1,6 +1,8 @@
 package fjdb.mealplanner.dao;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import fjdb.databases.*;
 import fjdb.mealplanner.Dish;
 import fjdb.mealplanner.DishDao;
@@ -43,6 +45,15 @@ public class DishTagDao extends ColumnDao<DishTagDao.TagEntry> {
             load();
         }
         return DishTag.getTags();
+    }
+
+    public Multimap<Dish, DishTag> getDishesToTags() {
+        Multimap<Dish, DishTag> tagMap = ArrayListMultimap.create();
+        List<DishTagDao.TagEntry> load = load();
+        for (DishTagDao.TagEntry tagEntry : load) {
+            tagMap.put(tagEntry.getDish(), tagEntry.getTag());
+        }
+        return tagMap;
     }
 
     private static ColumnGroup<TagEntry> of(DishDao dishDao) {

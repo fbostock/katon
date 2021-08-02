@@ -1,12 +1,10 @@
 package fjdb.mealplanner;
 
+import com.google.common.collect.Sets;
 import fjdb.util.Pool;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MealPlanBuilder {
@@ -17,6 +15,8 @@ public class MealPlanBuilder {
             return new MutableDayPlan();
         }
     };
+    private final Set<Dish> tempDishes = Sets.newTreeSet();
+    private String notes = "";
 
     public MealPlanBuilder() {
     }
@@ -26,6 +26,9 @@ public class MealPlanBuilder {
         for (LocalDate date : dates) {
             setDayPlan(date, plan.getPlan(date));
         }
+        Set<Dish> tempDishes = plan.getTempDishes();
+        this.tempDishes.addAll(tempDishes);
+        setNotes(plan.getNotes());
     }
 
     private void setDayPlan(LocalDate date, DayPlanIF dayPlan) {
@@ -48,12 +51,30 @@ public class MealPlanBuilder {
         return mealPlan.getPool().keySet().stream().sorted().collect(Collectors.toList());
     }
 
+    public void remove(LocalDate date) {
+        mealPlan.getPool().remove(date);
+    }
+
     public void setLunch(LocalDate date, Meal lunch) {
         getPlan(date).lunch = lunch;
     }
 
     public void setDinner(LocalDate date, Meal dinner) {
         getPlan(date).dinner = dinner;
+    }
+
+    public void setMeal(LocalDate date, MealType type, Meal meal) {
+        switch (type) {
+            case BREAKFAST:
+                setBreakfast(date, meal);
+                break;
+            case LUNCH:
+                setLunch(date, meal);
+                break;
+            case DINNER:
+                setDinner(date, meal);
+                break;
+        }
     }
 
     public void setUnfreeze(LocalDate date, String unfreeze) {
@@ -68,6 +89,30 @@ public class MealPlanBuilder {
         return getPlan(date);
     }
 
+    public void addTempDish(Dish dish) {
+        tempDishes.add(dish);
+    }
+
+    public void removeTempDish(Dish dish) {
+        tempDishes.remove(dish);
+    }
+
+    public void clearTempDishes() {
+        tempDishes.clear();
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public Set<Dish> getTempDishes() {
+        return tempDishes;
+    }
+
     public MealPlan makePlan() {
         Map<LocalDate, MutableDayPlan> map = mealPlan.getPool();
         TreeSet<LocalDate> dates = new TreeSet<>(map.keySet());
@@ -75,7 +120,7 @@ public class MealPlanBuilder {
         for (LocalDate date : dates) {
             treeMap.put(date, map.get(date).toDayPlan());
         }
-        return new MealPlan(treeMap);
+        return new MealPlan(treeMap, Sets.newTreeSet(tempDishes), notes);
     }
 
     private static class MutableDayPlan implements DayPlanIF {

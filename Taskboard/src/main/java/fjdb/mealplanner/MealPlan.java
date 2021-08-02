@@ -1,11 +1,13 @@
 package fjdb.mealplanner;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import fjdb.util.ListUtil;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -20,9 +22,17 @@ public class MealPlan implements Serializable {
     public static final String DINNER = "Dinner";
 
     private final TreeMap<LocalDate, DayPlanIF> mealPlan;
+    private final Set<Dish> tempDishes;
+    private final String notes;
 
     public MealPlan(TreeMap<LocalDate, DayPlanIF> mealPlan) {
+        this(mealPlan, Sets.newHashSet(), "");
+    }
+
+    public MealPlan(TreeMap<LocalDate, DayPlanIF> mealPlan, Set<Dish> tempDishes, String notes) {
         this.mealPlan = mealPlan;
+        this.tempDishes = tempDishes;
+        this.notes = notes;
     }
 
     public int getLength() {
@@ -47,6 +57,14 @@ public class MealPlan implements Serializable {
 
     public String getName() {
         return String.format("Plan-%s-%s", getStart(), getEnd());
+    }
+
+    public Set<Dish> getTempDishes() {
+        return tempDishes;
+    }
+
+    public String getNotes() {
+        return notes;
     }
 
     public void print() {
