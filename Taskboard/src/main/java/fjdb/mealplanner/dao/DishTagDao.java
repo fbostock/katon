@@ -56,6 +56,12 @@ public class DishTagDao extends ColumnDao<DishTagDao.TagEntry> {
         return tagMap;
     }
 
+    public void insert(Dish dish, List<DishTag> tags) {
+        for (DishTag tag : tags) {
+            insert(new TagEntry(dish, tag));
+        }
+    }
+
     private static ColumnGroup<TagEntry> of(DishDao dishDao) {
         return new TagColumns(dishDao);
     }

@@ -21,6 +21,9 @@ public class DishTag implements Comparable<DishTag> {
     public static final DishTag BREAKFAST = of("Breakfast");
     public static final DishTag LUNCH = of("Lunch");
     public static final DishTag DINNER = of("Dinner");
+    public static final DishTag DESSERT = of("Dessert");
+    public static final DishTag SNACK = of("Snack");
+
     public static final DishTag PASTA = of("Pasta");
     public static final DishTag VEGAN = of("Vegan");
     public static final DishTag MEATFREE = of("MeatFree");

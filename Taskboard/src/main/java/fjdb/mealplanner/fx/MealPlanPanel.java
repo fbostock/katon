@@ -55,13 +55,8 @@ public class MealPlanPanel extends FlowPane {
         mealPlanBuilder = builder;
 
         TableView<DatedDayPlan> dayPlansTable = new TableView<>();
-        dishList.addListener(new ListChangeListener<Dish>() {
-            @Override
-            public void onChanged(Change<? extends Dish> change) {
-                dayPlansTable.refresh();
-            }
-        });
-//        dishList.addListener((ListChangeListener<Dish>) change -> dayPlansTable.refresh());
+        dishList.addListener((ListChangeListener<Dish>) change -> dayPlansTable.refresh());
+
         DishListener dishListener = dish -> {
             ObservableList<TablePosition> selectedCells = dayPlansTable.getSelectionModel().getSelectedCells();
             for (TablePosition selectedCell : selectedCells) {
@@ -462,7 +457,8 @@ What is the best way to know the properties of the selected cell e.g. whether it
 
     private FlowPane makeNotesPanel() {
         FlowPane flowPane = new FlowPane();
-        TextField textField = new TextField(mealPlanBuilder.getNotes());
+        TextArea textField = new TextArea(mealPlanBuilder.getNotes());
+//        TextField textField = new TextField(mealPlanBuilder.getNotes());
         textField.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
             if (!t1) {
                 mealPlanBuilder.setNotes(textField.getText());

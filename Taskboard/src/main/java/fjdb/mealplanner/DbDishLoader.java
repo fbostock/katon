@@ -62,8 +62,8 @@ public class DbDishLoader implements DishLoader {
         }
     }
 
-    public void updateDish(Dish dish) {
-        dao.update(dish);
+    public void updateDish(Dish oldDish, Dish newDish) {
+        dao.update(oldDish, newDish);
     }
 
 }

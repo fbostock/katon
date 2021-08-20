@@ -35,18 +35,42 @@ public class MealPlanManager {
     public void load() {
         File[] files = directory.listFiles();
         for (File file : files) {
-            if (file.getName().contains("Plan-") && !file.getName().toLowerCase().contains("csv")) {
-                try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-                    MealPlan deserialize = SerializationUtils.deserialize(bufferedInputStream.readAllBytes());
+            try {
+                MealPlan deserialize = deserialize(file);
+                if (deserialize != null) {
                     mealPlans.add(deserialize);
-                } catch (Exception e) {
-                    log.warn("Could not deserialize file {}", file.getName());
-                    e.printStackTrace();
                 }
-            } else {
-                log.info("Skipping {} - not valid plan", file);
+            } catch (IOException e) {
+                log.warn("Could not deserialize file {}", file.getName());
+                e.printStackTrace();
             }
+//            if (file.getName().contains("Plan-") && !file.getName().toLowerCase().contains("csv")) {
+//                try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+//                    MealPlan deserialize = SerializationUtils.deserialize(bufferedInputStream.readAllBytes());
+//                    mealPlans.add(deserialize);
+//                } catch (Exception e) {
+//                    log.warn("Could not deserialize file {}", file.getName());
+//                    e.printStackTrace();
+//                }
+//            } else {
+//                log.info("Skipping {} - not valid plan", file);
+//            }
         }
+    }
+
+    protected MealPlan deserialize(File file) throws IOException {
+        if (file.getName().contains("Plan-") && !file.getName().toLowerCase().contains("csv")) {
+            try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+                MealPlan deserialize = SerializationUtils.deserialize(bufferedInputStream.readAllBytes());
+                return deserialize;
+//            } catch (Exception e) {
+//                log.warn("Could not deserialize file {}", file.getName());
+//                e.printStackTrace();
+            }
+        } else {
+            log.info("Skipping {} - not valid plan", file);
+        }
+        return null;
     }
 
     public void addMealPlan(MealPlan plan) {

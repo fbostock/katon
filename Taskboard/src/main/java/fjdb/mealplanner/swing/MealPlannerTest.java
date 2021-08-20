@@ -136,13 +136,13 @@ public class MealPlannerTest {
             Dish oldDish = dishes.get(rowIndex);
             Dish newDish;
             if (columnIndex == 0) {
-                newDish = new Dish(oldDish.getId(), aValue.toString(), oldDish.getDetails());
+                newDish = new Dish(aValue.toString(), oldDish.getDetails());
             } else if (columnIndex == 1) {
-                newDish = new Dish(oldDish.getId(), oldDish.getName(), aValue.toString());
+                newDish = new Dish(oldDish.getName(), aValue.toString());
             } else {
                 return;
             }
-            dishLoader.updateDish(newDish);
+            dishLoader.updateDish(oldDish, newDish);
             refresh();
         }
     }

@@ -1,29 +1,17 @@
 package fjdb.mealplanner;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import fjdb.databases.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-//TODO store the daos somewhere so we can reuse the caching.
-public class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
+public class DishDao extends IdColumnDao<Dish, DishId> implements DaoIF<Dish> {
 
-
-    //TODO put appropriate locking around cache. Also, move id caching up to IdColumnDao.
-//    private final Map<DishId, Dish> cache = new ConcurrentHashMap<>();
-    private final BiMap<DishId, Dish> idBeanMap = HashBiMap.create();
-
-    public static void main(String[] args) {
-        DishDao dishDao = new DishDao(null);
-        dishDao.insert(null);
-    }
-    private final Object lock = new Object();
+    private static final Logger log = LoggerFactory.getLogger(DishDao.class);
 
     public DishDao(DatabaseAccess access) {
         super(access, Columns.of());
@@ -36,12 +24,14 @@ public class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
         }
     }
 
+    /**
+     * Overridden to insert if Dish not found.
+     */
     public DishId findId(Dish dish) {
-        DishId dishId = idBeanMap.inverse().get(dish);
+        DishId dishId = super.findId(dish);
         if (dishId == null) {
-            System.out.println(String.format("Inserting dish: %s", dish));
+            log.info("Inserting dish {}", dish);
             insert(dish);
-            dishId = idBeanMap.inverse().get(dish);
         }
         return dishId;
     }
@@ -49,7 +39,7 @@ public class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
     public Dish find(DishId id) {
         Dish dish = idBeanMap.get(id);
         if (dish == null) {
-            cache();
+            super.load();
             dish = idBeanMap.get(id);
         }
         return dish;
@@ -57,9 +47,9 @@ public class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
 
     @Override
     public List<Dish> load() {
-        cache();
-        //TODO maybe the cache method should return values. All reads to idBeanMap at least need to be under the lock. We
-        //may even want a readwrite lock mechanism.
+        if (idBeanMap.isEmpty()) {
+            super.load();
+        }
         return Lists.newArrayList(idBeanMap.values());
     }
 
@@ -68,39 +58,46 @@ public class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
         return "DISHES";
     }
 
+    //TODO when we call column.dbElement(object) from something extracted from dish, can we optionally define
+    //the column with an extractor method, defined using a lambda on dish? (That way, we might be able to avoid
+    //having to manually tell the machinery how to convert the Dish into db args, since the information is already stored
+    //in the columns. Also, when I first wrote the columns, I think it predated lambdas anyway (e.g. Java 7).
+
     public void insert(Dish dish) {//throws SQLException {
-        //TODO when we call column.dbElement(object) from something extracted from dish, can we optionally define
-        //the column with an extractor method, defined using a lambda on dish? (That way, we might be able to avoid
-        //having to manually tell the machinery how to convert the Dish into db args, since the information is already stored
-        //in the columns. Also, when I first wrote the columns, I think it predated lambdas anyway (e.g. Java 7).
-
-        synchronized (lock) {
-            if (idBeanMap.inverse().get(dish) == null) {
-                super.insert(dish);
-                DataId id = super.findId(dish);
-                idBeanMap.put((DishId) id, dish);
-            }
-        }
+        super.insert(dish);
+//        synchronized (lock) {
+//            if (localIdBeanMap.inverse().get(dish) == null) {
+//                super.insert(dish);
+//                DataId id = super.findId(dish);
+//                localIdBeanMap.put((DishId) id, dish);
+//            }
+//        }
     }
 
-    private void cache() {
-        if (idBeanMap.isEmpty()) {
-            synchronized (lock) {
-                if (idBeanMap.isEmpty()) {
-                    List<Dish> load = super.load();
-                    Map<DishId, Dish> dishes = new HashMap<>();
-                    load.forEach(d -> dishes.put(d.getId(), d));
-                    idBeanMap.putAll(dishes);
-                }
-            }
-        }
-    }
+    /*
+    TODO Check that the dish objects are all cached in the IdColumnDao.idBeanMap. Then remove this local one.
+    The super.insert method will need to add the new dataItem to the cache. After doing the insertion, it will need
+    to do findId(dataItem) (at the parent level above any caching) to get the id, then populate the cache with the id.
+     */
+//    private void cache() {
+//        if (localIdBeanMap.isEmpty()) {
+//            synchronized (lock) {
+//                if (localIdBeanMap.isEmpty()) {
+//                    List<Dish> load = super.load();
+//                    Map<DishId, Dish> dishes = new HashMap<>();
+//                    load.forEach(d -> dishes.put(d.getId(), d));
+//                    localIdBeanMap.putAll(dishes);
+//                }
+//            }
+//        }
+//        System.out.println();
+//    }
     /*
     We want to retrieve both the id and bean details
      */
 
 
-    private static class Columns extends IdColumnGroup<Dish> {
+    private static class Columns extends IdColumnGroup<Dish, DishId> {
 
         public StringColumn nameColumn = new StringColumn("NAME", "VARCHAR(256)");
         public StringColumn descriptionColumn = new StringColumn("DESCRIPTION", "VARCHAR(1024)");
@@ -120,12 +117,13 @@ public class DishDao extends IdColumnDao<Dish> implements DaoIF<Dish> {
 
         @Override
         public Dish handle(ResultSet rs) throws SQLException {
-            DishId resolve = resolve(idColumn, rs);
-            return new Dish(resolve, resolve(nameColumn, rs), resolve(descriptionColumn, rs));
+//            DishId resolve = resolve(idColumn, rs);
+//            return new Dish(resolve, resolve(nameColumn, rs), resolve(descriptionColumn, rs));
+            return new Dish(resolve(nameColumn, rs), resolve(descriptionColumn, rs));
         }
 
         @Override
-        public DataId handleId(ResultSet rs) throws SQLException {
+        public DishId handleId(ResultSet rs) throws SQLException {
             return resolve(idColumn, rs);
         }
 

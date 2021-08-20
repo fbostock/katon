@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class IdColumnGroup<T> {
+public abstract class IdColumnGroup<T, I extends DataId> {
     protected final List<AbstractColumn> columns = new ArrayList<>();
     private final Map<AbstractColumn, Integer> columnIntegerMap = HashBiMap.create();
-    protected IdColumn idColumn;
+    protected IdColumn<I> idColumn;
 
-    public IdColumnGroup(IdColumn idColumn) {
+    public IdColumnGroup(IdColumn<I> idColumn) {
         this.idColumn = idColumn;
         columnIntegerMap.put(idColumn, 1);
     }
 
-    public IdColumnGroup<T> addColumn(AbstractColumn column) {
+    public IdColumnGroup<T, I> addColumn(AbstractColumn column) {
         columns.add(column);
         columnIntegerMap.put(column, columnIntegerMap.size() + 1);
         return this;
@@ -29,7 +29,7 @@ public abstract class IdColumnGroup<T> {
 
     public abstract T handle(ResultSet rs) throws SQLException;
 
-    public abstract DataId handleId(ResultSet rs) throws SQLException;
+    public abstract I handleId(ResultSet rs) throws SQLException;
 
     protected <V> V resolve(AbstractColumn<V, ?> column, ResultSet rs) throws SQLException {
         return column.get(rs, columnIntegerMap.get(column));

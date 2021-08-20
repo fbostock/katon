@@ -73,4 +73,9 @@ public class MealPlan implements Serializable {
             System.out.printf("%s %s %s %s %s %s%n", date, plan.getUnfreeze(), plan.getToCook(), plan.getBreakfast(), plan.getLunch(), plan.getDinner());
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("Plan from %s to %s", mealPlan.firstKey(), mealPlan.lastKey());
+    }
 }

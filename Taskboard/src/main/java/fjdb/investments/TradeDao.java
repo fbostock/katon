@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by francisbostock on 01/10/2017.
  */
-public class TradeDao extends IdColumnDao<Trade> implements DaoIF<Trade> {
+public class TradeDao extends IdColumnDao<Trade, TradeId> implements DaoIF<Trade> {
 //    private final Columns1 columns;
 
     /*
@@ -131,7 +131,7 @@ programs' performance change over time with changes in engines etc. If a new cha
 
      */
 
-    private static class Columns extends IdColumnGroup<Trade> {
+    private static class Columns extends IdColumnGroup<Trade, TradeId> {
 
         private final TradeIdColumn idColumn;
         private final StringColumn instrumentColumn = new StringColumn("INSTRUMENT", "VARCHAR(256)");
@@ -161,7 +161,7 @@ programs' performance change over time with changes in engines etc. If a new cha
         }
 
         @Override
-        public DataId handleId(ResultSet rs) throws SQLException {
+        public TradeId handleId(ResultSet rs) throws SQLException {
             return resolve(idColumn, rs);
         }
 

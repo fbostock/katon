@@ -14,15 +14,18 @@ import java.util.stream.Collectors;
 
 /**
  * A column dao based around a primary id field.
+ *
  * @param <T>
  */
-public abstract class IdColumnDao<T extends DataItemIF> extends AbstractSqlDao implements DaoIF<T> {
+public abstract class IdColumnDao<T extends DataItemIF, I extends DataId> extends AbstractSqlDao implements DaoIF<T> {
 
-    private final IdColumnGroup<T> columnGroup;
+    private final IdColumnGroup<T, I> columnGroup;
     //TODO access to this needs to be protected (read/write lock?)
-    protected final BiMap<DataId, T> idBeanMap = HashBiMap.create();
+    private final Object idBeanMapLock = new Object();
+    protected final BiMap<I, T> idBeanMap = HashBiMap.create();
 
-    public IdColumnDao(DatabaseAccess access, IdColumnGroup<T> columnGroup) {
+
+    public IdColumnDao(DatabaseAccess access, IdColumnGroup<T, I> columnGroup) {
         super(access);
         this.columnGroup = columnGroup;
     }
@@ -40,9 +43,11 @@ public abstract class IdColumnDao<T extends DataItemIF> extends AbstractSqlDao i
 
     private ResultHandler<T> handler() {
         return rs -> {
-            DataId id = columnGroup.handleId(rs);
+            I id = columnGroup.handleId(rs);
             T handle = columnGroup.handle(rs);
-            idBeanMap.put(id, handle);
+            synchronized (idBeanMapLock) {
+                idBeanMap.put(id, handle);
+            }
             return handle;
         };
     }
@@ -60,59 +65,69 @@ public abstract class IdColumnDao<T extends DataItemIF> extends AbstractSqlDao i
             }
             String insert = "INSERT INTO " + getTableName() + " (" + columnGroup.getColumnLabels() + ") values " + SqlUtil.makeQuestionMarks(columnGroup.columnCount());
             doUpdate(insert, tradeObjects);
+            I id = findId(dataItem);
+            synchronized (idBeanMapLock) {
+                idBeanMap.put(id, dataItem);
+            }
         } catch (SQLException e) {
             //TODO should propagate the exception
             e.printStackTrace();
         }
     }
 
-    public DataId findId(T dataItem) {
-        IdColumn<?> idColumn = columnGroup.idColumn;
-        String idColumnName = idColumn.getName();
-        List<Object> tradeObjects = columnGroup.getDataItemObjects(dataItem);
-        String select = "SELECT " + idColumnName + " FROM " + getTableName() + " WHERE ";
-        List<String> columnNames = columnGroup.getColumnNames();
-        List<Object> args = Lists.newArrayList();
-        select += Joiner.on(" AND ").join(columnNames.stream().map(name->name + "=?").collect(Collectors.toList()));
-        for (int i = 0; i < columnNames.size(); i++) {
-            String name = columnNames.get(i);
-            Object value = tradeObjects.get(i);
-//            select += "?=?";
-//            args.add(name);
-            args.add(value);
-        }
-        try {
-//            columnGroup.idColumn.get()
-            List<DataId> ts = doSelect(select, args, new ResultHandler<DataId>() {
-                @Override
-                public DataId handle(ResultSet rs) throws SQLException {
-                    DataId resolve = columnGroup.resolve(idColumn, rs);
-                    return resolve;
+    public I findId(T dataItem) {
+        synchronized (idBeanMapLock) {
+            I dataId = idBeanMap.inverse().get(dataItem);
+            if (dataId == null) {
+                IdColumn<I> idColumn = columnGroup.idColumn;
+                String idColumnName = idColumn.getName();
+                List<Object> tradeObjects = columnGroup.getDataItemObjects(dataItem);
+                String select = "SELECT " + idColumnName + " FROM " + getTableName() + " WHERE ";
+                List<String> columnNames = columnGroup.getColumnNames();
+                List<Object> args = Lists.newArrayList();
+                select += Joiner.on(" AND ").join(columnNames.stream().map(name -> name + "=?").collect(Collectors.toList()));
+                for (int i = 0; i < columnNames.size(); i++) {
+                    Object value = tradeObjects.get(i);
+                    args.add(value);
                 }
-            });
-            if (ts.size() != 1) {
-                //TODO replace with warn log output
-                System.out.println(String.format("WARNING Found %s entries for %s (%s)", ts.size(), dataItem, ts));
-            } else {
-                return ts.get(0);
+                try {
+                    List<I> ts = doSelect(select, args, new ResultHandler<I>() {
+                        @Override
+                        public I handle(ResultSet rs) throws SQLException {
+                            I resolve = columnGroup.resolve(idColumn, rs);
+                            return resolve;
+                        }
+                    });
+                    if (ts.size() != 1) {
+                        //TODO replace with warn log output
+                        System.out.println(String.format("WARNING Found %s entries for %s (%s)", ts.size(), dataItem, ts));
+                    } else {
+                        return ts.get(0);
+                    }
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+                return null;
             }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            return dataId;
         }
-        return null;
     }
 
     @Override
     protected String createTable() {
         String drop = "DROP TABLE " + getTableName() + " IF EXISTS\n ";
-            return drop + "CREATE TABLE " + getTableName() + " (ID INT GENERATED BY DEFAULT AS IDENTITY, " + columnGroup.getColumnDeclarations() + ")";
+        return drop + "CREATE TABLE " + getTableName() + " (ID INT GENERATED BY DEFAULT AS IDENTITY, " + columnGroup.getColumnDeclarations() + ")";
     }
 
     @Override
-    public void update(T dataItem) {
+    public void update(T oldItem, T newItem) {
         try {
-            List<Object> tradeObjects = columnGroup.getDataItemObjects(dataItem);
-            tradeObjects.add(dataItem.getId().getId());
+            List<Object> tradeObjects = columnGroup.getDataItemObjects(newItem);
+            DataId dataId;
+            synchronized (idBeanMapLock) {
+                dataId = idBeanMap.inverse().get(oldItem);
+            }
+            tradeObjects.add(dataId.getId());
             List<AbstractColumn> columnList = this.columnGroup.columns;
             String sql = "";
             sql += Joiner.on(",").join(columnList.stream().map(col -> col.getName() + " = ?").collect(Collectors.toList()));
@@ -130,7 +145,7 @@ public abstract class IdColumnDao<T extends DataItemIF> extends AbstractSqlDao i
     }
 
 
-    public IdColumnGroup<T> getColumnGroup() {
+    public IdColumnGroup<T, I> getColumnGroup() {
         return columnGroup;
     }
 }

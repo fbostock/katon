@@ -48,7 +48,7 @@ public abstract class ColumnDao<T> extends AbstractSqlDao implements DaoIF<T>  {
     }
 
     @Override
-    public void update(T dataItem) {
+    public void update(T oldData, T newData) {
         //TODO to Support this, we would need to remove the old one and insert a new one, if there is no unique id to
         //identify table entries.
         throw new UnsupportedOperationException("Not implemented for general column daos.");

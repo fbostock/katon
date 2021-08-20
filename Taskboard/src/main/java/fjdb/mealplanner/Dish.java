@@ -10,18 +10,12 @@ import java.util.Objects;
 public class Dish implements DataItemIF, Comparable<Dish>, Serializable {
     private static final long serialVersionUID = 20210720L;
 
-    private final DishId dishId;
     private final String name;
     private final String details;
 
-    public Dish(DishId dishId, String name, String details) {
-        this.dishId = dishId;
-        this.name = name;
-        this.details = details;
-    }
-
     public Dish(String name, String description) {
-        this(DishId.STUB, name, description);
+        this.name = name;
+        this.details = description;
     }
 
     public String getName() {
@@ -34,11 +28,6 @@ public class Dish implements DataItemIF, Comparable<Dish>, Serializable {
 
     public String getDetails() {
         return details;
-    }
-
-    @Override
-    public DishId getId() {
-        return dishId;
     }
 
     @Override

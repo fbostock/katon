@@ -10,7 +10,7 @@ public interface DaoIF<T> {
 
     void delete(T data);
 
-    void update(T data);
+    void update(T oldData, T newData);
 
     List<T> load();
 }
