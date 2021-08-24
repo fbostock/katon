@@ -16,7 +16,7 @@ public class Meal implements Serializable {
     private final String notes;
 
     public static Meal stub() {
-        return new Meal(new MealPlannerTest.StubDish(), "");
+        return new Meal(MealPlannerTest.stub(), "");
     }
 
     public Meal(Dish dish, String notes) {

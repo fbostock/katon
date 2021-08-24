@@ -1,6 +1,7 @@
 package fjdb.mealplanner.fx;
 
 import fjdb.mealplanner.Dish;
+import fjdb.mealplanner.Meal;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 
@@ -9,6 +10,7 @@ import java.util.HashMap;
 public class DragUtils {
 
     public static final Format<Dish> DISH_FORMAT = new Format<>("dragged_dish");
+    public static final Format<Meal> MEAL_FORMAT = new Format<>("dragged_meal");
 
     public static <T> HashMap<DataFormat, Object> makeContent(Format<T> format, T data) {
         HashMap<DataFormat, Object> map = new HashMap<>();

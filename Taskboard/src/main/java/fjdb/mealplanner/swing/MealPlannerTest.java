@@ -147,6 +147,10 @@ public class MealPlannerTest {
         }
     }
 
+    public static StubDish stub() {
+        return new StubDish();
+    }
+
     public static class StubDish extends Dish {
 
         public StubDish() {

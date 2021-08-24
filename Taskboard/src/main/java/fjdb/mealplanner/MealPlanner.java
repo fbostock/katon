@@ -52,7 +52,7 @@ public class MealPlanner extends Application {
 
     /*
             TODO list for Center Parcs
-            -2) Remove (or disable, to make it optional) feature that the cell highlighted in the table gets the dish added
+            -2) DONE Remove (or disable, to make it optional) feature that the cell highlighted in the table gets the dish added
             when selected in the lefthand table. Given we can drag, it makes it redundant, and in fact problematic.
             -1) Perhaps the cells in MealPlanPanel should use a Meal object but should string convert to and from
             the Meal object. So if you set a cell programmatically, it should have a Dish object, and blank notes. But
@@ -133,7 +133,7 @@ public class MealPlanner extends Application {
     @Override
     public void start(Stage primaryStage) {
         List<Dish> meals = Lists.newArrayList();
-        meals.add(new MealPlannerTest.Leftovers(new MealPlannerTest.StubDish()));
+        meals.add(new MealPlannerTest.Leftovers(MealPlannerTest.stub()));
 
         meals.addAll(new CompositeDishLoader(daoManager).getDishes());
 

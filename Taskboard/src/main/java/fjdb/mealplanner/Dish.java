@@ -1,6 +1,7 @@
 package fjdb.mealplanner;
 
 import fjdb.databases.DataItemIF;
+import fjdb.mealplanner.swing.MealPlannerTest;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -16,6 +17,10 @@ public class Dish implements DataItemIF, Comparable<Dish>, Serializable {
     public Dish(String name, String description) {
         this.name = name;
         this.details = description;
+    }
+
+    public static boolean isStub(Dish dish) {
+        return MealPlannerTest.stub().equals(dish);
     }
 
     public String getName() {

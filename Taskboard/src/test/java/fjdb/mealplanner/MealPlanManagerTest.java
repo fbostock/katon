@@ -27,7 +27,7 @@ public class MealPlanManagerTest {
         assertEquals(LocalDate.of(2021, 8, 3), mealPlan.getEnd());
 
         DayPlanIF plan = mealPlan.getPlan(startDate);
-        assertEquals(new MealPlannerTest.StubDish(), plan.getBreakfast().getDish());
+        assertEquals(MealPlannerTest.stub(), plan.getBreakfast().getDish());
         assertEquals(new Dish("Picnic", ""), plan.getLunch().getDish());
         assertEquals(new Dish("Paella", ""), plan.getDinner().getDish());
 
