@@ -15,11 +15,14 @@ public class Play {
     public static void main(String[] args) throws IOException {
 
         Pattern pattern = Pattern.compile("(?i).*/(.*\\.jpg).*");
+//        Pattern pattern = Pattern.compile("(?i).*(.*\\.jpg).*");
 
         List<String> matches = new ArrayList<>();
 
 //        File file = new File("/Users/francisbostock/Desktop/bostockwebsite/jsFiles/BoerWar/picsToSave.txt");
-        File file = new File("/Users/francisbostock/Desktop/bostockwebsite/jsFiles/CampaignGP/picsToSave.txt");
+//        File file = new File("/Users/francisbostock/Desktop/bostockwebsite/jsFiles/Gallantry/picsToSave.txt");
+        File file = new File("/Users/francisbostock/Desktop/bostockwebsite/jsFiles/SingVicFiles/picsToSave.txt");
+//        File file = new File("/Users/francisbostock/Desktop/bostockwebsite/jsFiles/CampaignGP/picsToSave.txt");
         FileReader fileReader = new FileReader(file);
         BufferedReader bufferedReader = new BufferedReader(fileReader);
         String line = null;
