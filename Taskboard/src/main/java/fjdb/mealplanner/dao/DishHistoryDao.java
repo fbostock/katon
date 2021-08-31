@@ -5,6 +5,8 @@ import fjdb.databases.*;
 import fjdb.mealplanner.Dish;
 import fjdb.mealplanner.DishDao;
 import fjdb.mealplanner.DishId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 
 public class DishHistoryDao extends ColumnDao<DishHistoryDao.DishEntry> {
 
+    private static final Logger log = LoggerFactory.getLogger(DishHistoryDao.class);
     private final DishDao dishDao;
 
     public DishHistoryDao(DatabaseAccess access, DishDao dishDao) {
@@ -41,6 +44,14 @@ public class DishHistoryDao extends ColumnDao<DishHistoryDao.DishEntry> {
     public Map<Dish, DishEntry> dishEntries() {
         List<DishEntry> load = load();
         return load.stream().collect(Collectors.toMap(DishEntry::getDish, entry -> entry));
+    }
+
+    public void insert(Dish dish, LocalDate date) {
+        if (dishDao.findId(dish) != null) {
+            insert(new DishEntry(dish, date));
+        } else {
+            log.warn("Could not insert dish {} on {}. Dish not present in database.", dish, date);
+        }
     }
 
     private static ColumnGroup<DishEntry> of(DishDao dishDao) {

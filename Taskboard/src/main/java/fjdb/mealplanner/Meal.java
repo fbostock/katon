@@ -19,6 +19,10 @@ public class Meal implements Serializable {
         return new Meal(MealPlannerTest.stub(), "");
     }
 
+    public static boolean isStub(Meal meal) {
+        return Dish.isStub(meal.getDish()) && meal.getNotes().isEmpty();
+    }
+
     public Meal(Dish dish, String notes) {
         this.dish = dish;
         this.notes = notes;

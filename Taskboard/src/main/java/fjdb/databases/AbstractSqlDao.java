@@ -1,7 +1,10 @@
 package fjdb.databases;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import fjdb.util.DateTimeUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -9,14 +12,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by francisbostock on 30/10/2017.
  */
 public abstract class AbstractSqlDao {
+
+    private static final Logger log = LoggerFactory.getLogger(AbstractSqlDao.class);
+
     private final SqlResolver sqlResolver;
     private final DatabaseConnection databaseConnection;
 
@@ -130,7 +134,7 @@ public abstract class AbstractSqlDao {
 //            preparedStatement.execute();
         }
 
-
+        private static final Set<Object> uniqueOccurrences = Collections.synchronizedSet(Sets.newHashSet());
         public void resolve(PreparedStatement statement, int index, Object object) throws SQLException {
 
             if (object instanceof LocalDate) {
@@ -147,8 +151,12 @@ public abstract class AbstractSqlDao {
             } else if (object instanceof Integer) {
                 statement.setInt(index, (Integer) object);
             } else {
+                if (!uniqueOccurrences.contains(object)) {
+                    uniqueOccurrences.add(object);
+                    log.info("Resolving as {}", object);
+                    System.out.println("Resolving as " + object.getClass());
+                }
                 //if all else fails. Should handle strings, ints, doubles, floats,
-                System.out.println("Resolving as " + object.getClass());
                 statement.setObject(index, object);
             }
         }

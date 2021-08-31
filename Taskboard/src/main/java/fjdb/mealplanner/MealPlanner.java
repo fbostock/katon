@@ -51,13 +51,18 @@ public class MealPlanner extends Application {
     private final MealPlanManager mealPlanManager;
 
     /*
-            TODO list for Center Parcs
+            TODO
+            Move resolved items to MealPlannerNotes
+            Refactor FilterPanel
+            Add a class to manage history data (wrap/use the history dao, and provides accessors to get dates for a meal etc.)
+                + When the application loads, on a separate thread we could load all the meal plans and get the data that way.
+
             -2) DONE Remove (or disable, to make it optional) feature that the cell highlighted in the table gets the dish added
             when selected in the lefthand table. Given we can drag, it makes it redundant, and in fact problematic.
-            -1) Perhaps the cells in MealPlanPanel should use a Meal object but should string convert to and from
+            -1) DONE Perhaps the cells in MealPlanPanel should use a Meal object but should string convert to and from
             the Meal object. So if you set a cell programmatically, it should have a Dish object, and blank notes. But
             if edited manually, it will just have notes - but we can attempt to infer the Dish from the text if blank.
-            0) When making the mealplan/shopping, see what steps are still required for this app, e.g. print out
+            0) DONE When making the mealplan/shopping, see what steps are still required for this app, e.g. print out
             to csv, saving the mealplans etc. To save, we should start by serializing out the mealplan object.
             1) DONE In this class, add another tab for the DishTagDao, and mirror the machinery for the DishHistory tab, where
             we have a table of dishes and their tags, and can insert.
@@ -76,15 +81,15 @@ public class MealPlanner extends Application {
             to ensure this somehow.
             8) Continuing from 1) - For the table, I want some generic machinery which can take a dao and its
             columns, and automatically generate a viewable table. This is a bit more involved, so kicking for now.
-            9) Review MealType and date used in Meal - perhaps we don't need those.
+            9) DONE (removed) Review MealType and date used in Meal - perhaps we don't need those.
 
 
             Small items
             1) Add convenience StringColumn constructors for different varchar lengths.
             2) DONE Create side tabs - Admin and Plans, the latter containing actual meal plans, the former a panel to manage
             dishes, their tags etc.
-            3) Write out the MealPlan created from the MealPlanPanel to csv.
-            4) Add new dishes via table - have insert ability
+            3) DONE Write out the MealPlan created from the MealPlanPanel to csv.
+            4) DONE Add new dishes via table - have insert ability
             TODO features/work
             - if dishes know what ingredients they need, you could create an "ingredients to use" list, and the planner
             suggests dishes that use that, like pesto.
@@ -99,10 +104,18 @@ public class MealPlanner extends Application {
             - modify dish selector table so that each row contains two dishes, to compactify the table and show more dishes in the view.
             - add a text search field to the dish selector in the mealPlanPanel.
             - add a build script to create a jar file. It would also need a copy of the hsql db as part of the 'release'.
+            - while we can drag meals from one cell to another (in addition to dishes), we can't store meals down in the holder
+            area, only dishes. This requires a way to handle meals (add a common interface to dish and meal perhaps?), and being able to
+            serialize and deserialize them (though I think that should work automatically).
 
             TABLE IMPROVEMENTS
-            - delete on a cell should remove the content. It should be undoable.
-            - should be able to drag from one cell to another.
+            - DONE delete on a cell should remove the content.
+            - DONE should be able to drag from one cell to another.
+            - RIGHT CLICK option: add dish to cook/unfreeze
+            - RIGHT CLICK option: delete meal
+            - copy/paste from one cell to another (ctrl c/p)
+            - add drag for cook/unfreeze
+            - Deleting should be undoable.
 
             - Dish visitor/handler pattern. To allow handlers to do one thing for "normal" dishes, and something else for special
             dishes, such as "Leftovers" (which requires a parent dish), or "Roast" which requires subtypes (lamb, beef, chicken...).
@@ -178,7 +191,6 @@ public class MealPlanner extends Application {
         final Scene scene = new Scene(sceneRoot, 1200, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
-
     }
 
     private FlowPane getDishesPane(TableView<Dish> dishTableView) {

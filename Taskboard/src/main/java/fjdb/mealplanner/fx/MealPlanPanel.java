@@ -22,6 +22,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -37,6 +39,8 @@ import static fjdb.mealplanner.fx.DragUtils.DISH_FORMAT;
 import static fjdb.mealplanner.fx.DragUtils.MEAL_FORMAT;
 
 public class MealPlanPanel extends FlowPane {
+
+    private static final Logger log = LoggerFactory.getLogger(MealPlanPanel.class);
 
     private final MealPlanBuilder mealPlanBuilder;
     private final ObservableList<Dish> dishList;
@@ -137,7 +141,7 @@ What is the best way to know the properties of the selected cell e.g. whether it
                         if (tableColumn instanceof MealColumn) {
                             MealColumn column = (MealColumn) tableColumn;
                             MealType mealType = column.mealType;
-                            mealPlanBuilder.setMeal(date, mealType, Meal.stub() );
+                            mealPlanBuilder.setMeal(date, mealType, Meal.stub());
                         }
                     }
                     dayPlansTable.refresh();
@@ -189,6 +193,26 @@ What is the best way to know the properties of the selected cell e.g. whether it
                 e.printStackTrace();
             }
         });
+        Button print = new Button("print meals");
+        print.setOnAction(actionEvent -> {
+            MealPlan mealPlan = mealPlanBuilder.makePlan();
+            List<LocalDate> dates = mealPlan.getDates();
+            for (LocalDate localDate : dates) {
+                DayPlanIF plan = mealPlan.getPlan(localDate);
+                Meal dinner = plan.getDinner();
+                Dish dish = dinner.getDish();
+                String notes = dinner.getNotes();
+                if (!notes.isEmpty() && !notes.contains(dish.getName())) {
+                    System.out.printf("%s DINNER %s %s%n", localDate, dish, notes);
+                }
+                dinner = plan.getLunch();
+                dish = dinner.getDish();
+                notes = dinner.getNotes();
+                if (!notes.isEmpty() && !notes.contains(dish.getName())) {
+                    System.out.printf("%s LUNCH %s %s%n", localDate, dish, notes);
+                }
+            }
+        });
 
         FlowPane flowPane = new FlowPane(Orientation.VERTICAL);
         flowPane.getChildren().add(dayPlansTable);
@@ -196,6 +220,7 @@ What is the best way to know the properties of the selected cell e.g. whether it
         getChildren().add(flowPane);
         getChildren().add(makePlan);
         getChildren().add(csvPlan);
+        getChildren().add(print);
         getChildren().add(makeDishHolderPanel());
         getChildren().add(makeNotesPanel());
 
@@ -209,6 +234,7 @@ What is the best way to know the properties of the selected cell e.g. whether it
             this.mealType = mealType;
         }
     }
+
     private TableColumn<DatedDayPlan, Meal> makeMealColumn(String label, TableView<DatedDayPlan> dayPlansTable, MealType mealType) {
         TableColumn<DatedDayPlan, Meal> dinnerMeal = new MealColumn(label, mealType);
         dinnerMeal.setCellValueFactory(x -> Bindings.createObjectBinding(() -> {
@@ -251,6 +277,7 @@ What is the best way to know the properties of the selected cell e.g. whether it
         group.getToggles().addAll(and, or);
         and.setOnAction(actionEvent -> andCondition.set(true));
         or.setOnAction(actionEvent -> andCondition.set(false));
+        TextField searchString = new TextField();
 
         HBox andOrBox = new HBox();
         andOrBox.getChildren().add(and);
@@ -263,6 +290,10 @@ What is the best way to know the properties of the selected cell e.g. whether it
         TableView<Dish> table = new TableView<>(mutableList);
         flowPane.getChildren().add(andOrBox);
         flowPane.getChildren().add(filterPanel);
+        HBox searchRow = new HBox();
+        searchRow.getChildren().add(new Label("Filter string"));
+        searchRow.getChildren().add(searchString);
+        flowPane.getChildren().add(searchRow);
         flowPane.getChildren().add(table);
 
         table.getSelectionModel().selectedItemProperty().addListener((observableValue, oldDish, newDish) -> dishListener.update(newDish));
@@ -306,33 +337,43 @@ What is the best way to know the properties of the selected cell e.g. whether it
             }
         });
 
-        filterPanel.addListener(new FilterPanel.FilterListener() {
+        FilterPanel.FilterListener listener = new FilterPanel.FilterListener() {
             @Override
             public void filterChanged() {
                 List<DishTag> selectedTags = filterPanel.getSelectedTags();
-                mutableList.clear();
-                if (selectedTags.isEmpty()) {
-                    mutableList.addAll(dishList);
+                List<Dish> tempDishes = Lists.newArrayList();
+                List<Dish> dishesToUse = Lists.newArrayList(dishList);
+                String text = searchString.getText().toLowerCase();
+//                if (!text.isBlank()) {//TODO use isBlank. As of java 11, need to make sure project compiles.
+                if (!text.isEmpty()) {
+                    dishesToUse = dishesToUse.stream().filter(dish -> dish.getName().toLowerCase().contains(text)).collect(Collectors.toList());
                 }
-                for (Dish dish : dishList) {
-                    Collection<DishTag> dishTags = dishesToTags.get(dish);
-                    if (andCondition.get()) {
-                        if (dishTags.containsAll(selectedTags)) {
-                            mutableList.add(dish);
-                        }
-                    } else {
-                        for (DishTag selectedTag : selectedTags) {
-                            if (dishTags.contains(selectedTag)) {
-                                mutableList.add(dish);
-                                break;
+                if (selectedTags.isEmpty()) {
+                    tempDishes.addAll(dishesToUse);
+                } else {
+                    for (Dish dish : dishesToUse) {
+                        Collection<DishTag> dishTags = dishesToTags.get(dish);
+                        if (andCondition.get()) {
+                            if (dishTags.containsAll(selectedTags)) {
+                                tempDishes.add(dish);
                             }
+                        } else {
+                            for (DishTag selectedTag : selectedTags) {
+                                if (dishTags.contains(selectedTag)) {
+                                    tempDishes.add(dish);
+                                    break;
+                                }
 
+                            }
                         }
                     }
                 }
-                System.out.println("Update");
+                mutableList.clear();
+                mutableList.addAll(tempDishes);
             }
-        });
+        };
+        filterPanel.addListener(listener);
+        searchString.setOnAction(actionEvent -> listener.filterChanged());
         return flowPane;
     }
 
@@ -340,28 +381,9 @@ What is the best way to know the properties of the selected cell e.g. whether it
     private FlowPane makeDishHolderPanel() {
         FlowPane flowPane = new FlowPane();
         flowPane.setStyle("-fx-border-color: black");
-
-        flowPane.setOnDragEntered(new EventHandler<DragEvent>() {
-            public void handle(DragEvent event) {
-                /* the drag-and-drop gesture entered the target */
-                /* show to the user that it is an actual gesture target */
-                boolean hasDish = event.getDragboard().hasContent(DISH_FORMAT);
-                boolean hasMeal = event.getDragboard().hasContent(MEAL_FORMAT);
-                if (event.getGestureSource() != flowPane && (hasDish || hasMeal)) {
-                    flowPane.setStyle("-fx-border-color: green");
-                }
-                event.consume();
-            }
-        });
-        flowPane.setOnDragExited(event -> {
-            /* mouse moved away, remove the graphical cues */
-            flowPane.setStyle("-fx-border-color: black");
-            event.consume();
-        });
         VBox vBox = new VBox();
         HBox dishListBox = new HBox();
         Text text = new Text("DishList");
-
 
         class DishButton extends Button {
             private final Dish dish;
@@ -399,18 +421,35 @@ What is the best way to know the properties of the selected cell e.g. whether it
             }
         }
 
-        flowPane.setOnDragOver(new EventHandler<DragEvent>() {
+
+        flowPane.setOnDragEntered(new EventHandler<DragEvent>() {
             public void handle(DragEvent event) {
-                /* data is dragged over the target */
-                /* accept it only if it is not dragged from the same node
-                 * and if it has a string data */
-                if (event.getGestureSource() != flowPane && event.getGestureSource().getClass() != DishButton.class &&
-                        (event.getDragboard().hasContent(DISH_FORMAT) || event.getDragboard().hasContent(MEAL_FORMAT))) {
-                    /* allow for both copying and moving, whatever user chooses */
-                    event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                /* the drag-and-drop gesture entered the target */
+                /* show to the user that it is an actual gesture target */
+                boolean hasDish = event.getDragboard().hasContent(DISH_FORMAT);
+                boolean hasMeal = event.getDragboard().hasContent(MEAL_FORMAT);
+                if (event.getGestureSource() != flowPane && (hasDish || hasMeal)) {
+                    flowPane.setStyle("-fx-border-color: green");
                 }
                 event.consume();
             }
+        });
+        flowPane.setOnDragExited(event -> {
+            /* mouse moved away, remove the graphical cues */
+            flowPane.setStyle("-fx-border-color: black");
+            event.consume();
+        });
+
+        flowPane.setOnDragOver(event -> {
+            /* data is dragged over the target */
+            /* accept it only if it is not dragged from the same node
+             * and if it has a string data */
+            if (event.getGestureSource() != flowPane && event.getGestureSource().getClass() != DishButton.class &&
+                    (event.getDragboard().hasContent(DISH_FORMAT) || event.getDragboard().hasContent(MEAL_FORMAT))) {
+                /* allow for both copying and moving, whatever user chooses */
+                event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+            }
+            event.consume();
         });
 
 
@@ -433,8 +472,11 @@ What is the best way to know the properties of the selected cell e.g. whether it
                     success = true;
                 } else if (hasMeal) {
                     Meal content = DragUtils.getContent(dragboard, MEAL_FORMAT);
-                    dishListBox.getChildren().add(new DishButton(content.getDish()));
-                    success = true;
+                    //TODO allow meals to be stored here as well. Either store two lists, or just meals.
+                    if (!Dish.isStub(content.getDish())) {
+                        dishListBox.getChildren().add(new DishButton(content.getDish()));
+                        success = true;
+                    }
                 }
                 /* let the source know whether the string was successfully
                  * transferred and used */
@@ -555,10 +597,9 @@ What is the best way to know the properties of the selected cell e.g. whether it
             setOnDragDetected(eh -> {
                 // Get the row index of this cell
                 Meal item = getItem();
-                if (item != null && !Dish.isStub(item.getDish())) {
-                    Dish dish = item.getDish();
+//                if (item != null && !Dish.isStub(item.getDish())) {
+                if (item != null && !Meal.isStub(item)) {
                     Dragboard db = startDragAndDrop(TransferMode.ANY);
-//                    db.setContent(DragUtils.makeContent(DISH_FORMAT, dish));
                     db.setContent(DragUtils.makeContent(MEAL_FORMAT, item));
                 }
             });
@@ -703,7 +744,10 @@ What is the best way to know the properties of the selected cell e.g. whether it
                 if (item.getNotes().isEmpty()) {
                     return String.format("%s", item.getDish());
                 } else {
-                    return item.getNotes();
+                    //TODO should we return description (including dishname) or just notes? Feel it should be description,
+                    //to reflect what is shown in csv. Problem is we can't change the currentDish field easily by editing the cell.
+//                    return item.getNotes();
+                    return item.getDescription();
                 }
             }
         }
