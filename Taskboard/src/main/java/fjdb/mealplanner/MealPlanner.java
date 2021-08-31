@@ -6,10 +6,7 @@ import fjdb.databases.ColumnDao;
 import fjdb.databases.ColumnGroup;
 import fjdb.mealplanner.dao.DishHistoryDao;
 import fjdb.mealplanner.dao.DishTagDao;
-import fjdb.mealplanner.fx.FilterPanel;
-import fjdb.mealplanner.fx.MealPlanConfigurator;
-import fjdb.mealplanner.fx.MealPlanPanel;
-import fjdb.mealplanner.fx.Selectors;
+import fjdb.mealplanner.fx.*;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
 import fjdb.mealplanner.swing.MealPlannerTest;
 import javafx.application.Application;
@@ -218,7 +215,7 @@ public class MealPlanner extends Application {
                 DishTagDao dishTagDao = daoManager.getDishTagDao();
                 Multimap<Dish, DishTag> dishesToTags = dishTagDao.getDishesToTags();
                 Set<DishTag> tags = dishTagDao.getTags(false);
-                FilterPanel filterPanel = new FilterPanel(tags, dishesToTags);
+                DishTagSelectionPanel filterPanel = new DishTagSelectionPanel(tags, dishesToTags);
                 dialogVbox.getChildren().add(filterPanel);
 
 
@@ -239,7 +236,7 @@ public class MealPlanner extends Application {
                         Dish dish = new Dish(dishName, dishDetails);
                         daoManager.getDishDao().insert(dish);
                         dishList.add(dish);
-                        dishTagDao.insert(dish, filterPanel.getSelectedTags());
+                        dishTagDao.insert(dish, filterPanel.getSelectedItems());
                         dishTableView.refresh();
                         dialog.close();
                     }
@@ -316,21 +313,13 @@ public class MealPlanner extends Application {
 
         Set<DishTag> tags = dishTagDao.getTags(false);
 
-        FilterPanel abPanel = new FilterPanel(tags, dishesToTags);
-
-        ComboBox<Dish> dishComboBox = new ComboBox<>(dishList);
-        dishComboBox.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                Dish selectedItem = dishComboBox.getValue();
-                abPanel.update(selectedItem);
-            }
-        });
+        DishTagSelectionPanel dishTagSelectionPanel = new DishTagSelectionPanel(tags, dishesToTags);
+        dishTagSelectionPanel.includeDishSelector(dishList);
         Button insertButton = new Button("Insert");
         insertButton.setOnAction(actionEvent -> {
-            Dish dish = dishComboBox.getValue();
+            Dish dish = dishTagSelectionPanel.getSelectedDish();
 
-            List<DishTag> selectedTags = abPanel.getSelectedTags();
+            List<DishTag> selectedTags = dishTagSelectionPanel.getSelectedItems();
             Collection<DishTag> currentTags = dishesToTags.get(dish);
             selectedTags.removeAll(currentTags);
             for (DishTag selectedTag : selectedTags) {
@@ -338,13 +327,12 @@ public class MealPlanner extends Application {
                 dishTagDao.insert(dataItem);
                 dishTagList.add(dataItem);
             }
-            abPanel.addTags(dish, selectedTags);
+            dishTagSelectionPanel.addTags(dish, selectedTags);
             table.refresh();
         });
 
         VBox insertPanel = new VBox();
-        insertPanel.getChildren().add(dishComboBox);
-        insertPanel.getChildren().add(abPanel);
+        insertPanel.getChildren().add(dishTagSelectionPanel);
         insertPanel.getChildren().add(insertButton);
 
         TableColumn<DishTagDao.TagEntry, Dish> dishColumn = new TableColumn<>("Dish");

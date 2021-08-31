@@ -284,7 +284,8 @@ What is the best way to know the properties of the selected cell e.g. whether it
         andOrBox.getChildren().add(or);
 
 
-        FilterPanel filterPanel = new FilterPanel(tags, ArrayListMultimap.create());
+//        FilterPanel filterPanel = new FilterPanel(tags, ArrayListMultimap.create());
+        DishTagSelectionPanel filterPanel = new DishTagSelectionPanel(tags, ArrayListMultimap.create());
         FlowPane flowPane = new FlowPane(Orientation.HORIZONTAL);
         ObservableList<Dish> mutableList = FXCollections.observableList(Lists.newArrayList(dishList));
         TableView<Dish> table = new TableView<>(mutableList);
@@ -337,43 +338,40 @@ What is the best way to know the properties of the selected cell e.g. whether it
             }
         });
 
-        FilterPanel.FilterListener listener = new FilterPanel.FilterListener() {
-            @Override
-            public void filterChanged() {
-                List<DishTag> selectedTags = filterPanel.getSelectedTags();
-                List<Dish> tempDishes = Lists.newArrayList();
-                List<Dish> dishesToUse = Lists.newArrayList(dishList);
-                String text = searchString.getText().toLowerCase();
+        SelectionPanel.SelectionListener listener = () -> {
+            List<DishTag> selectedTags = filterPanel.getSelectedItems();
+            List<Dish> tempDishes = Lists.newArrayList();
+            List<Dish> dishesToUse = Lists.newArrayList(dishList);
+            String text = searchString.getText().toLowerCase();
 //                if (!text.isBlank()) {//TODO use isBlank. As of java 11, need to make sure project compiles.
-                if (!text.isEmpty()) {
-                    dishesToUse = dishesToUse.stream().filter(dish -> dish.getName().toLowerCase().contains(text)).collect(Collectors.toList());
-                }
-                if (selectedTags.isEmpty()) {
-                    tempDishes.addAll(dishesToUse);
-                } else {
-                    for (Dish dish : dishesToUse) {
-                        Collection<DishTag> dishTags = dishesToTags.get(dish);
-                        if (andCondition.get()) {
-                            if (dishTags.containsAll(selectedTags)) {
+            if (!text.isEmpty()) {
+                dishesToUse = dishesToUse.stream().filter(dish -> dish.getName().toLowerCase().contains(text)).collect(Collectors.toList());
+            }
+            if (selectedTags.isEmpty()) {
+                tempDishes.addAll(dishesToUse);
+            } else {
+                for (Dish dish : dishesToUse) {
+                    Collection<DishTag> dishTags = dishesToTags.get(dish);
+                    if (andCondition.get()) {
+                        if (dishTags.containsAll(selectedTags)) {
+                            tempDishes.add(dish);
+                        }
+                    } else {
+                        for (DishTag selectedTag : selectedTags) {
+                            if (dishTags.contains(selectedTag)) {
                                 tempDishes.add(dish);
+                                break;
                             }
-                        } else {
-                            for (DishTag selectedTag : selectedTags) {
-                                if (dishTags.contains(selectedTag)) {
-                                    tempDishes.add(dish);
-                                    break;
-                                }
 
-                            }
                         }
                     }
                 }
-                mutableList.clear();
-                mutableList.addAll(tempDishes);
             }
+            mutableList.clear();
+            mutableList.addAll(tempDishes);
         };
         filterPanel.addListener(listener);
-        searchString.setOnAction(actionEvent -> listener.filterChanged());
+        searchString.setOnAction(actionEvent -> listener.selectionChanged());
         return flowPane;
     }
 
