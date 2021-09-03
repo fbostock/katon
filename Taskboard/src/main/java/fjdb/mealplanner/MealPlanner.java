@@ -6,7 +6,10 @@ import fjdb.databases.ColumnDao;
 import fjdb.databases.ColumnGroup;
 import fjdb.mealplanner.dao.DishHistoryDao;
 import fjdb.mealplanner.dao.DishTagDao;
-import fjdb.mealplanner.fx.*;
+import fjdb.mealplanner.fx.DishTagSelectionPanel;
+import fjdb.mealplanner.fx.MealPlanConfigurator;
+import fjdb.mealplanner.fx.MealPlanPanel;
+import fjdb.mealplanner.fx.Selectors;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
 import fjdb.mealplanner.swing.MealPlannerTest;
 import javafx.application.Application;
@@ -31,6 +34,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -39,6 +43,8 @@ import java.util.stream.Collectors;
 /**
  * To make use of the appropriate javafx gui controls, we need to add the following to the vm args
  * -p /Users/francisbostock/Code/javafx-sdk-11.0.2/lib --add-modules javafx.controls
+ * <p>
+ * To enable helpful exceptions, use -XX:+ShowCodeDetailsInExceptionMessages
  * Edit the dir to the javafx lib as approriate.
  */
 public class MealPlanner extends Application {
@@ -49,8 +55,14 @@ public class MealPlanner extends Application {
 
     /*
             TODO
+            - Create a folder/package for the meal plan panel, and extract the inner classes.
+            - Refactor examples in DemoOfComponents so that they don't depend on the tags/db.
+            - Start building the tool to track meal histories, based not on the db but on the stored meal plans.
+              Then, I want some menu object that immediately gets added when the user right-clicks on a dish, one option
+              being to show the history of the dish, or the last time the dish was eaten.
+              Also, want a table display of dishes to last time we had them, so know what we haven't had recently.
+
             Move resolved items to MealPlannerNotes
-            Refactor FilterPanel
             Add a class to manage history data (wrap/use the history dao, and provides accessors to get dates for a meal etc.)
                 + When the application loads, on a separate thread we could load all the meal plans and get the data that way.
 
@@ -405,6 +417,7 @@ public class MealPlanner extends Application {
     private static class PlansPane extends TabPane {
         public PlansPane(MealPlanManager manager, ObservableList<Dish> dishList) {
             List<MealPlan> mealPlans = manager.getMealPlans();
+            mealPlans = mealPlans.stream().sorted(Comparator.comparing(MealPlan::getStart)).collect(Collectors.toList());
             for (MealPlan mealPlan : mealPlans) {
                 addMealPlanPanel(new MealPlanPanel(mealPlan, dishList, manager));
             }

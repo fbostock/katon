@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class CategorySelectionPanel<D, CATEGORY> extends SelectionPanel<CATEGORY> {
 
     private final Multimap<D, CATEGORY> tagMap;
-    private ComboBox<D> dishComboBox;
+    private ComboBox<D> dComboBox;
 
     public CategorySelectionPanel(Set<CATEGORY> tags, Multimap<D, CATEGORY> tagMap, Function<CATEGORY, String> labeller) {
         super(tags, labeller);
@@ -29,16 +29,16 @@ public class CategorySelectionPanel<D, CATEGORY> extends SelectionPanel<CATEGORY
     }
 
     public void includeDishSelector(ObservableList<D> dishes) {
-        dishComboBox = new ComboBox<>(dishes);
-        dishComboBox.setOnAction(actionEvent -> {
-            D selectedItem = dishComboBox.getValue();
+        dComboBox = new ComboBox<>(dishes);
+        dComboBox.setOnAction(actionEvent -> {
+            D selectedItem = dComboBox.getValue();
             update(selectedItem);
         });
-        getChildren().add(0, dishComboBox);
+        getChildren().add(0, dComboBox);
     }
 
     public D getSelectedDish() {
-        return dishComboBox == null ? null : dishComboBox.getValue();
+        return dComboBox == null ? null : dComboBox.getValue();
     }
 
     public void addTags(D dish, List<CATEGORY> tags) {

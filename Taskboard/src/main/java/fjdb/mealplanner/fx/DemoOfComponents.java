@@ -1,10 +1,11 @@
 package fjdb.mealplanner.fx;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import fjdb.mealplanner.DaoManager;
-import fjdb.mealplanner.Dish;
-import fjdb.mealplanner.DishTag;
+import com.google.common.collect.Sets;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -20,6 +21,7 @@ public class DemoOfComponents extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
     @Override
     public void start(Stage stage) throws Exception {
         TabPane mainTabs = new TabPane();
@@ -36,15 +38,21 @@ public class DemoOfComponents extends Application {
     }
 
     private Node getSelectionPanel() {
-        Set<DishTag> tags = DaoManager.PRODUCTION.getDishTagDao().getTags(true);
-        return new SelectionPanel<>(tags, DishTag::getLabel);
+        Set<String> tags = Sets.newHashSet("Tag1", "Tag2", "Tag3", "OtherTag", "NullTag");
+        return new SelectionPanel<>(tags, s -> s);
     }
 
     private Node getDishTagSelectionPanel() {
-        Multimap<Dish, DishTag> dishesToTags = DaoManager.PRODUCTION.getDishTagDao().getDishesToTags();
-        Set<DishTag> tags = DaoManager.PRODUCTION.getDishTagDao().getTags(true);
-        CategorySelectionPanel<Dish, DishTag> panel = new CategorySelectionPanel<>(tags, dishesToTags, DishTag::getLabel);
-        panel.includeDishSelector();
+        Multimap<Integer, String> dishesToTags = ArrayListMultimap.create();
+        dishesToTags.putAll(1, Sets.newHashSet("Tag1", "Tag2", "Tag3", "OtherTag", "NullTag"));
+        dishesToTags.putAll(2, Sets.newHashSet("Tag1", "OtherTag", "NullTag"));
+        dishesToTags.putAll(3, Sets.newHashSet("OtherTag", "NullTag"));
+        //Note: doing the following would mean 9 would not appear in the map
+        //dishesToTags.putAll(9, Sets.newHashSet());
+
+        Set<String> tags = Sets.newHashSet("Tag1", "Tag2", "Tag3", "OtherTag", "NullTag");
+        CategorySelectionPanel<Integer, String> panel = new CategorySelectionPanel<>(tags, dishesToTags, s -> s);
+        panel.includeDishSelector(FXCollections.observableList(Lists.newArrayList(1, 2, 3, 4)));
         return panel;
     }
 }
