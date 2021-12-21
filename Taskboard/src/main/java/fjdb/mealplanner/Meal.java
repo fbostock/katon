@@ -46,7 +46,7 @@ public class Meal implements Serializable {
     }
 
     public String getDescription() {
-        if (notes.contains(dish.getName())) {
+        if (notes.toLowerCase().contains(dish.getName().toLowerCase())) {
             return getNotes();
         } else {
             return String.format("%s %s", dish.getName(), notes.isEmpty() ? "" : ": " + notes);

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import fjdb.databases.ColumnDao;
 import fjdb.databases.ColumnGroup;
+import fjdb.mealplanner.admin.DishTagPanel;
 import fjdb.mealplanner.dao.DishHistoryDao;
 import fjdb.mealplanner.dao.DishTagDao;
 import fjdb.mealplanner.fx.DishTagSelectionPanel;
@@ -11,7 +12,6 @@ import fjdb.mealplanner.fx.MealPlanConfigurator;
 import fjdb.mealplanner.fx.MealPlanPanel;
 import fjdb.mealplanner.fx.Selectors;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
-import fjdb.mealplanner.swing.MealPlannerTest;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -33,8 +33,6 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -52,36 +50,41 @@ public class MealPlanner extends Application {
     private final DaoManager daoManager;
     private ObservableList<Dish> dishList;
     private final MealPlanManager mealPlanManager;
+    private PlansPane plansPane;
 
     /*
+
+    December 2021 TODO
+      = add menubar, with functions menu, adding function to create a new two week plan
+
+    November2021 TODO
+      = When editing a cell, there should be a panel that opens up showing a list of dishes based on what the user has typed.
+      = Write a program that checks what meals have been previously included, and tries to identify every entry against
+      a meal in the database (for manually added items). We'll need to work out how to address typos ("nearly" matches).
+      It should spit out things which haven't been matched so we can gradually improve it.
+
+      = Can we introduce a "type" of Meal called an Event, for instance "Bluewater" or "OUT" or "AWAY". These could
+      be stored in a separate db table, just to help recognise elements in the meal plans.
+
+      = Ability to store "types" of certain dishes, e.g. pizzas.
+
             TODO
             - Create a folder/package for the meal plan panel, and extract the inner classes.
-            - Refactor examples in DemoOfComponents so that they don't depend on the tags/db.
-            - Start building the tool to track meal histories, based not on the db but on the stored meal plans.
-              Then, I want some menu object that immediately gets added when the user right-clicks on a dish, one option
-              being to show the history of the dish, or the last time the dish was eaten.
-              Also, want a table display of dishes to last time we had them, so know what we haven't had recently.
+            - Create Dish options: a user can right click a dish, to add an "option" for it e.g.
+            pizza add a bbq beef one, a goats cheese one, and can also show options. I would say a
+            db table like DishTags.
 
-            Move resolved items to MealPlannerNotes
+        //TODO for dayPlaysTable, can we call setItems and pass in an observable list from the builder. The builder, when making any changes
+        //to a day plan, should reset the element in that list. In doing so, will that then get the table to update the particular
+        //row that has changed, rather than having to call tableView.refresh() all the time?
+
+
             Add a class to manage history data (wrap/use the history dao, and provides accessors to get dates for a meal etc.)
                 + When the application loads, on a separate thread we could load all the meal plans and get the data that way.
 
-            -2) DONE Remove (or disable, to make it optional) feature that the cell highlighted in the table gets the dish added
-            when selected in the lefthand table. Given we can drag, it makes it redundant, and in fact problematic.
-            -1) DONE Perhaps the cells in MealPlanPanel should use a Meal object but should string convert to and from
-            the Meal object. So if you set a cell programmatically, it should have a Dish object, and blank notes. But
-            if edited manually, it will just have notes - but we can attempt to infer the Dish from the text if blank.
-            0) DONE When making the mealplan/shopping, see what steps are still required for this app, e.g. print out
-            to csv, saving the mealplans etc. To save, we should start by serializing out the mealplan object.
-            1) DONE In this class, add another tab for the DishTagDao, and mirror the machinery for the DishHistory tab, where
-            we have a table of dishes and their tags, and can insert.
             3) Spend some time working through some TODOs scattered around, either addressing them or consolidating them
             into this list.
-            4) Add a side panel to the meal planner containing all the dishes, and a field at the top to filter the list.
-            Also, there should be a dropdown of tags to add to the filter list. Adding a tag should add a button towards the top.
-            Clicking on that button should remove the filter/tag. Clicking on any dish in the list should automatically populate
-            the selected (or last selected) field in the table).
-            5)
+
             6) Refactor IdColumnDao so that it caches the ids to beans (e.g. DishId to Dish), so we can remove DishId from
             Dish. This will replace the caching done in DishDao. IdColumnDao should be generic on the DataId. Minimise duplicated
             code in ColumnDao versus IdColumnDao, and ColumnGroup versus IdColumnGroup.
@@ -90,15 +93,11 @@ public class MealPlanner extends Application {
             to ensure this somehow.
             8) Continuing from 1) - For the table, I want some generic machinery which can take a dao and its
             columns, and automatically generate a viewable table. This is a bit more involved, so kicking for now.
-            9) DONE (removed) Review MealType and date used in Meal - perhaps we don't need those.
 
 
             Small items
             1) Add convenience StringColumn constructors for different varchar lengths.
-            2) DONE Create side tabs - Admin and Plans, the latter containing actual meal plans, the former a panel to manage
-            dishes, their tags etc.
-            3) DONE Write out the MealPlan created from the MealPlanPanel to csv.
-            4) DONE Add new dishes via table - have insert ability
+
             TODO features/work
             - if dishes know what ingredients they need, you could create an "ingredients to use" list, and the planner
             suggests dishes that use that, like pesto.
@@ -139,14 +138,17 @@ public class MealPlanner extends Application {
         String currentUsersHomeDir = System.getProperty("user.home");
         File mealPlansFolder = new File(currentUsersHomeDir, "MealPlans");
         mealPlanManager = new MealPlanManager(mealPlansFolder);
-        //TODO handle any errors loading these.
+        //TODO perform this on a separate thread, adding them to the tab gradually.
+        //Once there are separate archived and "current" mealplans, we can prioritise the current ones.
+        //In fact, current ones should be on this thread, and archived on a separate thread.
         mealPlanManager.load();
+        //TODO have this parse the contents on a separate thread, and requests made to the manager should
+        //ensure requests wait while it is loading, or at least are handled thread safely.
 
-
-        System.out.println("Created MealPlanner");
         daoManager = DaoManager.PRODUCTION;
         DishDao dishDao = daoManager.getDishDao();
         List<Dish> dishes = new CompositeDishLoader(daoManager).getDishes();
+//TODO should this be removed?
         for (Dish dish : dishes) {
             dishDao.findId(dish);
         }
@@ -155,8 +157,6 @@ public class MealPlanner extends Application {
     @Override
     public void start(Stage primaryStage) {
         List<Dish> meals = Lists.newArrayList();
-        meals.add(new MealPlannerTest.Leftovers(MealPlannerTest.stub()));
-
         meals.addAll(new CompositeDishLoader(daoManager).getDishes());
 
         dishList = FXCollections.observableList(meals);
@@ -175,12 +175,9 @@ public class MealPlanner extends Application {
         mainTabs.setSide(Side.LEFT);
 
 
-        PlansPane plansPane = new PlansPane(mealPlanManager, dishList);
+        plansPane = new PlansPane(mealPlanManager, dishList, false);
         plansPane.setSide(Side.TOP);
-//        plansPane.getTabs().add(new Tab("Meal Plan Test", new MealPlanPanel(MealPlanConfigurator.Configuration.defaultConfig(), dishList, mealPlanManager)));
-
-        //            LocalDate start = mealPlanPanel.getStart();
-        //            plansPane.getTabs().add(new Tab(String.format("Plan %s", start), mealPlanPanel));
+        plansPane.getSelectionModel().selectLast();
         Consumer<MealPlanPanel> consumer = plansPane::addMealPlanPanel;
 
         TabPane adminPane = new TabPane();
@@ -188,14 +185,29 @@ public class MealPlanner extends Application {
         adminPane.getTabs().add(new Tab("Dishes", getDishesPane(dishTableView)));
         adminPane.getTabs().add(new Tab("Configure", new MealPlanConfigurator(consumer, dishList, mealPlanManager)));
         adminPane.getTabs().add(new Tab("Dish History", getDishHistoryPanel()));
+        adminPane.getTabs().add(new Tab("Meal History", getMealHistoryPanel()));
         adminPane.getTabs().add(new Tab("Dish Tags", getDishTagPanel()));
 
-
-        mainTabs.getTabs().add(new Tab("Admin", adminPane));
         mainTabs.getTabs().add(new Tab("Plans", plansPane));
+        mainTabs.getTabs().add(new Tab("Admin", adminPane));
+
+        MenuBar menuBar = new MenuBar();
+        VBox vBox = new VBox(menuBar);
+        Menu functions = new Menu("Functions");
+        MenuItem menuItem = new MenuItem("Add new default plan");
+        menuItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                LocalDate nextDate = plansPane.getCurrentPlan().getEnd().plusDays(1);
+                consumer.accept(MealPlanConfigurator.makePanel(nextDate, dishList, mealPlanManager));
+            }
+        });
+        functions.getItems().add(menuItem);
+        menuBar.getMenus().add(functions);
 
         final BorderPane sceneRoot = new BorderPane();
         sceneRoot.setCenter(mainTabs);
+        sceneRoot.setTop(vBox);
 
         final Scene scene = new Scene(sceneRoot, 1200, 600);
         primaryStage.setScene(scene);
@@ -234,24 +246,16 @@ public class MealPlanner extends Application {
                 HBox okCancel = new HBox();
                 Button ok = new Button("OK");
                 Button cancel = new Button("Cancel");
-                cancel.setOnAction(new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent actionEvent) {
-                        dialog.close();
-                    }
-                });
-                ok.setOnAction(new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent actionEvent) {
-                        String dishName = dishNameField.getText();
-                        String dishDetails = dishDetailsField.getText();
-                        Dish dish = new Dish(dishName, dishDetails);
-                        daoManager.getDishDao().insert(dish);
-                        dishList.add(dish);
-                        dishTagDao.insert(dish, filterPanel.getSelectedItems());
-                        dishTableView.refresh();
-                        dialog.close();
-                    }
+                cancel.setOnAction(actionEvent12 -> dialog.close());
+                ok.setOnAction(actionEvent1 -> {
+                    String dishName1 = dishNameField.getText();
+                    String dishDetails1 = dishDetailsField.getText();
+                    Dish dish = new Dish(dishName1, dishDetails1);
+                    daoManager.getDishDao().insert(dish);
+                    dishList.add(dish);
+                    dishTagDao.insert(dish, filterPanel.getSelectedItems());
+                    dishTableView.refresh();
+                    dialog.close();
                 });
                 okCancel.getChildren().add(ok);
                 okCancel.getChildren().add(cancel);
@@ -314,53 +318,19 @@ public class MealPlanner extends Application {
         return flowPane;
     }
 
-    private FlowPane getDishTagPanel() {
+    private FlowPane getMealHistoryPanel() {
         FlowPane flowPane = new FlowPane(Orientation.VERTICAL);
-        DishTagDao dishTagDao = daoManager.getDishTagDao();
-
-        Multimap<Dish, DishTag> dishesToTags = dishTagDao.getDishesToTags();
-        List<DishTagDao.TagEntry> load = dishTagDao.load();
-        ObservableList<DishTagDao.TagEntry> dishTagList = FXCollections.observableList(load);
-        TableView<DishTagDao.TagEntry> table = new TableView<>(dishTagList);
-
-        Set<DishTag> tags = dishTagDao.getTags(false);
-
-        DishTagSelectionPanel dishTagSelectionPanel = new DishTagSelectionPanel(tags, dishesToTags);
-        dishTagSelectionPanel.includeDishSelector(dishList);
-        Button insertButton = new Button("Insert");
-        insertButton.setOnAction(actionEvent -> {
-            Dish dish = dishTagSelectionPanel.getSelectedDish();
-
-            List<DishTag> selectedTags = dishTagSelectionPanel.getSelectedItems();
-            Collection<DishTag> currentTags = dishesToTags.get(dish);
-            selectedTags.removeAll(currentTags);
-            for (DishTag selectedTag : selectedTags) {
-                DishTagDao.TagEntry dataItem = new DishTagDao.TagEntry(dish, selectedTag);
-                dishTagDao.insert(dataItem);
-                dishTagList.add(dataItem);
-            }
-            dishTagSelectionPanel.addTags(dish, selectedTags);
-            table.refresh();
-        });
-
-        VBox insertPanel = new VBox();
-        insertPanel.getChildren().add(dishTagSelectionPanel);
-        insertPanel.getChildren().add(insertButton);
-
-        TableColumn<DishTagDao.TagEntry, Dish> dishColumn = new TableColumn<>("Dish");
-        TableColumn<DishTagDao.TagEntry, DishTag> tagColumn = new TableColumn<>("Tag");
-        dishColumn.setCellValueFactory(x -> Bindings.createObjectBinding(() -> x.getValue().getDish()));
-        tagColumn.setCellValueFactory(x -> Bindings.createObjectBinding(() -> x.getValue().getTag()));
-        table.getColumns().add(dishColumn);
-        table.getColumns().add(tagColumn);
-
-        VBox vbox = new VBox();
-
-        vbox.getChildren().add(insertPanel);
-        vbox.getChildren().add(table);
-        flowPane.getChildren().add(vbox);
-
+        DishActionFactory dishActionFactory = mealPlanManager.getDishActionFactory();
+        dishActionFactory.setCurrentMealPlan(plansPane.getCurrentPlan());
+        TableView<DishActionFactory.HistoryRow> historyTable = dishActionFactory.getHistoryTable(dishList);
+        historyTable.prefHeightProperty().bind(flowPane.heightProperty());
+        historyTable.prefWidthProperty().bind(flowPane.widthProperty());
+        flowPane.getChildren().add(historyTable);
         return flowPane;
+    }
+
+    private FlowPane getDishTagPanel() {
+        return new DishTagPanel(daoManager, dishList);
     }
 
     //TODO rename
@@ -415,16 +385,31 @@ public class MealPlanner extends Application {
     }
 
     private static class PlansPane extends TabPane {
-        public PlansPane(MealPlanManager manager, ObservableList<Dish> dishList) {
-            List<MealPlan> mealPlans = manager.getMealPlans();
-            mealPlans = mealPlans.stream().sorted(Comparator.comparing(MealPlan::getStart)).collect(Collectors.toList());
+
+        private MealPlanPanel currentPlan = null;
+
+        public PlansPane(MealPlanManager manager, ObservableList<Dish> dishList, boolean isArchive) {
+            if (!isArchive) {
+                getTabs().add(new Tab("Archive", new PlansPane(manager, dishList, true)));
+            }
+            List<MealPlan> mealPlans = isArchive ? manager.getArchived() : manager.getMealPlans();
             for (MealPlan mealPlan : mealPlans) {
-                addMealPlanPanel(new MealPlanPanel(mealPlan, dishList, manager));
+                MealPlanPanel mealPlanPanel = new MealPlanPanel(mealPlan, dishList, manager);
+                currentPlan = mealPlanPanel;
+                addMealPlanPanel(mealPlanPanel);
             }
         }
 
         public void addMealPlanPanel(MealPlanPanel mealPlanPanel) {
-            getTabs().add(new Tab(String.format("Plan %s", mealPlanPanel.getStart()), mealPlanPanel));
+            ScrollPane scrollPane = new ScrollPane(mealPlanPanel);
+            getTabs().add(new Tab(String.format("Plan %s", mealPlanPanel.getStart()), scrollPane));
+            if (mealPlanPanel.getStart().isAfter(currentPlan.getStart())) {
+                currentPlan = mealPlanPanel;
+            }
+        }
+
+        public MealPlanPanel getCurrentPlan() {
+            return currentPlan;
         }
     }
 

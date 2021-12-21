@@ -32,6 +32,8 @@ public class DishTag implements Comparable<DishTag> {
     /*Dishes Ivy really likes*/
     public static final DishTag IVY_FAVOURITE = of("Ivy Favourite");
 
+    public static final DishTag SIDE = of("Side");
+
     private final String label;
 
     public static Set<DishTag> getTags() {

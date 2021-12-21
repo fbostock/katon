@@ -1,9 +1,9 @@
 package fjdb.mealplanner.swing;
 
-import com.google.common.collect.Lists;
 import fjdb.mealplanner.DaoManager;
 import fjdb.mealplanner.Dish;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
+import fjdb.mealplanner.search.Searcher;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,6 +34,7 @@ public class SearchSelector<T> {
         dialog.setPreferredSize(new Dimension(500, 500));
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         SearchSelector<Dish> searchSelector = new SearchSelector<>(Dish::getName);
         SelectionListener<Dish> listSelectionListener = item -> {
             dialog.dispose();
@@ -83,7 +84,7 @@ public class SearchSelector<T> {
         field.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                    //TODO move this to diferent thread if performance is an issue
+                    //TODO move this to different thread if performance is an issue
                     String searchText = field.getText();
                     List<T> results = performSearch(searchText, inputItems, searcher);
                     items.clear();
@@ -110,14 +111,8 @@ public class SearchSelector<T> {
     }
 
     private static <T> List<T> performSearch(String search, List<T> dishes, Function<T, String> searcher) {
-        String lowerCaseSearch = search.toLowerCase();
-        List<T> list = Lists.newArrayList();
-        for (T item : dishes) {
-            if (searcher.apply(item).toLowerCase().contains(lowerCaseSearch)) {
-                list.add(item);
-            }
-        }
-        return list;
+        Searcher<T> tSearcher = new Searcher<>(dishes, searcher);
+        return tSearcher.results(search);
     }
 
     public interface SelectionListener<T> {

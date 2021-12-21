@@ -1,1 +1,30 @@
             - Order the meal plan tabs.
+            - Refactor examples in DemoOfComponents so that they don't depend on the tags/db.
+
+            -2) DONE Remove (or disable, to make it optional) feature that the cell highlighted in the table gets the dish added
+            when selected in the lefthand table. Given we can drag, it makes it redundant, and in fact problematic.
+            -1) DONE Perhaps the cells in MealPlanPanel should use a Meal object but should string convert to and from
+            the Meal object. So if you set a cell programmatically, it should have a Dish object, and blank notes. But
+            if edited manually, it will just have notes - but we can attempt to infer the Dish from the text if blank.
+            0) DONE When making the mealplan/shopping, see what steps are still required for this app, e.g. print out
+            to csv, saving the mealplans etc. To save, we should start by serializing out the mealplan object.
+            1) DONE In this class, add another tab for the DishTagDao, and mirror the machinery for the DishHistory tab, where
+            we have a table of dishes and their tags, and can insert.
+            4) DONE Add a side panel to the meal planner containing all the dishes, and a field at the top to filter the list.
+            Also, there should be a dropdown of tags to add to the filter list. Adding a tag should add a button towards the top.
+            Clicking on that button should remove the filter/tag. Clicking on any dish in the list should automatically populate
+            the selected (or last selected) field in the table).
+
+            9) DONE (removed) Review MealType and date used in Meal - perhaps we don't need those.
+
+
+                        2) DONE Create side tabs - Admin and Plans, the latter containing actual meal plans, the former a panel to manage
+                        dishes, their tags etc.
+                        3) DONE Write out the MealPlan created from the MealPlanPanel to csv.
+                        4) DONE Add new dishes via table - have insert ability
+
+            - Start building the tool to track meal histories, based not on the db but on the stored meal plans.
+              Then, I want some menu object that immediately gets added when the user right-clicks on a dish, one option
+              being to show the history of the dish, or the last time the dish was eaten.
+              (Can also add RC options to add meal to cook/unfreeze or delete)
+              Also, want a table display of dishes to last time we had them, so know what we haven't had recently.

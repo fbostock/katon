@@ -1,8 +1,10 @@
-package fjdb.mealplanner.fx;
+package fjdb.mealplanner.fx.unused;
 
 import fjdb.mealplanner.Dish;
 import fjdb.mealplanner.Meal;
 import fjdb.mealplanner.MealType;
+import fjdb.mealplanner.fx.MealPlanPanel;
+import fjdb.mealplanner.search.Searcher;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;

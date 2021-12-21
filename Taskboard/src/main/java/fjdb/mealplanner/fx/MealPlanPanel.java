@@ -8,6 +8,7 @@ import fjdb.mealplanner.dao.DishTagDao;
 import fjdb.mealplanner.swing.MealPlannerTest;
 import fjdb.util.ListUtil;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -28,23 +29,25 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static fjdb.mealplanner.fx.DragUtils.DISH_FORMAT;
 import static fjdb.mealplanner.fx.DragUtils.MEAL_FORMAT;
 
-public class MealPlanPanel extends FlowPane {
+public class MealPlanPanel extends FlowPane implements MealPlanProxy {
 
     private static final Logger log = LoggerFactory.getLogger(MealPlanPanel.class);
 
     private final MealPlanBuilder mealPlanBuilder;
+    private DishActionFactory dishActionFactory;
     private final ObservableList<Dish> dishList;
     private static final double PREFERRED_COL_WIDTH = 150.0;
+    private DishHolderPanel dishHolderPanel;
+    private TableView<DatedDayPlan> tableView;
+
+    private final HashMap<TableColumn<DatedDayPlan, ?>, MealType> columnMap = new HashMap<>();
 
     public MealPlanPanel(MealPlanConfigurator.Configuration configuration, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
         this(new MealPlanBuilder(), configuration.getDate(), configuration.getDays(), dishList, mealPlanManager);
@@ -57,37 +60,14 @@ public class MealPlanPanel extends FlowPane {
     private MealPlanPanel(MealPlanBuilder builder, LocalDate startDate, int days, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
         this.dishList = dishList;
         mealPlanBuilder = builder;
+        this.dishActionFactory = mealPlanManager.getDishActionFactory();
+        dishActionFactory.setCurrentMealPlan(this);
 
         TableView<DatedDayPlan> dayPlansTable = new TableView<>();
+
+        tableView = dayPlansTable;
         dishList.addListener((ListChangeListener<Dish>) change -> dayPlansTable.refresh());
 
-        DishListener dishListener;
-        dishListener = dish -> {
-        };
-
-        /* TODO
-What is the best way to know the properties of the selected cell e.g. whether it's dinner or lunch, whcih day etc.
-                 */
-        /*dishListener = dish -> {
-            ObservableList<TablePosition> selectedCells = dayPlansTable.getSelectionModel().getSelectedCells();
-            for (TablePosition selectedCell : selectedCells) {
-
-                DatedDayPlan selectedItem = dayPlansTable.getSelectionModel().getSelectedItem();
-                LocalDate date = selectedItem.getDate();
-                //TODO replace magic constants.
-                if (selectedCell.getColumn() == 3) {
-                    mealPlanBuilder.setBreakfast(date, new Meal(dish, ""));
-                } else if (selectedCell.getColumn() == 4) {
-                    mealPlanBuilder.setLunch(date, new Meal(dish, ""));
-                } else if (selectedCell.getColumn() == 5) {
-                    mealPlanBuilder.setDinner(date, new Meal(dish, ""));
-//                } else if (selectedCell.getColumn() == 6) {//TODO remove once done testing
-//                    mealPlanBuilder.setDinner(date, new Meal(dish, ""));
-                }
-                dayPlansTable.refresh();
-            }
-
-        };*/
         LocalDate endDate = startDate.plusDays(days - 1);
         LocalDate date = startDate;
         while (!date.isAfter(endDate)) {
@@ -95,6 +75,9 @@ What is the best way to know the properties of the selected cell e.g. whether it
             dayPlansTable.getItems().add(new DatedDayPlan(date, dayPlan));
             date = date.plusDays(1);
         }
+        //TODO for dayPlaysTable, can we call setItems and pass in an observable list from the builder. The builder, when making any changes
+        //to a day plan, should reset the element in that list. In doing so, will that then get the table to update the particular
+        //row that has changed, rather than having to call tableView.refresh() all the time?
 
         dayPlansTable.setEditable(true);
         //required to show individual cells highlighted on their own, rather than the whole row:
@@ -126,6 +109,9 @@ What is the best way to know the properties of the selected cell e.g. whether it
         TableColumn<DatedDayPlan, Meal> lunchMeal = makeMealColumn("Lunch", dayPlansTable, MealType.LUNCH);
         TableColumn<DatedDayPlan, Meal> dinnerMeal = makeMealColumn("Dinner", dayPlansTable, MealType.DINNER);
 
+        columnMap.put(breakfastMeal, MealType.BREAKFAST);
+        columnMap.put(lunchMeal, MealType.LUNCH);
+        columnMap.put(dinnerMeal, MealType.DINNER);
         dayPlansTable.getColumns().addAll(breakfastMeal, lunchMeal, dinnerMeal);
         dayPlansTable.getColumns().forEach(c -> c.setSortable(false));
 
@@ -145,6 +131,40 @@ What is the best way to know the properties of the selected cell e.g. whether it
                         }
                     }
                     dayPlansTable.refresh();
+                }
+            }
+        });
+        dayPlansTable.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                if (keyEvent.isControlDown()) {
+                    List<LocalDate> dates = builder.getDates();
+                    ObservableList<DatedDayPlan> selectedItems = dayPlansTable.getSelectionModel().getSelectedItems();
+                    for (DatedDayPlan selectedItem : selectedItems) {
+                        ObservableList<TablePosition> selectedCells = dayPlansTable.getSelectionModel().getSelectedCells();
+                        if (selectedCells.size() > 1) continue;
+                        TableColumn tableColumn = selectedCells.get(0).getTableColumn();
+                        MealType type = columnMap.get(tableColumn);
+                        Meal meal = selectedItem.getMeal(type);
+                        LocalDate date = selectedItem.getDate();
+
+                        if (KeyCode.D.equals(keyEvent.getCode())) {
+
+                            if (ListUtil.last(dates).isAfter(date)) {
+                                builder.setMeal(date.plusDays(1), type, meal);
+                                dayPlansTable.refresh();
+                            }
+                        } else if (KeyCode.F.equals(keyEvent.getCode())) {
+                            MealPlanProxy currentMealPlan = dishActionFactory.getCurrentMealPlan();
+                            if (currentMealPlan != null) {
+                                LocalDate dateInNextPlan = getDateInNextPlan(builder, date, currentMealPlan.getStart());
+                                currentMealPlan.addDish(meal.getDish(), dateInNextPlan, type);
+                            }
+
+                        }
+                    }
+
+
                 }
             }
         });
@@ -172,13 +192,16 @@ What is the best way to know the properties of the selected cell e.g. whether it
             mealPlanBuilder.remove(lastDate);
             dayPlansTable.getItems().remove(dayPlansTable.getItems().size() - 1);
         });
-        dayPlansTable.addEventHandler(MouseEvent.MOUSE_CLICKED, t -> {
-            if (t.getButton() == MouseButton.SECONDARY) {
-                cm.show(dayPlansTable, t.getScreenX(), t.getScreenY());
-            }
-        });
+//        dayPlansTable.addEventHandler(MouseEvent.MOUSE_CLICKED, t -> {
+//            if (t.getButton() == MouseButton.SECONDARY) {
+//                cm.show(dayPlansTable, t.getScreenX(), t.getScreenY());
+//            }
+//        });
 
+
+        dayPlansTable.setContextMenu(cm);
         Button makePlan = new Button("Make MealPlan");
+
         makePlan.setOnAction(actionEvent -> {
             MealPlan mealPlan = mealPlanBuilder.makePlan();
             mealPlanManager.addMealPlan(mealPlan);
@@ -213,17 +236,29 @@ What is the best way to know the properties of the selected cell e.g. whether it
                 }
             }
         });
+        Button showDishHistory = new Button("Dish History");
+        showDishHistory.setOnAction(actionEvent -> dishActionFactory.showDishHistory(dishList));
+
 
         FlowPane flowPane = new FlowPane(Orientation.VERTICAL);
         flowPane.getChildren().add(dayPlansTable);
-        flowPane.getChildren().add(getDishSidePane(dishListener));
+        flowPane.getChildren().add(getDishSidePane());
         getChildren().add(flowPane);
         getChildren().add(makePlan);
         getChildren().add(csvPlan);
         getChildren().add(print);
-        getChildren().add(makeDishHolderPanel());
+        getChildren().add(showDishHistory);
+//        getChildren().add(makeDishHolderPanel());
+        dishHolderPanel = new DishHolderPanel();
+        getChildren().add(dishHolderPanel);
         getChildren().add(makeNotesPanel());
+    }
 
+    private void removeMeal(TableRow<DatedDayPlan> tableRow, MealType mealType) {
+        DatedDayPlan item = tableRow.getItem();
+        LocalDate date = item.getDate();
+        mealPlanBuilder.setMeal(date, mealType, Meal.stub());
+        tableRow.getTableView().refresh();
     }
 
     private static class MealColumn extends TableColumn<DatedDayPlan, Meal> {
@@ -237,17 +272,22 @@ What is the best way to know the properties of the selected cell e.g. whether it
 
     private TableColumn<DatedDayPlan, Meal> makeMealColumn(String label, TableView<DatedDayPlan> dayPlansTable, MealType mealType) {
         TableColumn<DatedDayPlan, Meal> dinnerMeal = new MealColumn(label, mealType);
-        dinnerMeal.setCellValueFactory(x -> Bindings.createObjectBinding(() -> {
-            DatedDayPlan value = x.getValue();
-            return value.getMeal(mealType);
-        }));
+        Callback<TableColumn.CellDataFeatures<DatedDayPlan, Meal>, ObservableValue<Meal>> cellDataFeaturesObservableValueCallback = x -> {
+            ObjectBinding<Meal> objectBinding = Bindings.createObjectBinding(() -> {
+                DatedDayPlan value = x.getValue();
+                return value.getMeal(mealType);
+            });
+            return objectBinding;
+        };
+        dinnerMeal.setCellValueFactory(cellDataFeaturesObservableValueCallback);
+
         dinnerMeal.setEditable(true);
         dinnerMeal.setOnEditCommit(t -> {
             mealPlanBuilder.setMeal(t.getRowValue().getDate(), mealType, t.getNewValue());
             dayPlansTable.refresh();
         });
 
-        Callback<TableColumn<DatedDayPlan, Meal>, TableCell<DatedDayPlan, Meal>> mealCellFactory = p -> new MealCell(dishList, mealType, mealPlanBuilder);
+        Callback<TableColumn<DatedDayPlan, Meal>, TableCell<DatedDayPlan, Meal>> mealCellFactory = p -> new MealCell(dishList, mealType, mealPlanBuilder, dishActionFactory);
 
         dinnerMeal.setCellFactory(mealCellFactory);
         dinnerMeal.setPrefWidth(PREFERRED_COL_WIDTH);
@@ -255,9 +295,6 @@ What is the best way to know the properties of the selected cell e.g. whether it
         return dinnerMeal;
     }
 
-    public LocalDate getStart() {
-        return ListUtil.first(mealPlanBuilder.getDates());
-    }
 
     /*
    Add a side panel to the meal planner containing all the dishes, and a field at the top to filter the list.
@@ -266,7 +303,7 @@ What is the best way to know the properties of the selected cell e.g. whether it
    Clicking on that button should remove the filter/tag. Clicking on any dish in the list should
    automatically populate the selected (or last selected) field in the table).
      */
-    private FlowPane getDishSidePane(DishListener dishListener) {
+    private FlowPane getDishSidePane() {
         DishTagDao dishTagDao = DaoManager.PRODUCTION.getDishTagDao();
         Set<DishTag> tags = dishTagDao.getTags(false);
         Multimap<Dish, DishTag> dishesToTags = dishTagDao.getDishesToTags();
@@ -297,7 +334,7 @@ What is the best way to know the properties of the selected cell e.g. whether it
         flowPane.getChildren().add(searchRow);
         flowPane.getChildren().add(table);
 
-        table.getSelectionModel().selectedItemProperty().addListener((observableValue, oldDish, newDish) -> dishListener.update(newDish));
+//        table.getSelectionModel().selectedItemProperty().addListener((observableValue, oldDish, newDish) -> dishListener.update(newDish));
         dishList.addListener((ListChangeListener<Dish>) change -> {
             filterPanel.fireListeners();
             table.refresh();
@@ -321,6 +358,12 @@ What is the best way to know the properties of the selected cell e.g. whether it
                         }
                     }
                 };
+                tableCell.setOnMouseClicked(mouseEvent -> {
+                    if (mouseEvent.getClickCount() == 2) {
+                        Dish rowDish = tableCell.getTableRow().getItem();
+                        dishHolderPanel.addDish(rowDish);
+                    }
+                });
                 tableCell.setOnDragDetected(eh -> {
                     // Get the row index of this cell
                     Dish rowDish = tableCell.getTableRow().getItem();
@@ -375,13 +418,9 @@ What is the best way to know the properties of the selected cell e.g. whether it
         return flowPane;
     }
 
-    /*A panel that holds a list of dishes as a temporary storage area.*/
-    private FlowPane makeDishHolderPanel() {
-        FlowPane flowPane = new FlowPane();
-        flowPane.setStyle("-fx-border-color: black");
-        VBox vBox = new VBox();
-        HBox dishListBox = new HBox();
-        Text text = new Text("DishList");
+    private class DishHolderPanel extends FlowPane {
+
+        private final HBox dishListBox;
 
         class DishButton extends Button {
             private final Dish dish;
@@ -419,11 +458,146 @@ What is the best way to know the properties of the selected cell e.g. whether it
             }
         }
 
+        public DishHolderPanel() {
+            FlowPane flowPane = this;
+            flowPane.setStyle("-fx-border-color: black");
+            VBox vBox = new VBox();
+            dishListBox = new HBox();
+            Text text = new Text("DishList");
+
+
+            flowPane.setOnDragEntered(new EventHandler<DragEvent>() {
+                public void handle(DragEvent event) {
+                    /* the drag-and-drop gesture entered the target */
+                    /* show to the user that it is an actual gesture target */
+                    boolean hasDish = event.getDragboard().hasContent(DISH_FORMAT);
+                    boolean hasMeal = event.getDragboard().hasContent(MEAL_FORMAT);
+                    if (event.getGestureSource() != flowPane && (hasDish || hasMeal)) {
+                        flowPane.setStyle("-fx-border-color: green");
+                    }
+                    event.consume();
+                }
+            });
+            flowPane.setOnDragExited(event -> {
+                /* mouse moved away, remove the graphical cues */
+                flowPane.setStyle("-fx-border-color: black");
+                event.consume();
+            });
+
+            flowPane.setOnDragOver(event -> {
+                /* data is dragged over the target */
+                /* accept it only if it is not dragged from the same node
+                 * and if it has a string data */
+                if (event.getGestureSource() != flowPane && event.getGestureSource().getClass() != DishButton.class &&
+                        (event.getDragboard().hasContent(DISH_FORMAT) || event.getDragboard().hasContent(MEAL_FORMAT))) {
+                    /* allow for both copying and moving, whatever user chooses */
+                    event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                }
+                event.consume();
+            });
+
+
+            for (Dish tempDish : mealPlanBuilder.getTempDishes()) {
+                addDish(tempDish);
+            }
+
+            flowPane.setOnDragDropped(new EventHandler<DragEvent>() {
+                public void handle(DragEvent event) {
+                    /* data dropped */
+                    /* if there is a string data on dragboard, read it and use it */
+                    System.out.println("Dropping");
+                    Dragboard dragboard = event.getDragboard();
+                    boolean hasDish = dragboard.hasContent(DISH_FORMAT);
+                    boolean hasMeal = dragboard.hasContent(MEAL_FORMAT);
+                    boolean success = false;
+                    if (hasDish) {
+                        Dish dish = DragUtils.getContent(dragboard, DISH_FORMAT);
+                        addDish(dish);
+                        success = true;
+                    } else if (hasMeal) {
+                        Meal content = DragUtils.getContent(dragboard, MEAL_FORMAT);
+                        //TODO allow meals to be stored here as well. Either store two lists, or just meals.
+                        if (!Dish.isStub(content.getDish())) {
+                            addDish(content.getDish());
+                            success = true;
+                        }
+                    }
+                    /* let the source know whether the string was successfully
+                     * transferred and used */
+                    event.setDropCompleted(success);
+                    event.consume();
+                }
+            });
+            vBox.getChildren().add(text);
+            vBox.getChildren().add(dishListBox);
+            flowPane.getChildren().add(vBox);
+
+
+        }
+
+        public void addDish(Dish tempDish) {
+            dishListBox.getChildren().add(new DishButton(tempDish));
+        }
+
+    }
+    /*A panel that holds a list of dishes as a temporary storage area.*/
+/*
+    private FlowPane makeDishHolderPanel() {
+        FlowPane flowPane = new FlowPane();
+        flowPane.setStyle("-fx-border-color: black");
+        VBox vBox = new VBox();
+        HBox dishListBox = new HBox();
+        Text text = new Text("DishList");
+
+        class DishButton extends Button {
+            private final Dish dish;
+
+            public DishButton(Dish dish) {
+                super(dish.getName());
+                this.dish = dish;
+                mealPlanBuilder.addTempDish(dish);
+                setOnAction(actionEvent -> {
+                    remove();
+                });
+                setTooltip(new Tooltip("Click to remove"));
+                setOnDragDetected(new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent mouseEvent) {
+                        Dragboard db = startDragAndDrop(TransferMode.COPY);
+                        db.setContent(DragUtils.makeContent(DISH_FORMAT, dish));
+                    }
+                });
+                setOnDragDone(new EventHandler<DragEvent>() {
+                    public void handle(DragEvent event) {
+                        */
+    /* the drag and drop gesture ended *//*
+
+     */
+    /* if the data was successfully moved, clear it *//*
+
+                        if (event.getTransferMode() == TransferMode.COPY) {
+                            remove();
+                        }
+                        event.consume();
+                    }
+                });
+            }
+
+            private void remove() {
+                mealPlanBuilder.removeTempDish(dish);
+                dishListBox.getChildren().remove(DishButton.this);
+            }
+        }
+
 
         flowPane.setOnDragEntered(new EventHandler<DragEvent>() {
             public void handle(DragEvent event) {
-                /* the drag-and-drop gesture entered the target */
-                /* show to the user that it is an actual gesture target */
+                */
+    /* the drag-and-drop gesture entered the target *//*
+
+     */
+    /* show to the user that it is an actual gesture target *//*
+
                 boolean hasDish = event.getDragboard().hasContent(DISH_FORMAT);
                 boolean hasMeal = event.getDragboard().hasContent(MEAL_FORMAT);
                 if (event.getGestureSource() != flowPane && (hasDish || hasMeal)) {
@@ -433,18 +607,26 @@ What is the best way to know the properties of the selected cell e.g. whether it
             }
         });
         flowPane.setOnDragExited(event -> {
-            /* mouse moved away, remove the graphical cues */
+            */
+    /* mouse moved away, remove the graphical cues *//*
+
             flowPane.setStyle("-fx-border-color: black");
             event.consume();
         });
 
         flowPane.setOnDragOver(event -> {
-            /* data is dragged over the target */
-            /* accept it only if it is not dragged from the same node
-             * and if it has a string data */
+            */
+    /* data is dragged over the target *//*
+
+     */
+    /* accept it only if it is not dragged from the same node
+     * and if it has a string data *//*
+
             if (event.getGestureSource() != flowPane && event.getGestureSource().getClass() != DishButton.class &&
                     (event.getDragboard().hasContent(DISH_FORMAT) || event.getDragboard().hasContent(MEAL_FORMAT))) {
-                /* allow for both copying and moving, whatever user chooses */
+                */
+    /* allow for both copying and moving, whatever user chooses *//*
+
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
             }
             event.consume();
@@ -457,8 +639,12 @@ What is the best way to know the properties of the selected cell e.g. whether it
 
         flowPane.setOnDragDropped(new EventHandler<DragEvent>() {
             public void handle(DragEvent event) {
-                /* data dropped */
-                /* if there is a string data on dragboard, read it and use it */
+                */
+    /* data dropped *//*
+
+     */
+    /* if there is a string data on dragboard, read it and use it *//*
+
                 System.out.println("Dropping");
                 Dragboard dragboard = event.getDragboard();
                 boolean hasDish = dragboard.hasContent(DISH_FORMAT);
@@ -476,8 +662,10 @@ What is the best way to know the properties of the selected cell e.g. whether it
                         success = true;
                     }
                 }
-                /* let the source know whether the string was successfully
-                 * transferred and used */
+                */
+    /* let the source know whether the string was successfully
+     * transferred and used *//*
+
                 event.setDropCompleted(success);
                 event.consume();
             }
@@ -487,6 +675,7 @@ What is the best way to know the properties of the selected cell e.g. whether it
         flowPane.getChildren().add(vBox);
         return flowPane;
     }
+*/
 
     private FlowPane makeNotesPanel() {
         FlowPane flowPane = new FlowPane();
@@ -552,14 +741,10 @@ What is the best way to know the properties of the selected cell e.g. whether it
         private void createTextField() {
             textField = new TextField(getString());
             textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
-            textField.focusedProperty().addListener(new ChangeListener<Boolean>() {
-                @Override
-                public void changed(ObservableValue<? extends Boolean> arg0,
-                                    Boolean arg1, Boolean arg2) {
-                    System.out.println("Focus changed");
-                    if (!arg2) {
-                        commitEdit(textField.getText());
-                    }
+            textField.focusedProperty().addListener((arg0, arg1, arg2) -> {
+                System.out.println("Focus changed");
+                if (!arg2) {
+                    commitEdit(textField.getText());
                 }
             });
             //Allow Enter key to commit change and stop editing.
@@ -583,14 +768,17 @@ What is the best way to know the properties of the selected cell e.g. whether it
         }
     }
 
+
     static class MealCell extends TableCell<DatedDayPlan, Meal> {
 
         private Dish currentDish;
         private TextField textField;
         private final ObservableList<Dish> dishes;
+        private DishActionFactory factory;
 
-        public MealCell(ObservableList<Dish> dishes, MealType mealType, MealPlanBuilder mealPlanBuilder) {
+        public MealCell(ObservableList<Dish> dishes, MealType mealType, MealPlanBuilder mealPlanBuilder, DishActionFactory factory) {
             this.dishes = dishes;
+            this.factory = factory;
 
             setOnDragDetected(eh -> {
                 // Get the row index of this cell
@@ -603,13 +791,10 @@ What is the best way to know the properties of the selected cell e.g. whether it
             });
             setOnDragDone(dragEvent -> {
                 if (dragEvent.getTransferMode() == TransferMode.COPY) {
-                    TableRow<DatedDayPlan> tableRow = getTableRow();
-                    DatedDayPlan item = tableRow.getItem();
-                    LocalDate date = item.getDate();
-                    mealPlanBuilder.setMeal(date, mealType, Meal.stub());
-                    getTableView().refresh();
+                    removeMeal(mealPlanBuilder, mealType);
                 }
             });
+
 
             setOnDragOver(event -> {
                 /* data is dragged over the target */
@@ -631,15 +816,13 @@ What is the best way to know the properties of the selected cell e.g. whether it
                 boolean success = false;
                 if (hasDish) {
                     Dish dish = DragUtils.getContent(dragboard, DISH_FORMAT);
-                    TableRow<DatedDayPlan> tableRow = getTableRow();
-                    LocalDate date = tableRow.getItem().getDate();
+                    LocalDate date = getDate();
                     mealPlanBuilder.setMeal(date, mealType, new Meal(dish, ""));
                     getTableView().refresh();
                     success = true;
                 } else if (hasMeal) {
                     Meal meal = DragUtils.getContent(dragboard, MEAL_FORMAT);
-                    TableRow<DatedDayPlan> tableRow = getTableRow();
-                    LocalDate date = tableRow.getItem().getDate();
+                    LocalDate date = getDate();
                     mealPlanBuilder.setMeal(date, mealType, meal);
                     getTableView().refresh();
                     success = true;
@@ -649,7 +832,127 @@ What is the best way to know the properties of the selected cell e.g. whether it
                 event.setDropCompleted(success);
                 event.consume();
             });
+
+            setOnMouseClicked(me -> {
+                if (MouseButton.SECONDARY.equals(me.getButton())) {
+                    ContextMenu contextMenu = new ContextMenu();
+                    List<MenuItem> mealMenuItems = getMealMenuItems(mealPlanBuilder, mealType);
+                    if (!mealMenuItems.isEmpty()) {
+                        contextMenu.getItems().addAll(mealMenuItems);
+                        contextMenu.show(MealCell.this, me.getScreenX(), me.getScreenY());
+                    }
+                }
+            });
+            setOnKeyPressed(new EventHandler<KeyEvent>() {
+                @Override
+                public void handle(KeyEvent keyEvent) {
+                    if (keyEvent.isControlDown()) {
+                        if (KeyCode.D.equals(keyEvent.getCode())) {
+                            mealPlanBuilder.setMeal(getDate().plusDays(1), mealType, getItem());
+                            getTableView().refresh();
+                        } else if (KeyCode.F.equals(keyEvent.getCode())) {
+                            //TODO ideally, this would add a meal, not just a dish.
+                            factory.getCurrentMealPlan().addDish(getItem().getDish(), getDateInNextPlan(mealPlanBuilder), mealType);
+                        }
+                        //TODO add controls to copy and paste meals as well.
+                    }
+                }
+            });
+
+            itemProperty().addListener(new ChangeListener<Meal>() {
+                @Override
+                public void changed(ObservableValue<? extends Meal> observableValue, Meal meal, Meal t1) {
+//TODO test this
+                    if (t1 != null) {
+                        applyStyle(t1.getDish());
+
+                    }
+                }
+            });
         }
+
+        private void applyStyle(Dish dish) {
+            if (!Dish.isStub(dish)) {
+                setStyle("-fx-text-fill: green;");
+            } else {
+                setStyle("-fx-text-fill: black;");
+            }
+        }
+
+        private LocalDate getDate() {
+            return getTableRow().getItem().getDate();
+        }
+
+        private LocalDate getDateInNextPlan(MealPlanBuilder currentPlan, LocalDate nextStart) {
+            return MealPlanPanel.getDateInNextPlan(currentPlan, getDate(), nextStart);
+        }
+
+        private LocalDate getDateInNextPlan(MealPlanBuilder currentPlan) {
+            return getDateInNextPlan(currentPlan, factory.getCurrentMealPlan().getStart());
+        }
+
+        private List<MenuItem> getMealMenuItems(MealPlanBuilder builder, MealType mealType) {
+            List<MenuItem> list = Lists.newArrayList();
+            final Meal meal = getItem();
+            if (meal != null && !Meal.isStub(meal)) {
+                MenuItem deleteItem = new MenuItem("Delete Meal");
+                deleteItem.setOnAction(actionEvent -> removeMeal(builder, mealType));
+                MenuItem addToCook = new MenuItem("Add Meal to Cook");
+                addToCook.setOnAction(actionEvent -> {
+                    builder.addCook(getTableRow().getItem().getDate(), getName(meal));
+                    getTableView().refresh();
+                });
+                MenuItem addToUnfreeze = new MenuItem("Add Meal to Unfreeze");
+                addToUnfreeze.setOnAction(actionEvent -> {
+                    builder.addUnfreeze(getTableRow().getItem().getDate(), getName(meal));
+                    getTableView().refresh();
+                });
+                list.add(addToCook);
+                list.add(addToUnfreeze);
+                list.add(deleteItem);
+                Dish dish = meal.getDish();
+                if (!Dish.isStub(dish)) {
+                    Menu dishMenu = factory.getDishMenu(dish);
+                    LocalDate date = getDateInNextPlan(builder);
+                    dishMenu.getItems().add(factory.addDishToMealPlan(dish, date, mealType));
+                    list.add(dishMenu);
+                } else {
+                    List<Dish> candidates = DishUtils.getDishMatches(meal.getNotes(), dishes);
+                    if (candidates.size() > 0) {
+                        for (Dish candidate : candidates) {
+                            MenuItem dishOption = new MenuItem("Set dish to " + candidate);
+                            dishOption.setOnAction(actionEvent -> {
+                                Meal newMeal = new Meal(candidate, meal.getNotes());
+                                builder.setMeal(getDate(), mealType, newMeal);
+                                getTableView().refresh();
+                            });
+                            list.add(dishOption);
+                        }
+
+                    }
+                }
+            }
+            return list;
+        }
+
+        private String getName(Meal meal) {
+            Dish dish = meal.getDish();
+            String toCook = dish.getName();
+            if (Dish.isStub(dish)) {
+                toCook = meal.getNotes();
+            }
+            return toCook;
+        }
+
+
+        private void removeMeal(MealPlanBuilder mealPlanBuilder, MealType mealType) {
+            TableRow<DatedDayPlan> tableRow = getTableRow();
+            DatedDayPlan item = tableRow.getItem();
+            LocalDate date = item.getDate();
+            mealPlanBuilder.setMeal(date, mealType, Meal.stub());
+            getTableView().refresh();
+        }
+
 
         @Override
         public void startEdit() {
@@ -694,6 +997,17 @@ What is the best way to know the properties of the selected cell e.g. whether it
                 }
             }
         }
+        /*
+        TODO
+         I want a cell to contain notes of a meal, without the dish title.
+        When inferring a dish from a cell's contents, this would cause problems.
+        We could use the currentDish field to track whether we should attempt to infer the contents.
+        e.g. if it is null, we should try to infer. If it is set, then we don't.
+        How would it be set? If you edit it manually, it may infer a dish. If it doesn't, you have the right-click option
+        to set a "matching" dish. We would need a RC option to select ANY dish.
+        If the currentDish field has been set, a user may edit the field to change the dish completely, but may
+        not change the currentDish, so we would have an inconsistency. 
+         */
 
         private void createTextField() {
             textField = new TextField(getString());
@@ -728,8 +1042,23 @@ What is the best way to know the properties of the selected cell e.g. whether it
                     meal = new Meal(dish, text.substring(index));
                 }
             } else {
-                Dish dish = (text.isEmpty() || currentDish == null) ? MealPlannerTest.stub() : currentDish;
-                meal = new Meal(dish, text);
+                Map<String, Dish> map = dishes.stream().collect(Collectors.toMap(dish -> dish.getName().toLowerCase(), d -> d));
+                if (map.containsKey(text.toLowerCase())) {
+                    Dish dish = map.get(text.toLowerCase());
+                    meal = new Meal(dish, "");
+//TODO else, for all dishes, check if any appear in the text, and if there is only one, apply that.
+                    //for multiples, is there a way we can add a right-click menu option to apply one of those dishes to it?
+                    //actually, YES-> we simply check for each dish which is a stub, find dishes that match and add the menus.
+                } else {
+                    List<Dish> candidates = DishUtils.getDishMatches(text, map);
+                    if (candidates.size() == 1) {
+                        meal = new Meal(candidates.get(0), text);
+                    } else {
+//                        Dish dish = (text.isEmpty() || currentDish == null) ? MealPlannerTest.stub() : currentDish;
+                        Dish dish = MealPlannerTest.stub();
+                        meal = new Meal(dish, text);
+                    }
+                }
             }
             return meal;
         }
@@ -751,7 +1080,7 @@ What is the best way to know the properties of the selected cell e.g. whether it
         }
     }
 
-    static class DatedDayPlan implements DayPlanIF {
+    public static class DatedDayPlan implements DayPlanIF {
         final LocalDate date;
         final DayPlanIF dayPlan;
 
@@ -804,5 +1133,35 @@ What is the best way to know the properties of the selected cell e.g. whether it
             }
             return null;
         }
+    }
+
+    private static LocalDate getDateInNextPlan(MealPlanBuilder currentPlan, LocalDate currentDate, LocalDate nextStart) {
+        LocalDate start = currentPlan.getStart();
+        return nextStart.plusDays(start.datesUntil(currentDate).count());
+    }
+
+    //########## MealPlanProxy ##########
+
+    @Override
+    public LocalDate getStart() {
+        return ListUtil.first(mealPlanBuilder.getDates());
+    }
+
+    public LocalDate getEnd() {
+        return ListUtil.last(mealPlanBuilder.getDates());
+    }
+
+    @Override
+    public void addDishToHolder(Dish dish) {
+        //TODO this creates a DishButton in the holder panel, which then adds it to the mealPlanBuilder. I would
+        //prefer this method adds it to the builder (the model), and the model uses listeners to then update
+        //the appropriate panels.
+        dishHolderPanel.addDish(dish);
+    }
+
+    @Override
+    public void addDish(Dish dish, LocalDate date, MealType type) {
+        mealPlanBuilder.setMeal(date, type, new Meal(dish, ""));
+        tableView.refresh();
     }
 }

@@ -48,6 +48,11 @@ public class MealPlanConfigurator extends FlowPane {
 
     }
 
+    public static MealPlanPanel makePanel(LocalDate startDate, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
+        Configuration configuration = new Configuration(startDate, 14);
+        return new MealPlanPanel(configuration, dishList, mealPlanManager);
+    }
+
     public static class Configuration {
         final LocalDate date;
         final int days;

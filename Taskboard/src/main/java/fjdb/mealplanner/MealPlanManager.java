@@ -1,6 +1,6 @@
 package fjdb.mealplanner;
 
-import com.google.common.collect.Lists;
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
@@ -12,17 +12,26 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MealPlanManager {
 
     private static final Logger log = LoggerFactory.getLogger(MealPlanManager.class);
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+//    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-EEE");
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE-dd-MM-yy");
 
     private final File directory;
-    private final List<MealPlan> mealPlans = Lists.newArrayList();
+    //    private final List<MealPlan> mealPlans = Lists.newArrayList();
+    private final Map<LocalDate, MealPlan> mealPlans = new TreeMap<>();
 
+    private final LazyInitializer<DishActionFactory> dishActionFactoryLazyInitializer = new LazyInitializer<>() {
+        @Override
+        DishActionFactory make() {
+            MealHistoryManager historyManager = new MealHistoryManager(LocalDate.now(), getAllMealPlans());
+            return new DishActionFactory(historyManager);
+        }
+    };
 
     public MealPlanManager(File directory) {
         this.directory = directory;
@@ -38,7 +47,7 @@ public class MealPlanManager {
             try {
                 MealPlan deserialize = deserialize(file);
                 if (deserialize != null) {
-                    mealPlans.add(deserialize);
+                    mealPlans.put(deserialize.getStart(), deserialize);
                 }
             } catch (IOException e) {
                 log.warn("Could not deserialize file {}", file.getName());
@@ -74,7 +83,10 @@ public class MealPlanManager {
     }
 
     public void addMealPlan(MealPlan plan) {
-        mealPlans.add(plan);
+        MealPlan oldPlan = mealPlans.put(plan.getStart(), plan);
+        if (oldPlan != null) {
+            System.out.printf("Replaced old plan starting on %s%n", oldPlan.getStart());
+        }
         byte[] serialize = SerializationUtils.serialize(plan);
         try (FileOutputStream fileOutputStream = new FileOutputStream(new File(directory, plan.getName()))) {
             try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
@@ -87,7 +99,43 @@ public class MealPlanManager {
     }
 
     public List<MealPlan> getMealPlans() {
+        return filterByArchivedDate(false);
+    }
+
+    public List<MealPlan> getAllMealPlans(boolean sort) {
+        List<MealPlan> mealPlans = getAllMealPlans();
+        if (sort) {
+            mealPlans = mealPlans.stream().sorted(Comparator.comparing(MealPlan::getStart)).collect(Collectors.toList());
+        }
         return mealPlans;
+
+    }
+
+    public List<MealPlan> getAllMealPlans() {
+        synchronized (mealPlans) {
+            if (mealPlans.isEmpty()) {
+                load();
+            }
+        }
+        return new ArrayList<>(mealPlans.values());
+    }
+
+
+    public List<MealPlan> getArchived() {
+        return filterByArchivedDate(true);
+    }
+
+    private List<MealPlan> filterByArchivedDate(boolean retrieveArchive) {
+        LocalDate today = LocalDate.now().minusMonths(2);
+        List<MealPlan> mealPlans = getAllMealPlans(true);
+        List<MealPlan> archived = Lists.newArrayList();
+        for (MealPlan mealPlan : mealPlans) {
+            boolean isArchiveDate = mealPlan.getStart().isBefore(today);
+            if (isArchiveDate == retrieveArchive) {
+                archived.add(mealPlan);
+            }
+        }
+        return archived;
     }
 
     public File toCSV(MealPlan plan, File file) {
@@ -127,5 +175,27 @@ public class MealPlanManager {
 
     public File toCSV(MealPlan plan) {
         return toCSV(plan, new File(directory, plan.getName() + ".csv"));
+    }
+
+    public DishActionFactory getDishActionFactory() {
+        return dishActionFactoryLazyInitializer.get();
+    }
+
+    private static abstract class LazyInitializer<T> {
+        private T instance;
+
+        abstract T make();
+
+        public T get() {
+            if (instance == null) {
+                synchronized (this) {
+                    if (instance == null) {
+                        instance = make();
+                    }
+                }
+            }
+            return instance;
+        }
+
     }
 }

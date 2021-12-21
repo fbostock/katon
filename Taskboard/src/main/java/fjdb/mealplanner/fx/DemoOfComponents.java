@@ -47,8 +47,8 @@ public class DemoOfComponents extends Application {
         dishesToTags.putAll(1, Sets.newHashSet("Tag1", "Tag2", "Tag3", "OtherTag", "NullTag"));
         dishesToTags.putAll(2, Sets.newHashSet("Tag1", "OtherTag", "NullTag"));
         dishesToTags.putAll(3, Sets.newHashSet("OtherTag", "NullTag"));
-        //Note: doing the following would mean 9 would not appear in the map
-        //dishesToTags.putAll(9, Sets.newHashSet());
+        //Note: doing the following would mean 9 would not appear in the map, as mappings require elements
+//        dishesToTags.putAll(9, Sets.newHashSet());
 
         Set<String> tags = Sets.newHashSet("Tag1", "Tag2", "Tag3", "OtherTag", "NullTag");
         CategorySelectionPanel<Integer, String> panel = new CategorySelectionPanel<>(tags, dishesToTags, s -> s);

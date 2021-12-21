@@ -1,12 +1,12 @@
 package fjdb.util;
 
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Created by Frankie Bostock on 12/08/2017.
@@ -47,6 +47,16 @@ public class ListUtilTest {
         }
 
 
+    }
+
+    @Test
+    public void try_first_and_tryLast_returns_null() {
+        ArrayList<Object> list = new ArrayList<>();
+        ArrayList<String> list2 = Lists.newArrayList("first", "second");
+        assertNull(ListUtil.tryFirst(list));
+        assertNull(ListUtil.tryLast(list));
+        assertEquals("first", ListUtil.tryFirst(list2));
+        assertEquals("second", ListUtil.tryLast(list2));
     }
 
 

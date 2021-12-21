@@ -1,6 +1,7 @@
 package fjdb.mealplanner;
 
 import com.google.common.collect.Sets;
+import fjdb.util.ListUtil;
 import fjdb.util.Pool;
 
 import java.time.LocalDate;
@@ -51,6 +52,10 @@ public class MealPlanBuilder {
         return mealPlan.getPool().keySet().stream().sorted().collect(Collectors.toList());
     }
 
+    public LocalDate getStart() {
+        return ListUtil.first(getDates());
+    }
+
     public void remove(LocalDate date) {
         mealPlan.getPool().remove(date);
     }
@@ -81,8 +86,20 @@ public class MealPlanBuilder {
         getPlan(date).unfreeze = unfreeze;
     }
 
+    public void addUnfreeze(LocalDate date, String toUnfreeze) {
+        String currentUnfreeze = getPlan(date).unfreeze;
+        currentUnfreeze += (currentUnfreeze.isBlank() ? " "  : "") + toUnfreeze.trim();
+        setUnfreeze(date, currentUnfreeze);
+    }
+
     public void setCook(LocalDate date, String toCook) {
         getPlan(date).toCook = toCook;
+    }
+
+    public void addCook(LocalDate date, String toCook) {
+        String cook = getPlan(date).toCook;
+        cook += (cook.isBlank() ? " "  : "") + toCook.trim();
+        setCook(date, cook);
     }
 
     public DayPlanIF getDayPlan(LocalDate date) {
