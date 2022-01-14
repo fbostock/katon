@@ -1,6 +1,7 @@
 package fjdb.maths.collatz;
 
 import com.google.common.collect.Lists;
+import fjdb.graphics.Xform;
 import fjdb.util.Pool;
 
 import java.util.List;
@@ -9,36 +10,46 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class CollaltzAnalyser {
+public class CollatzAnalyser {
 
     private Collatz algo;
     private long max = 1000000;
     private boolean trackDeps = false;
+    private boolean printUpdates = false;
 
     public static void main(String[] args) {
 
-        CollaltzAnalyser analyser = new CollaltzAnalyser(new Collatz(3, 1, new FindingRootFactory()));
-        analyser.setMax(1000000).trackMostDeps(true).calculateRoots(true);
+        //TODO for roots we could not solve, it would be nice if we could store a Result object to encapsulate this, in particular so
+        //that if another number depends on a root which could not be found, the calculation stops gracefully.
+        CollatzAnalyser analyser = new CollatzAnalyser(new Collatz(5, 5, new FindingRootFactory()));
+//        analyser.setMax(100000).trackMostDeps(true).calculateRoots(true);
+        analyser.setMax(100000).trackMostDeps(false).printUpdates(true).calculateRoots(true);
     }
 
-    public CollaltzAnalyser(Collatz algo) {
+    public CollatzAnalyser(Collatz algo) {
         this.algo = algo;
 //        System.out.println(String.format("\nAnalysis for {%s,%s}",p, q));
     }
 
-    public CollaltzAnalyser setMax(long max) {
+    public CollatzAnalyser setMax(long max) {
         this.max = max;
         return this;
     }
 
-    public CollaltzAnalyser trackMostDeps(boolean trackDeps) {
+    /**
+     * Track which number has the most number of steps before it hits a root.
+     */
+    public CollatzAnalyser trackMostDeps(boolean trackDeps) {
         this.trackDeps = trackDeps;
         return this;
     }
 
+    public CollatzAnalyser printUpdates(boolean printUpdates) {
+        this.printUpdates = printUpdates;
+        return this;
+    }
 
     public void calculateRoots(boolean print) {
-//        long MAX = 1000000;
         long MAX = this.max;
         long initial = 1;
 
@@ -52,9 +63,12 @@ public class CollaltzAnalyser {
                     depsTracker.check(research);
                 }
                 roots.get(algo.getResultsCache().get(i).getRoot().getValue()).incrementAndGet();
-                if (print && i % 10000 == 0) {
-                    System.out.println(String.format("DONE %s", i));
+                if (printUpdates && i % 10000 == 0) {
+                    System.out.printf("DONE %s%n", i);
                 }
+
+            } catch (InvalidValue ex) {
+                System.out.println(String.format("Could not find root for %s:", i) + ex.getMessage());
             } catch (Exception ex) {
                 System.out.println(String.format("Problem for value %s", i));
                 throw ex;
@@ -76,11 +90,13 @@ public class CollaltzAnalyser {
             if (trackDeps) {
                 collect.add(depsTracker.getMaxResult());
             }
-            CollatzBinary.print(Lists.newArrayList(collect), true);
+            CollatzBinary.print(Lists.newArrayList(collect), false);
         }
     }
 
-
+    /**
+     * A class to keep track of the Result which has the most dependents i.e. the most steps before getting to a root.
+     */
     private static class DepsTracker {
         long maxDep = 0;
         long maxDepIndex = 0;

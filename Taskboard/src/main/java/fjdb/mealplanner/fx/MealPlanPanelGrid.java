@@ -56,7 +56,7 @@ public class MealPlanPanelGrid extends FlowPane {
                 //TODO add to MealPlanManager, and get application tabs to update.
                 mealPlanManager.toCSV(mealPlan);
                 try {
-                    Runtime.getRuntime().exec("open " + mealPlanManager.getDirectory());
+                    Runtime.getRuntime().exec("open " + mealPlanManager.getCSVDirectory());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

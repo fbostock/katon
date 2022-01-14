@@ -42,6 +42,46 @@ public class Threading {
         for (Callable<V> callable : callables) {
             results.add(executorService.submit(callable));
         }
+        executorService.shutdown();
         return results;
+    }
+
+    /*
+    an object which takes a list of futures of type V, and an object which will process that result.
+
+    Ideally, as each future result becomes available, it should submit the result to a queue.
+
+    There should be a thread which applies the processing step to the results stored in that queue.
+
+    One approach is for jobs to be provided a (concurrent) queue to store their results. We don't even need Futures for this.
+    Each job submits their result to the queue immediately. The worker thread processing the results simply keeps taking things
+    from the queue as they are entered.
+
+    How to do it with Futures e.g. a job running which when available will be retrievable by the (blocking) future.get() call?
+    We can't simply iterate through the futures and call future.get() since futures which are available later won't get processed
+    sooner.
+
+
+    Create an Interface Job, which wraps a runnable or callable.
+    We have a special executor service, which takes Job objects.
+    When submitting tasks (runnables or callables), we wrap them in a Job. The wrapping can issue a listener which will be notified when
+    the job is complete.
+    The Job gets executed. Execution then makes a delegate call to the wrapped object. In the case of a Callable, we submit the callable, then immediately
+    call future.get() on the future returned.
+    Once that has processed, we notify the listener.
+    A simple version on the job interface can simply wrap the runnable/callable and return the result (somehow?).
+    The listener in the above example could be the step of issuing the result to the queue which another thread is reading results from.
+
+     */
+
+    public static <V> void processResults(List<Future<V>> futures) {
+
+
+
+        for (Future<V> future : futures) {
+
+        }
+
+
     }
 }

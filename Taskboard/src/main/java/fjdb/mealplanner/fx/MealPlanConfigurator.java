@@ -2,6 +2,7 @@ package fjdb.mealplanner.fx;
 
 import fjdb.mealplanner.Dish;
 import fjdb.mealplanner.MealPlanManager;
+import fjdb.mealplanner.fx.planpanel.MealPlanPanel;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;

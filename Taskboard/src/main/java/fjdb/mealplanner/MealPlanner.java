@@ -9,7 +9,7 @@ import fjdb.mealplanner.dao.DishHistoryDao;
 import fjdb.mealplanner.dao.DishTagDao;
 import fjdb.mealplanner.fx.DishTagSelectionPanel;
 import fjdb.mealplanner.fx.MealPlanConfigurator;
-import fjdb.mealplanner.fx.MealPlanPanel;
+import fjdb.mealplanner.fx.planpanel.MealPlanPanel;
 import fjdb.mealplanner.fx.Selectors;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
 import javafx.application.Application;
@@ -55,7 +55,6 @@ public class MealPlanner extends Application {
     /*
 
     December 2021 TODO
-      = add menubar, with functions menu, adding function to create a new two week plan
 
     November2021 TODO
       = When editing a cell, there should be a panel that opens up showing a list of dishes based on what the user has typed.

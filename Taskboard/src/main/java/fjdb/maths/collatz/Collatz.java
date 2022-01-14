@@ -11,15 +11,16 @@ import java.util.stream.Collectors;
 public class Collatz {
 
     public static void main(String[] args) {
-        for (int i = 1; i < 2; i = i + 2) {
-            calculateRoots(3, i, true);
+        for (int i = 1; i < 200; i = i + 2) {
+            calculateRoots(3, i, false);
         }
     }
 
     public static void calculateRoots(int p, int q, boolean print) {
         System.out.println(String.format("\nAnalysis for {%s,%s}", p, q));
 //        long MAX = 1000000;
-        long MAX = 100;
+//        long MAX = 100;
+        long MAX = 10000;
         long initial = 1;
         ResultFactory factory = new FindingRootFactory();
         Collatz algo = new Collatz(p, q, factory);
@@ -135,7 +136,7 @@ public class Collatz {
     }
 
     public long calc(long num) {
-        if (num % 2 == 0) {
+        if ((num & 1) == 0) {
             return num / 2;
         } else {
             return p * num + q;
@@ -202,12 +203,21 @@ public class Collatz {
                     calc = newResult.getValue();
                     values.add(calc);
                     calc = calc(calc);
+                    if (calc < 0) {
+                        Result nullResult = factory.makeResult(-1);
+                        newResult.setDependentResult(nullResult);
+                        _resultsCache.put(newResult.getValue(), newResult);
+                        _resultsCache.put(nullResult.getValue(), nullResult);
+
+                        break;
+                    }
                 }
             }
 
         }
         return _resultsCache.get(initial);
     }
+
 
 //    protected static void print(List<Result> toPrint, boolean limit) {
 //        JPanel grid = new JPanel(new GridLayout(0, 2));

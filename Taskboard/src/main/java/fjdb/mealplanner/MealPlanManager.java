@@ -18,10 +18,12 @@ import java.util.stream.Collectors;
 public class MealPlanManager {
 
     private static final Logger log = LoggerFactory.getLogger(MealPlanManager.class);
-//    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-EEE");
+    //    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-EEE");
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE-dd-MM-yy");
 
     private final File directory;
+    private final File csvDirectory;
+
     //    private final List<MealPlan> mealPlans = Lists.newArrayList();
     private final Map<LocalDate, MealPlan> mealPlans = new TreeMap<>();
 
@@ -35,23 +37,54 @@ public class MealPlanManager {
 
     public MealPlanManager(File directory) {
         this.directory = directory;
+        csvDirectory = makeCSVFolder(directory);
     }
 
     public File getDirectory() {
         return directory;
     }
 
+    public File getCSVDirectory() {
+        return csvDirectory;
+    }
+
+    private static File makeCSVFolder(File parent) {
+        File csvFolder = new File(parent, "CSVs");
+        if (csvFolder.exists()) {
+            return csvFolder;
+        } else {
+            boolean mkdir = csvFolder.mkdir();
+            if (mkdir) {
+                return csvFolder;
+            } else {
+                log.warn("Could not create CSV folder ({}). Using parent folder instead: {} ", csvFolder, parent);
+                return parent;
+            }
+        }
+    }
+
     public void load() {
         File[] files = directory.listFiles();
         for (File file : files) {
+            if (file.isDirectory()) continue;
             try {
-                MealPlan deserialize = deserialize(file);
-                if (deserialize != null) {
-                    mealPlans.put(deserialize.getStart(), deserialize);
+                MealPlan deserializedPlan = deserialize(file);
+                if (deserializedPlan != null) {
+                    MealPlan previousPlan = mealPlans.get(deserializedPlan.getStart());
+                    if (previousPlan != null) {
+                        log.warn("Multiple plans with same start date {}", deserializedPlan.getStart());
+                        if (deserializedPlan.getEnd().isBefore(previousPlan.getEnd())) {
+                            log.warn("Did not load {} as plan with same start date already exists", deserializedPlan);
+                            continue;
+                        }
+                    }
+                    mealPlans.put(deserializedPlan.getStart(), deserializedPlan);
                 }
             } catch (IOException e) {
                 log.warn("Could not deserialize file {}", file.getName());
                 e.printStackTrace();
+            } catch (Exception other) {
+                other.printStackTrace();
             }
 //            if (file.getName().contains("Plan-") && !file.getName().toLowerCase().contains("csv")) {
 //                try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
@@ -138,7 +171,7 @@ public class MealPlanManager {
         return archived;
     }
 
-    public File toCSV(MealPlan plan, File file) {
+    private File toCSV(MealPlan plan, File file) {
         String[] headers = new String[]{MealPlan.DATE, MealPlan.UNFREEZE, MealPlan.COOK, MealPlan.BREAKFAST, MealPlan.LUNCH, MealPlan.DINNER};
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(file), CSVFormat.DEFAULT.withHeader(headers))) {
             List<LocalDate> dates = plan.getDates();
@@ -174,7 +207,7 @@ public class MealPlanManager {
     }
 
     public File toCSV(MealPlan plan) {
-        return toCSV(plan, new File(directory, plan.getName() + ".csv"));
+        return toCSV(plan, new File(getCSVDirectory(), plan.getName() + ".csv"));
     }
 
     public DishActionFactory getDishActionFactory() {

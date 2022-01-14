@@ -17,16 +17,36 @@ public class FindingRootFactory implements ResultFactory<FindingRootFactory.Resu
     Perhaps this should not be done by the Result object, but by the algorithm.
 
 
+
      */
+
+    private static final ResultUnknownRoot NULL_RESULT = nullResult();
+
     @Override
     public ResultUnknownRoot makeResult(long value) {
+        if (value < 0) {
+            throw new InvalidValue("");
+//            return NULL_RESULT;
+        }
         return new ResultUnknownRoot(value);
+    }
+
+    private static ResultUnknownRoot nullResult() {
+        ResultUnknownRoot resultUnknownRoot = new ResultUnknownRoot(-1) {
+            @Override
+            public String toString() {
+                return "N/A";
+            }
+        };
+        resultUnknownRoot._root.set(resultUnknownRoot);
+        resultUnknownRoot.setDependentResult(resultUnknownRoot);
+        return resultUnknownRoot;
     }
 
     //TODO where methods depend on a root value, it should instead have a mechanism where it recognises when its dependents
     //eventually revolve to a same root, e.g. calling a private method which takes a set where the set contains all
     //the current values
-    class ResultUnknownRoot implements Result<ResultUnknownRoot> {
+    static class ResultUnknownRoot implements Result<ResultUnknownRoot> {
         private final long value;
 
         //method to total number of 3n+1 operations
@@ -35,9 +55,9 @@ public class FindingRootFactory implements ResultFactory<FindingRootFactory.Resu
         private ResultUnknownRoot dependentResult;
 
         public ResultUnknownRoot(long value) {
-            if (value < 0) {
-                throw new RuntimeException(String.format("Negative value: %s", value));
-            }
+//            if (value < 0) {
+//                throw new InvalidValue(String.format("Negative value: %s", value));
+//            }
             this.value = value;
         }
 
@@ -135,7 +155,7 @@ public class FindingRootFactory implements ResultFactory<FindingRootFactory.Resu
                         dependentResult = dependentResult.getDependentResult();
                     }
                 }
-                //TODO a root is a number which depends on itself. We should define it as the lowest number which dpends
+                //TODO a root is a number which depends on itself. We should define it as the lowest number which depends
                 //on itself.
                 for (Map.Entry<Long, ResultUnknownRoot> entry : values.entrySet()) {
                     //lowest value may not resolve to itself.

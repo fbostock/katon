@@ -2,9 +2,11 @@ package fjdb.mealplanner.fx;
 
 import fjdb.mealplanner.Dish;
 import fjdb.mealplanner.Meal;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 
+import javax.sound.sampled.Clip;
 import java.util.HashMap;
 
 public class DragUtils {
@@ -34,5 +36,18 @@ public class DragUtils {
             }
             return null;
         }
+        @SuppressWarnings("unchecked")
+        public T get(Clipboard clipboard) {
+            if (clipboard.hasContent(this)) {
+                return (T) clipboard.getContent(this);
+            }
+            return null;
+        }
+
+
+    }
+
+    public static <T> T getContent(Clipboard clipboard, Format<T> dataFormat) {
+        return dataFormat.get(clipboard);
     }
 }

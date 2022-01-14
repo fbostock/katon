@@ -111,7 +111,10 @@ takes us to an odd number. That would merely entail applying another 3x+3 operat
         JPanel grid = new JPanel(new GridLayout(0, 2));
         for (int i = (limit && toPrint.size() > 100) ? toPrint.size() - 100 : 0; i < toPrint.size(); i++) {
             Result result = toPrint.get(i);
-            JLabel label = new JLabel(String.format("%s (%s steps, %s 1s in bin)", result, result.numDependents(), StringUtil.count(Long.toBinaryString(result.getValue()), "1")));
+            int dependents = result.numDependents();
+            dependents = dependents == 0 ? result.stepsForRoot() : dependents;
+//            JLabel label = new JLabel(String.format("%s (%s steps, %s 1s in binary)", result, dependents, StringUtil.count(Long.toBinaryString(result.getValue()), "1")));
+            JLabel label = new JLabel(String.format("<html>%s (%s steps, root : <b>%s</b></html>)", result, dependents, result.getRoot()));
             label.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
