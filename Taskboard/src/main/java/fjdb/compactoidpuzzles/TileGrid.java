@@ -3,6 +3,7 @@ package fjdb.compactoidpuzzles;
 import com.google.common.collect.Sets;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * TODO duplicate the c sharp code for TileGrid, the shufflers, and also the monte carlo (and other?) solvers.
@@ -21,6 +22,10 @@ public class TileGrid {
         _xMax = xMax;
         _yMax = yMax;
         _shuffleAlgorithm = new ShuffleAlgorithm(this);
+    }
+
+    public Map<Position, Integer> getTiles() {
+        return tilesToPositions.keySet().stream().collect(Collectors.toMap(k->tilesToPositions.get(k), k->k.type));
     }
 
     public boolean moveTile(GameTile gameTile, Position newPosition) {

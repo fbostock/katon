@@ -13,15 +13,21 @@ import java.util.Map;
 
 public class GridFile {
 
+    private final String _name;
     private final int _xMax;
     private final int _yMax;
     private final Map<Position, Integer> _tiles;
 //    private static String mainPath = "Assets/Resources/Grids";
 
-    public GridFile(int xMax, int yMax, Map<Position, Integer> tiles) {
+    public GridFile(String name, int xMax, int yMax, Map<Position, Integer> tiles) {
         _xMax = xMax;
         _yMax = yMax;
         _tiles = tiles;
+        _name = name;
+    }
+
+    public String getName() {
+        return _name;
     }
 
     public int getXMax() {
@@ -38,7 +44,9 @@ public class GridFile {
 
     public static GridFile makeGrid(String path) throws IOException {
         GridBuilder gridBuilder = new GridBuilder();
-        List<String> readLines = Files.readLines(new File(path), StandardCharsets.UTF_8);
+        File file = new File(path);
+        gridBuilder.setName(file.getName().replace("puzzle", ""));
+        List<String> readLines = Files.readLines(file, StandardCharsets.UTF_8);
         for (String line : readLines) {
             if (line.contains("Xmax")) //Xmax:x;Ymax:y
             {
@@ -64,15 +72,15 @@ public class GridFile {
         return gridBuilder.make();
     }
 
-    public static GridFile makeGridFile(TileGrid tileGrid) {
+    public static GridFile makeGridFile(String name, TileGrid tileGrid) {
         Map<Position, Integer> tiles = new HashMap<>();
         for (Map.Entry<Position, GameTile> entry : tileGrid.positionsToTiles.entrySet()) {
             tiles.put(entry.getKey(), entry.getValue().type);
         }
-        return new GridFile(tileGrid._xMax, tileGrid._yMax, tiles);
+        return new GridFile(name, tileGrid._xMax, tileGrid._yMax, tiles);
     }
 
-    public static void createFile(String filename, TileGrid grid) throws IOException {
+    public static GridFile createFile(String filename, TileGrid grid) throws IOException {
         int gridXMax = grid._xMax;
         int gridYMax = grid._yMax;
         Map<Position, GameTile> gridPositionsToTiles = grid.positionsToTiles;
@@ -83,7 +91,6 @@ public class GridFile {
                 bufferedWriter.write("Xmax:" + gridXMax + ";Ymax:" + gridYMax);
                 int i = 0;
                 for (Map.Entry<Position, GameTile> entry : gridPositionsToTiles.entrySet()) {
-
                     {
                         if (entry.getValue() == null) continue;
                         if (i % 10 == 0) {
@@ -98,18 +105,38 @@ public class GridFile {
                     }
 
                 }
-//                                    bufferedWriter.flush();
-//                    bufferedWriter.close();
                 System.out.println("file written to " + totalPath);
 
             }
         }
+        return makeGrid(filename);
+    }
+
+    public TileGrid makeTileGrid() {
+        TileGrid tileGrid = new TileGrid(_xMax, _yMax);
+        for (Map.Entry<Position, Integer> entry : _tiles.entrySet()) {
+            GameTile gameTile = new GameTile();
+            gameTile.type = entry.getValue();
+            tileGrid.Add(gameTile, entry.getKey());
+        }
+        return tileGrid;
+    }
+
+    @Override
+    public String toString() {
+        return _name;
     }
 
     private static class GridBuilder {
+        private String name;
         private int xMax;
         private int yMax;
         private Map<Position, Integer> tiles = new HashMap<>();
+
+        public GridBuilder setName(String name) {
+            this.name = name;
+            return this;
+        }
 
         public GridBuilder addXmax(int xMax) {
             this.xMax = xMax;
@@ -131,21 +158,9 @@ public class GridFile {
         }
 
         public GridFile make() {
-            return new GridFile(xMax, yMax, tiles);
+            return new GridFile(name, xMax, yMax, tiles);
         }
 
-    }
-
-    public static void writeFile(String path) throws IOException {
-        String totalPath = path;
-        FileWriter streamWriter = new FileWriter(totalPath, true);
-        BufferedWriter bufferedWriter = new BufferedWriter(streamWriter);
-        bufferedWriter.write("Xmax:11;Ymax:11");
-        bufferedWriter.newLine();
-        bufferedWriter.write("tile:0,0,2;tile:1,1,1");
-        bufferedWriter.newLine();
-        bufferedWriter.close();
-        System.out.println("file written to " + totalPath);
     }
 
 }

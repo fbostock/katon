@@ -1,14 +1,11 @@
 package fjdb.compactoidpuzzles;
 
-import fjdb.compactoidpuzzles.solvers.SolveByBruteForce;
-import fjdb.util.ListUtil;
+import fjdb.compactoidpuzzles.solvers.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameSolver {
-
 
 
     private final TileGrid grid;
@@ -19,105 +16,40 @@ public class GameSolver {
     }
 
     public int solveByCentralSquare() {
-        //just select the central square
-
-        int turnCount = 0;
-        while (grid.countTiles() > 0 && turnCount < 1000) {
-            GameTile tile = grid.getTile(0, 0);
-
-            Position position = grid.getPosition(tile);
-            positionsSelected.add(position);
-
-            HashSet<GameTile> tileAndNeighbours = grid.removeTileAndNeighbours(tile);
-            for (GameTile gameTile : tileAndNeighbours) {
-                gameTile.destroy();
-            }
-            grid.updateQuadrants();
-            turnCount++;
-        }
-
-        if (grid.countTiles() == 0) {
-            System.out.println("CS Completed grid in " + turnCount + " turns");
-        } else {
-            System.out.println("CS Reached turn limit with " + grid.countTiles() + " tiles left");
-        }
-        return turnCount;
+        return solve(new SolveByCentralSquare());
     }
 
     public int solveByRandomTile() {
-        //select a tile at random
-        List<GameTile> initialTiles = new ArrayList<GameTile>(grid.tilesToPositions.keySet());
-        initialTiles = ListUtil.randomiseOrder(initialTiles);
+        return solveByRandomTile(1000);
+    }
 
-        int turnCount = 0;
-        while (grid.countTiles() > 0 && turnCount < 1000) {
-            GameTile tile = initialTiles.get(0);
-            initialTiles.remove(0);
-
-            Position position = grid.getPosition(tile);
-            if (position == null) {
-                continue; //tile no longer in grid, so remove a new one
-            }
-            positionsSelected.add(position);
-
-            HashSet<GameTile> tileAndNeighbours = grid.removeTileAndNeighbours(tile);
-            for (GameTile gameTile : tileAndNeighbours) {
-                gameTile.destroy();
-            }
-            grid.updateQuadrants();
-            turnCount++;
-        }
-
-        if (grid.countTiles() == 0) {
-//            System.out.println("Completed grid in " + turnCount + " turns");
-        } else {
-            System.out.println("Reached turn limit with " + grid.countTiles() + " tiles left");
-        }
-
-        return turnCount;
+    /**
+     * Randomly selects a tile to solve the grid, to a maximum of maxSteps (inclusive). Set this to a large value
+     * to keep solving until the grid is resolved.
+     */
+    public int solveByRandomTile(int maxSteps) {
+        return solve(new SolveByRandomTile(maxSteps));
     }
 
     public int solveByRandomCentralSquare() {
-        //select a tile at random from the inner 9 tiles
-        // List<GameTile> initialTiles = new List<GameTile>(grid.tilesToPositions.Keys);
-        // initialTiles = ListUtil.randomiseOrder(initialTiles);
-        Random random = new Random();
-
-        int turnCount = 0;
-        while (grid.countTiles() > 0 && turnCount < 1000) {
-            Position position = new Position(random.nextInt(-1, 2), random.nextInt(-1, 2));
-            GameTile tile = grid.getTile(position);
-            if (tile == null) {
-                continue;
-            }
-
-            positionsSelected.add(position);
-
-            HashSet<GameTile> tileAndNeighbours = grid.removeTileAndNeighbours(tile);
-            for (GameTile gameTile : tileAndNeighbours) {
-                gameTile.destroy();
-            }
-            grid.updateQuadrants();
-            turnCount++;
-        }
-
-        if (grid.countTiles() == 0) {
-            System.out.println("123 Completed grid in " + turnCount + " turns");
-        } else {
-            System.out.println("123 Reached turn limit with " + grid.countTiles() + " tiles left");
-        }
-
-        return turnCount;
+        return solve(new SolveByRandomCentralSquare());
     }
 
-    public int solveByBruteForce() {
-        SolveByBruteForce solveByBruteForce = new SolveByBruteForce();
-        int i = solveByBruteForce.solveGrid(grid);
+    public int solveByBruteForce(int maxSteps) {
+        return solve(maxSteps > 0 ? new SolveByBruteForce(maxSteps, true) : new SolveByBruteForce());
+    }
+
+    public int solveByBruteForceParallelised(int maxSteps) {
+        return solve(new SolveByBruteParallelised(maxSteps));
+    }
+
+
+    private int solve(Solver solver) {
+        int turns = solver.solveGrid(grid);
         positionsSelected.clear();
-        positionsSelected.addAll(solveByBruteForce.getPositionsSelected());
-        return i;
+        positionsSelected.addAll(solver.getPositionsSelected());
+        return turns;
     }
-
 
     public List<Position> getSelectedPositions() {
         return positionsSelected;

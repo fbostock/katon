@@ -4,33 +4,37 @@ import fjdb.compactoidpuzzles.GameTile;
 import fjdb.compactoidpuzzles.Position;
 import fjdb.compactoidpuzzles.TileGrid;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class SolveByBruteForce extends Solver {
 
-    private static final int maxStepValue = 1000000;
     /*
-    TODO complete refactor, and test this class. Remove code from GameSolver.
-    Modify this class so that it has a limit of how many steps down to try.
+    Notes:
+    The maxSteps variable can adjust based on the best solution. This is adjusted when the current turns (depth of iteration) is 1 i.e. the
+    first layer, and can only be decreased from its initial value. Adjusting this helps the algorithm to avoid wasted phase space.
 
-    TODO amend the maxSteps variable in the iterateThroughGrid method for the primary level i.e. once we have a found a solution,
-    we only continue searching for solutions no greater than it.
-    Note: this won't have any performance improvement for cases we've looked at, since we usually know the best solution by MC.
+    The lowestByDepth map helps to keep track which route is the best, in order to keep track of the Positions selected to
+    get to that solution.
      */
-    private static boolean start = true;
-    private static int initialTilesRemaining = 0;
+    private final int maxStepValue;
+    private boolean start = true;
+    private int initialTilesRemaining = 0;
 
     private int stepCount = 1;
-    private final int maxSteps;
+    private boolean adjustMaxSteps;
+    private int maxSteps;
     private List<Position> currentBest;
-    private List<Position> savedBest;
+    /*Map of currentTurns (depth of iteration) to lowest number of further depths required to solve grid. The lowest depth is 1.*/
+    private Map<Integer, Integer> lowestByDepth = new HashMap<>();
 
+    public SolveByBruteForce(int maxSteps, boolean adjustMaxSteps) {
+        this.maxSteps = maxSteps;
+        this.maxStepValue = maxSteps == Integer.MAX_VALUE ? 1000000 : Integer.MAX_VALUE;
+        this.adjustMaxSteps = adjustMaxSteps;
+    }
 
     public SolveByBruteForce(int maxSteps) {
-        this.maxSteps = maxSteps;
+        this(maxSteps, true);
     }
 
     public SolveByBruteForce() {
@@ -39,33 +43,24 @@ public class SolveByBruteForce extends Solver {
 
     @Override
     public int solveGrid(TileGrid grid) {
-        savedBest = new ArrayList<>(grid.countTiles());
         currentBest = new ArrayList<>(grid.countTiles());
         for (int i = 0; i < grid.countTiles(); i++) {
             currentBest.add(null);
-            savedBest.add(null);
         }
         try {
             TileGrid tileGrid = copy(grid);
 
             int turnCount = iterateThroughGrid(tileGrid, 0);
-            savedBest.set(1, currentBest.get(1));
-            savedBest.remove(0);
-            savedBest.removeIf(Objects::isNull);
 
-            positionsSelected.addAll(savedBest);
+            positionsSelected.addAll(currentBest.subList(1, Math.min(turnCount, maxSteps)+1));
             System.out.println("BruteForce Best Completed in " + turnCount + " turns, with total steps: " + stepCount);
             stepCount = 0;
+
             return turnCount;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println(ex.getMessage());
-
-            savedBest.set(1, currentBest.get(1));
-            savedBest.remove(0);
-            savedBest.removeIf(Objects::isNull);
-
-            positionsSelected.addAll(savedBest);
+        } catch (SolvingFailedException ex) {
+            System.out.println("Failed to solve within " + maxSteps);
+            currentBest.removeIf(Objects::isNull);
+            positionsSelected.addAll(currentBest);
         }
 
         return -1;
@@ -79,10 +74,9 @@ public class SolveByBruteForce extends Solver {
     }
 
 
-    private int iterateThroughGrid(TileGrid grid, int currentTurns) throws Exception {
+    private int iterateThroughGrid(TileGrid grid, int currentTurns) throws SolvingFailedException {
         if (stepCount > maxStepValue) {
-
-            throw new Exception("Step count exceeded 100000. Remaining start tiles: " + initialTilesRemaining);
+            throw new SolvingFailedException("Step count exceeded " + maxStepValue + ". Remaining start tiles: " + initialTilesRemaining);
         }
         if (stepCount % 10000 == 0) {
             System.out.println("Step count reached " + stepCount + ". Remaining start tiles: " + initialTilesRemaining);
@@ -90,9 +84,8 @@ public class SolveByBruteForce extends Solver {
 
         if (currentTurns >= maxSteps) {
             stepCount++;
-            return maxStepValue;//return a "large" value just to ensure it is higher than the likely best.
+            return maxStepValue/2;//return a "large" value just to ensure it is higher than the likely best.
         }
-//        if (currentTurns > maxSteps) return Integer.MAX_VALUE;
         currentTurns++;
 
         boolean output = false;
@@ -119,26 +112,31 @@ public class SolveByBruteForce extends Solver {
             if (tileGrid.countTiles() > 0) {
                 int step2 = iterateThroughGrid(tileGrid, currentTurns);
                 if (step2 < best) {
-                    best = Math.min(best, step2);
-                    for (int i = currentTurns; i < currentBest.size(); i++) {
-                        savedBest.set(i, currentBest.get(i));
-                    }
+                    best = step2;
                     bestPosition = grid.getPosition(selectedGameTile);
+                    Integer integer = lowestByDepth.get(currentTurns);
+                    if (integer== null || best < integer) {
+                        lowestByDepth.put(currentTurns, best);
+                        if (adjustMaxSteps && currentTurns ==1) {
+                            System.out.println("ADJUSTING to " + best);
+                            maxSteps = Math.min(maxSteps, best+1);
+                        }
+                        currentBest.set(currentTurns, bestPosition);
+                    }
                 }
             } else {
                 stepCount++;
                 bestPosition = grid.getPosition(selectedGameTile);
-                currentBest.set(currentTurns, bestPosition);
-                for (int i = currentTurns; i < currentBest.size(); i++) {
-                    savedBest.set(i, currentBest.get(i));
+                Integer integer = lowestByDepth.get(currentTurns);
+                if (integer== null || integer > 0) {
+                    lowestByDepth.put(currentTurns, 0);
+                    currentBest.set(currentTurns, bestPosition);
                 }
                 return 1;
-                //TODO finished iteration
             }
 
         }
 
-        currentBest.set(currentTurns, bestPosition);
         return best + 1;
     }
 

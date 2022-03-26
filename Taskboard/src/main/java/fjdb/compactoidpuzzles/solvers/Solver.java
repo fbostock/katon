@@ -10,6 +10,7 @@ import java.util.Map;
 
 public abstract class Solver {
 
+    //TODO would be nice to support some bespoke logger, for tracking details of finding solution
     protected List<Position> positionsSelected = Lists.newArrayList();
 
     public abstract int solveGrid(TileGrid grid);
