@@ -231,4 +231,21 @@ public class MealPlanManager {
         }
 
     }
+
+
+    public static File tryFindMealPlans() {
+        String currentUsersHomeDir = System.getProperty("user.home");
+        File mealPlansFolder = new File(currentUsersHomeDir, "MealPlans");
+        if (mealPlansFolder.exists()) {
+            return mealPlansFolder;
+        }
+        String userDir = System.getProperty("user.dir");
+        mealPlansFolder = new File(userDir, "MealPlans");
+        if (mealPlansFolder.exists()) {
+            return mealPlansFolder;
+        } else {
+            mealPlansFolder.mkdir();
+        }
+        return mealPlansFolder;
+    }
 }

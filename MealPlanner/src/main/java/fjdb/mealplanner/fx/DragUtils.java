@@ -6,7 +6,6 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 
-import javax.sound.sampled.Clip;
 import java.util.HashMap;
 
 public class DragUtils {

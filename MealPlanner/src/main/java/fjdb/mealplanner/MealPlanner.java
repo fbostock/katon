@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * -p /Users/francisbostock/Code/javafx-sdk-11.0.2/lib --add-modules javafx.controls
  * <p>
  * To enable helpful exceptions, use -XX:+ShowCodeDetailsInExceptionMessages
- * Edit the dir to the javafx lib as approriate.
+ * Edit the dir to the javafx lib as appropriate.
  */
 public class MealPlanner extends Application {
 
@@ -134,9 +134,10 @@ public class MealPlanner extends Application {
 
     public MealPlanner() {
 
-        String currentUsersHomeDir = System.getProperty("user.home");
-        File mealPlansFolder = new File(currentUsersHomeDir, "MealPlans");
-        mealPlanManager = new MealPlanManager(mealPlansFolder);
+//        String currentUsersHomeDir = System.getProperty("user.home");
+//        File mealPlansFolder = new File(currentUsersHomeDir, "MealPlans");
+//        mealPlanManager = new MealPlanManager(mealPlansFolder);
+        mealPlanManager = new MealPlanManager(MealPlanManager.tryFindMealPlans());
         //TODO perform this on a separate thread, adding them to the tab gradually.
         //Once there are separate archived and "current" mealplans, we can prioritise the current ones.
         //In fact, current ones should be on this thread, and archived on a separate thread.

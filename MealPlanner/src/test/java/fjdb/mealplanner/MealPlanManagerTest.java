@@ -9,7 +9,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.LocalDate;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class MealPlanManagerTest {
 

@@ -2,6 +2,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,11 +13,20 @@ import java.util.regex.Pattern;
  */
 public class FrankiePlay {
 
+    @Deprecated
+    public int myfield = 10;
 
     public static void main(String[] args) throws IOException {
 
+//        Class<FrankiePlay> frankiePlayClass = FrankiePlay.class;
+//        Field[] declaredFields = frankiePlayClass.getDeclaredFields();
+//        System.out.println(declaredFields);
+
+
+//        System.out.println(declaredFields1);
+    if (true) return;
+
         //        System.out.println(String.format("%s", test(1.12)));
-//    if (true) return;
 
         File directory = new File("/Users/francisbostock/Desktop/bostockwebsite/php/CampaignGP/MainCampaignSection");
         File itemList = new File(directory, "ItemList.txt");
