@@ -16,6 +16,10 @@ public class DateTimeUtil {
         return date(String.valueOf(yyyyMMdd));
     }
 
+    public static LocalDate date(int year, int month, int day) {
+        return LocalDate.of(year, month, day);
+    }
+
     public static String print(LocalDate date) {
         if (date == null) return null;
         return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));

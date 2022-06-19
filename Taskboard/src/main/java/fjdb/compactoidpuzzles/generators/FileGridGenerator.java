@@ -1,4 +1,6 @@
-package fjdb.compactoidpuzzles;
+package fjdb.compactoidpuzzles.generators;
+
+import fjdb.compactoidpuzzles.*;
 
 import java.util.Map;
 

@@ -1,4 +1,8 @@
-package fjdb.compactoidpuzzles;
+package fjdb.compactoidpuzzles.generators;
+
+import fjdb.compactoidpuzzles.GameTile;
+import fjdb.compactoidpuzzles.TileGrid;
+import fjdb.compactoidpuzzles.TileProducer;
 
 public class GridGenerator implements GGenerator {
 

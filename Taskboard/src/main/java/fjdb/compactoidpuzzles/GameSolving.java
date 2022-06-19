@@ -2,8 +2,8 @@ package fjdb.compactoidpuzzles;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import fjdb.compactoidpuzzles.generators.FileGridGenerator;
 import fjdb.compactoidpuzzles.solvers.SolveByBruteForce;
-import fjdb.compactoidpuzzles.solvers.SolvingFailedException;
 import fjdb.threading.Threading;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -23,9 +23,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class GameSolving {
@@ -47,7 +46,6 @@ public class GameSolving {
         FileGridGenerator fileGridGenerator = new FileGridGenerator(gridFile);
         TileGrid tileGrid = fileGridGenerator.makeGrid(tileProducer);
         System.out.println("THREADS: " + Threading.RUNTIME_THREADS);
-        int minSteps = solveGridAndPlotHistogram("", tileGrid, 10000, 10);
         if (true) {
             return;
         }
@@ -99,7 +97,10 @@ public class GameSolving {
 
     public static void gridAssessment(String title, TileGrid tileGrid, boolean withBruteForce, int maxSteps) {
         //Run MC solver and plot
-        int minSteps = solveGridAndPlotHistogram(title, tileGrid, 10000, maxSteps);
+        JobResult jobResult = generateGridAndSolveSaveAndPlot(tileGrid, 10000, title);
+
+//        int minSteps = solveGridAndPlotHistogram(title, tileGrid, 10000, maxSteps);
+        int minSteps = jobResult.getSteps();
 
         GameSolver gameSolver = new GameSolver(copy(tileGrid));
         int stepsByCentralSquare = gameSolver.solveByCentralSquare();
@@ -121,99 +122,13 @@ public class GameSolving {
      * are saved down and histograms plotted
      */
     public static void generateGridsAndSolve(boolean multithread, int gridSize) {
-
-        List<Runnable> jobs = Lists.newArrayList();
-        AtomicInteger uniqueCode = new AtomicInteger(50000);
-        for (int i = 0; i < 10000; i++) {
-            jobs.add(new Runnable() {
-                @Override
-                public void run() {
-                    generateGridAndSolve(uniqueCode.incrementAndGet(), gridSize);
-                }
-            });
-        }
-        if (multithread) {
-            Threading.run(jobs);
-        } else {
-            Threading.run(jobs, 1);
-        }
-
+        MCSolver mcSolver = new MCSolver().setGridSize(gridSize).setSolutionAttempts(1000).setMinimumPassLevel(5).setSavePath(fileDirectory.getAbsolutePath());
+        mcSolver.plotResults(true).setGridGenerations(20);
+        mcSolver.solveMany();
     }
 
-    /**
-     * Solves the given TileGrid by Monte Carlo, and plots the results in a Histogram.
-     *
-     * @param tileGrid
-     */
-    public static void solveGridAndPlotHistogram(TileGrid tileGrid, int maxSteps) {
-        solveGridAndPlotHistogram("", tileGrid, 1000, maxSteps);
-    }
-
-    public static int solveGridAndPlotHistogram(String title, TileGrid tileGrid, int tests, int maxNumSteps) {
-
+    public static JobResultExtra solveByMonteCarlo(TileGrid tileGrid, int nTrials) {
         List<Integer> data = Lists.newArrayList();
-
-
-        List<Runnable> jobs = Lists.newArrayList();
-
-        Set<JobResult> jobResults = Sets.newConcurrentHashSet();
-
-        for (int i = 0; i < tests; i++) {
-
-            jobs.add(new Runnable() {
-                @Override
-                public void run() {
-                    GameSolver gameSolver = new GameSolver(copy(tileGrid));
-//                    Job job = runRoutine(gameSolver, GameSolver::solveByRandomTile);
-                    JobResult job = runRoutine(gameSolver, new Function<GameSolver, Integer>() {
-                        @Override
-                        public Integer apply(GameSolver gameSolver) {
-                            return gameSolver.solveByRandomTile(maxNumSteps);
-                        }
-                    });
-                    jobResults.add(job);
-                }
-            });
-        }
-        Threading.run(jobs);
-
-        List<Position> bestPositions = null;
-        int minSteps = Integer.MAX_VALUE;
-        for (JobResult jobResult : jobResults) {
-            int steps = jobResult.getSteps();
-            if (steps > 0) {
-                data.add(steps);
-                if (minSteps > steps) {
-                    minSteps = steps;
-                    List<Position> selectedPositions = jobResult.getBestPositions();
-                    bestPositions = selectedPositions;
-                }
-            }
-        }
-
-        //TODO have a blocking queue which gets results as they get completed.
-
-        int maxSteps = 0;
-        double[] doubleData = new double[data.size()];
-
-        int i = 0;
-        for (Integer datum : data) {
-            doubleData[i] = datum;
-            maxSteps = Math.max(maxSteps, datum);
-            i++;
-        }
-
-        if (data.isEmpty()) {
-            System.out.println("CANT PLOT HISTOGRAM - NO DATA");
-        } else {
-            System.out.println(bestPositions);
-            HistogramTools.chartHistogram(doubleData, maxSteps, title);
-        }
-        return minSteps;
-    }
-
-
-    public static JobResult solveByMonteCarlo(TileGrid tileGrid, int nTrials) {
 
         int minSteps = Integer.MAX_VALUE;
         List<Position> bestPositions = null;
@@ -229,6 +144,7 @@ public class GameSolving {
         Threading.run(jobs);
 
         for (JobResult result : results) {
+            data.add(result.getSteps());
             if (minSteps > result.getSteps()) {
                 minSteps = result.getSteps();
                 List<Position> selectedPositions = result.getBestPositions();
@@ -236,60 +152,24 @@ public class GameSolving {
             }
 
         }
-        return new JobResult(minSteps, bestPositions);
+        return new JobResultExtra(minSteps, bestPositions, data);
     }
 
     /**
      * Routine which generates a random tile grid and attempts to solve them by Monte Carlo. Grids which can be solved quickly
      * are saved down and histograms plotted
      */
-    public static boolean generateGridAndSolve(int uniqueCode, int gridSize) {
-
-        GridGenerator gridGenerator = new GridGenerator(10, 10, gridSize);
-        TileGrid tileGrid = gridGenerator.makeGrid(new TileProducer());
-
-        List<Integer> data = Lists.newArrayList();
-
-        int minSteps = Integer.MAX_VALUE;
-        List<Position> bestPositions = null;
-        for (int i = 0; i < 1000; i++) {
-            GameSolver gameSolver = new GameSolver(copy(tileGrid));
-            JobResult job = runRoutine(gameSolver, GameSolver::solveByRandomTile);
-//            System.out.println(steps);
-            data.add(job.getSteps());
-            if (minSteps > job.getSteps()) {
-                minSteps = job.getSteps();
-                List<Position> selectedPositions = gameSolver.getSelectedPositions();
-                bestPositions = selectedPositions;
-            }
-        }
-
-        if (minSteps <= 6) {
-            try {
-                GridFile.createFile(fileDirectory.getAbsolutePath() + String.format("/puzzleTest_%s.txt", uniqueCode), tileGrid);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            System.out.println(bestPositions);
-
-            int maxSteps = 0;
-            double[] doubleData = new double[data.size()];
-            for (int i = 0; i < data.size(); i++) {
-                Integer integer = data.get(i);
-                doubleData[i] = integer;
-                maxSteps = Math.max(maxSteps, integer);
-            }
-
-            HistogramTools.chartHistogram(doubleData, maxSteps, String.valueOf(uniqueCode));
-            return true;
-        } else {
-            System.out.println("Failed to find quick solution");
-            return false;
-        }
-
-
+    public static JobResult generateGridAndSolveSaveAndPlot() {
+        MCSolver mcSolver = new MCSolver().setSolutionAttempts(1000).setMinimumPassLevel(6).setSavePath(fileDirectory.getAbsolutePath());
+        mcSolver.plotResults(true);
+        return mcSolver.solveSingle();
     }
 
+    public static JobResult generateGridAndSolveSaveAndPlot(TileGrid grid, int attempts, String label) {
+        MCSolver mcSolver = new MCSolver().setSolutionAttempts(attempts).setMinimumPassLevel(6).setSavePath(fileDirectory.getAbsolutePath());
+        mcSolver.plotResults(true).setTileGrid(grid).setLabel(label);
+        return mcSolver.solveSingle();
+    }
 
     private static JobResult runRoutine(GameSolver gameSolver, Function<GameSolver, Integer> algorithm) {
         Integer stepsToSolve = algorithm.apply(gameSolver);
@@ -308,7 +188,7 @@ public class GameSolving {
 
         public static void chartHistogram(double[] data, int bins, String title) {
             HistogramDataset histogramDataset = new HistogramDataset();
-            histogramDataset.addSeries("tiles", data, bins);
+            histogramDataset.addSeries("tiles", data, bins, 0, bins);
 
             JFreeChart histogram = createHistogram("Best values " + title, "", "count", histogramDataset, PlotOrientation.VERTICAL, false, false, false);
             ChartPanel chartPanel = new ChartPanel(histogram);

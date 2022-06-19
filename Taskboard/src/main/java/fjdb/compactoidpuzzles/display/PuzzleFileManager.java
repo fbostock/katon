@@ -3,6 +3,7 @@ package fjdb.compactoidpuzzles.display;
 import com.google.common.collect.Lists;
 import fjdb.compactoidpuzzles.GridFile;
 import fjdb.compactoidpuzzles.TileGrid;
+import fjdb.util.AbstractListenerCollection;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +24,8 @@ public class PuzzleFileManager {
 
     private final Map<String, GridFile> gridFilesCache = new HashMap<>();
 
-    private final List<GridFileListener> listeners = Lists.newArrayList();
+//    private final List<GridFileListener> listeners = Lists.newArrayList();
+    private final AbstractListenerCollection<GridFileListener> listeners = new AbstractListenerCollection<>();
 
     private static final PuzzleFileManager instance = new PuzzleFileManager();
 
@@ -70,17 +72,17 @@ public class PuzzleFileManager {
     }
 
     private void updateListeners(GridFile gridFile) {
-        for (GridFileListener listener : listeners) {
+        for (GridFileListener listener : listeners.getListeners()) {
             listener.fileAdded(gridFile);
         }
     }
 
     public void addListener(GridFileListener listener) {
-        listeners.add(listener);
+        listeners.addListener(listener);
     }
 
     public void removeListener(GridFileListener listener) {
-        listeners.remove(listener);
+        listeners.removeListener(listener);
     }
 
     public interface GridFileListener {

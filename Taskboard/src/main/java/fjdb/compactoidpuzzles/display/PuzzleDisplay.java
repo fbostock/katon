@@ -39,7 +39,44 @@ public class PuzzleDisplay extends Application {
 
 //    private static final File fileDirectory = new File("/Users/francisbostock/Documents/CompactoidPuzzles");
 
-    public static void main(String[] args) throws IOException {
+
+    private static class Data implements Comparable<Data> {
+        public Data(int id) {
+            this.id = id;
+        }
+
+        int id;
+
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "id=" + id +
+                    '}';
+        }
+
+        @Override
+        public int compareTo(Data o) {
+            System.out.printf("Comparing %s %s%n", id, o.id);
+//            return Integer.compare(Math.abs(id), Math.abs(o.id));
+            return -1;
+        }
+
+        @Override
+        public int hashCode() {
+            return 31;
+        }
+
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Data data = (Data) o;
+            return id == data.id;
+        }
+    }
+
+    public static void main(String[] args) throws IOException, InterruptedException {
         launch(args);
     }
 
@@ -64,11 +101,35 @@ public class PuzzleDisplay extends Application {
 
         mainTabs.getTabs().add(new Tab("View Puzzles", flowPane));
         mainTabs.getTabs().add(new Tab("Edit Puzzles", getEditableGrid()));
+        mainTabs.getTabs().add(new Tab("Edit Puzzles", generatorTab()));
         sceneRoot.setCenter(mainTabs);
 
         final Scene scene = new Scene(sceneRoot, 1200, 600);
         stage.setScene(scene);
         stage.show();
+    }
+
+    private TabPane generatorTab() {
+        TabPane generatorTab = new TabPane();
+
+        //add text field to enter grid size
+        TextField gridSizeField = FxUtils.getTextField();
+        //add field to generate minimum pass level
+        TextField minTurnsToComplete = FxUtils.getTextField();
+        //add field to generate num of mc attemps to solve grid
+        TextField solutionAttempts = FxUtils.getTextField();
+
+        CheckBox plotResults = FxUtils.getCheckBox();
+
+        Button startGeneration = FxUtils.getButton("GO");
+
+
+        //add button to indicate whether to plot results
+        //add button to generate puzzles and save files
+
+        //saved files should go to the PuzzleFileManager, and the other tabs should be updated to look in the folder.
+
+        return generatorTab;
     }
 
     private TabPane gridsTabs() {
@@ -213,8 +274,7 @@ public class PuzzleDisplay extends Application {
             //TODO add a chooser filled with GridFile objects fetch from PuzzleFileManager, and when selected
             //load the corresponding gridFile.
 
-            ObservableList<Integer> types = FXCollections.observableArrayList(0, 1, 2, 3);
-            getTileType = new ComboBox<>(types);
+            getTileType = FxUtils.makeCombo(FXCollections.observableArrayList(0, 1, 2, 3));
             getTileType.setValue(0);
             ObservableList<SolverType> solverTypes = FXCollections.observableArrayList(SolverType.values());
             solvers = new ComboBox<>(solverTypes);
@@ -235,16 +295,14 @@ public class PuzzleDisplay extends Application {
             Button solve = new Button("Solve Grid");
             TextArea textArea = new TextArea();
             solve.setOnAction(actionEvent -> {
-//                    GameSolver gameSolver = new GameSolver(GameSolving.copy(tileGrid));
                 TileGrid grid = makeTileGrid(max);
                 GameSolver gameSolver = new GameSolver(grid);
-                //TODO take a copy of the grid
                 int turns = -1;
                 switch (solvers.getValue()) {
 
                     case BRUTE_FORCE -> {
                         int maxSteps = parse(params.getText(), 6);
-                            turns = gameSolver.solveByBruteForce(maxSteps);
+                        turns = gameSolver.solveByBruteForce(maxSteps);
                         textArea.setText(String.format("Brute Force (max %s): %s turns\nPositions: %s", maxSteps, turns, gameSolver.getSelectedPositions()));
                     }
                     case BRUTE_FORCE_PARALLEL -> {
@@ -253,11 +311,12 @@ public class PuzzleDisplay extends Application {
                         textArea.setText(String.format("Brute Force Parallel (max %s): %s turns\nPositions: %s", maxSteps, turns, gameSolver.getSelectedPositions()));
                     }
                     case MC -> {
-                        //TODO refactor GameSolving to pass in a grid and solve by MC n times, returning the lowest attempt, running multithreaded.
                         int trials = parse(params.getText(), 1000);
-                        JobResult jobResult = GameSolving.solveByMonteCarlo(grid, trials);
+                        MCSolver mcSolver = new MCSolver().setTileGrid(grid).setSolutionAttempts(trials).setMinimumPassLevel(Integer.MAX_VALUE);
+//                        JobResult jobResult = GameSolving.solveByMonteCarlo(grid, trials, Integer.MAX_VALUE);
+                        JobResult jobResult = mcSolver.solveSingle();
                         turns = jobResult.getSteps();
-                        textArea.setText(String.format("MC (1000 trials): %s turns: %s", turns, jobResult.getBestPositions()));
+                        textArea.setText(String.format("MC (%s trials): %s turns: %s", trials, turns, jobResult.getBestPositions()));
                     }
                     case CENTRAL_SQUARE -> {
                         turns = gameSolver.solveByCentralSquare();
