@@ -133,7 +133,7 @@ programs' performance change over time with changes in engines etc. If a new cha
 
     private static class Columns extends IdColumnGroup<Trade, TradeId> {
 
-        private final TradeIdColumn idColumn;
+        private final IdColumn<TradeId> idColumn;
         private final StringColumn instrumentColumn = new StringColumn("INSTRUMENT", "VARCHAR(256)");
         private final CurrencyColumn currencyColumn = new CurrencyColumn("CURRENCY");
         private final DateColumn tradeDateColumn = new DateColumn("TRADE_DATE");
@@ -143,11 +143,11 @@ programs' performance change over time with changes in engines etc. If a new cha
         private final TypeColumn<TradeType> tradetype = new TypeColumn<>(TradeType.class, "TRADETYPE", "VARCHAR(32)");
 
         public static Columns of() {
-            TradeIdColumn idColumn = new TradeIdColumn("ID");
+            IdColumn<TradeId> idColumn = new IdColumn<>("ID", TradeId::new, TradeId.class);
             return new Columns(idColumn);
         }
 
-        public Columns(TradeIdColumn idColumn) {
+        public Columns(IdColumn<TradeId> idColumn) {
             super(idColumn);
             this.idColumn = idColumn;
             addColumn(tradetype).addColumn(instrumentColumn).addColumn(tradeDateColumn).addColumn(quantityColumn).addColumn(priceColumn);
@@ -156,7 +156,7 @@ programs' performance change over time with changes in engines etc. If a new cha
 
         @Override
         public Trade handle(ResultSet rs) throws SQLException {
-            return new Trade((TradeId) handleId(rs), resolve(tradetype, rs), resolve(instrumentColumn, rs), resolve(tradeDateColumn, rs),
+            return new Trade(handleId(rs), resolve(tradetype, rs), resolve(instrumentColumn, rs), resolve(tradeDateColumn, rs),
                     resolve(quantityColumn, rs), resolve(priceColumn, rs), resolve(currencyColumn, rs), resolve(fixingColumn, rs));
         }
 

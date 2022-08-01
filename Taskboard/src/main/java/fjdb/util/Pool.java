@@ -6,7 +6,7 @@ import java.util.function.Function;
 
 public abstract class Pool<K, V> {
 
-    Map<K, V> _map = new ConcurrentHashMap();
+    Map<K, V> _map = new ConcurrentHashMap<>();
 
     public V get(K key) {
         V v = _map.get(key);

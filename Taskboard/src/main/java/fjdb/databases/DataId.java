@@ -1,5 +1,7 @@
 package fjdb.databases;
 
+import java.util.Objects;
+
 public class DataId extends Id {
     private static final long serialVersionUID = 20210720L;
 
@@ -19,7 +21,7 @@ public class DataId extends Id {
 
     @Override
     public int hashCode() {
-        return id;
+        return Objects.hash(id);
     }
 
     public int getId() {

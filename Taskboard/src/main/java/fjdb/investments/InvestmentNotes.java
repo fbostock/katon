@@ -11,7 +11,7 @@ public class InvestmentNotes {
     Hikma
     Immupharma
     Ocado
-    Parseley
+    Parsley
     Plus500
     TekCapital
     Tremor

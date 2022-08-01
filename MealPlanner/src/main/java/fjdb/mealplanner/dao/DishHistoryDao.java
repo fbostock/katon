@@ -77,7 +77,7 @@ public class DishHistoryDao extends ColumnDao<DishHistoryDao.DishEntry> {
     }
 
     private static class HistoryColumnGroup extends ColumnGroup<DishEntry> {
-        IdColumn<DishId> idColumn = new IdColumn<>("id", DishId::new);
+        IdColumn<DishId> idColumn = new IdColumn<>("id", DishId::new, DishId.class);
         DateColumn dateColumn = new DateColumn("mydate");
         private final DishDao dishDao;
 

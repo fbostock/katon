@@ -1,5 +1,6 @@
 package fjdb.mealplanner;
 
+import fjdb.threading.LazyInitializer;
 import jersey.repackaged.com.google.common.collect.Lists;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -29,7 +30,7 @@ public class MealPlanManager {
 
     private final LazyInitializer<DishActionFactory> dishActionFactoryLazyInitializer = new LazyInitializer<>() {
         @Override
-        DishActionFactory make() {
+        public DishActionFactory make() {
             MealHistoryManager historyManager = new MealHistoryManager(LocalDate.now(), getAllMealPlans());
             return new DishActionFactory(historyManager);
         }
@@ -212,24 +213,6 @@ public class MealPlanManager {
 
     public DishActionFactory getDishActionFactory() {
         return dishActionFactoryLazyInitializer.get();
-    }
-
-    private static abstract class LazyInitializer<T> {
-        private T instance;
-
-        abstract T make();
-
-        public T get() {
-            if (instance == null) {
-                synchronized (this) {
-                    if (instance == null) {
-                        instance = make();
-                    }
-                }
-            }
-            return instance;
-        }
-
     }
 
 

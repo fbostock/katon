@@ -104,7 +104,7 @@ public class DishDao extends IdColumnDao<Dish, DishId> implements DaoIF<Dish> {
         private final IdColumn<DishId> idColumn;
 
         public static Columns of() {
-            IdColumn<DishId> idColumn = new IdColumn<>("ID", DishId::new);
+            IdColumn<DishId> idColumn = new IdColumn<>("ID", DishId::new, DishId.class);
             return new Columns(idColumn);
         }
 

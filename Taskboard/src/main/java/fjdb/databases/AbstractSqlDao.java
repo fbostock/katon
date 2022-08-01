@@ -150,6 +150,8 @@ public abstract class AbstractSqlDao {
                 statement.setDouble(index, (Double) object);
             } else if (object instanceof Integer) {
                 statement.setInt(index, (Integer) object);
+            } else if (object instanceof String) {
+                statement.setString(index, (String) object);
             } else {
                 if (!uniqueOccurrences.contains(object)) {
                     uniqueOccurrences.add(object);

@@ -1,6 +1,7 @@
 package fjdb.compactoidpuzzles.generators;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import fjdb.compactoidpuzzles.GameTile;
 import fjdb.compactoidpuzzles.Position;
 import fjdb.compactoidpuzzles.TileGrid;

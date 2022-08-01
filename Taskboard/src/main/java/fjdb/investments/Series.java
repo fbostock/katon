@@ -31,5 +31,25 @@ public class Series<T extends Comparable<? super T>, V> {
         return values[index];
     }
 
+    public Series<T, V> subsequence(int startInclusive, int endExclusive) {
+        //TODO validation on start/end index
+        //TODO add tests for a subsequence of a subsequence
+        return new Series<>(keys, values, startIndex + startInclusive, startIndex + startInclusive + endExclusive);
+    }
+
+    //TODO add methods to crea
+
+    public Series<T, V> start(int endExclusive) {
+        //TODO validation on start/end index
+        //TODO add tests for a subsequence of a subsequence
+        return new Series<>(keys, values, startIndex, startIndex + endExclusive);
+    }
+
+    public Series<T, V> end(int startInclusive) {
+        //TODO validation on start/end index
+        //TODO add tests for a subsequence of a subsequence
+        return new Series<>(keys, values, startIndex + startInclusive, size);
+    }
+
 
 }

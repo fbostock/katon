@@ -8,8 +8,8 @@ public class IdColumn<I extends DataId> extends AbstractColumn<I, Integer>{
 
     private final Function<Integer, I> idMaker;
 
-    public IdColumn(String dbName, Function<Integer, I> idMaker) {
-        super(dbName, "INT");
+    public IdColumn(String dbName, Function<Integer, I> idMaker, Class<I> type) {
+        super(dbName, "INT", type);
         this.idMaker = idMaker;
     }
 

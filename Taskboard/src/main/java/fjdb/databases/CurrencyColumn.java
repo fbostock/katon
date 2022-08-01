@@ -7,7 +7,7 @@ import java.util.Currency;
 public class CurrencyColumn extends AbstractColumn<Currency, String> {
 
     public CurrencyColumn(String dbName) {
-        super(dbName, "VARCHAR(3)");
+        super(dbName, "VARCHAR(3)", Currency.class);
     }
 
     @Override

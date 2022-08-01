@@ -68,7 +68,7 @@ public class DishTagDao extends ColumnDao<DishTagDao.TagEntry> {
 
     private static class TagColumns extends ColumnGroup<TagEntry> {
 
-        IdColumn<DishId> idColumn = new IdColumn<>("id", DishId::new);
+        IdColumn<DishId> idColumn = new IdColumn<>("id", DishId::new, DishId.class);
         TagColumn tagColumn = new TagColumn("TAG");
         private final DishDao dishDao;
 
@@ -93,9 +93,9 @@ public class DishTagDao extends ColumnDao<DishTagDao.TagEntry> {
     }
 
     private static class TagColumn extends AbstractColumn<DishTag, String>{
-
+        //TODO replace with TypeColumn
         protected TagColumn(String dbName) {
-            super(dbName, "VARCHAR(256)");
+            super(dbName, "VARCHAR(256)", DishTag.class);
         }
 
         @Override
