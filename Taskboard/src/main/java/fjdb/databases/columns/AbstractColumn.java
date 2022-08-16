@@ -1,4 +1,4 @@
-package fjdb.databases;
+package fjdb.databases.columns;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

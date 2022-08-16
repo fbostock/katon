@@ -1,6 +1,7 @@
 package fjdb.hometodo;
 
 import fjdb.databases.DatabaseAccess;
+import fjdb.util.DateTimeUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,6 +10,7 @@ import java.util.List;
 
 public class TodoPanel {
 
+    //TODO remove old TodoDao class, remove commented code from new one, then rename.
     public static void updateTable() {
         DatabaseAccess accessOld = new DatabaseAccess("Todos.sql");
         DatabaseAccess accessNew = new DatabaseAccess("Todos2.sql");
@@ -38,13 +40,14 @@ public class TodoPanel {
         JFrame frame = new JFrame("");
         frame.setPreferredSize(new Dimension(1000, 600));
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-//        TodoTable table = TodoTable.makeTable(todoRepository.getDao());
         JPanel panel = new JPanel(new BorderLayout());
-//        JScrollPane scroll = new JScrollPane(table);
+
+                TodoTable table = TodoTable.makeTable(todoRepository.getDao());
+        JScrollPane scroll = new JScrollPane(table);
+        panel.add(scroll, BorderLayout.CENTER);
 
         TodoListComponent view = new TodoListComponent(todoRepository.getDao());
-//        panel.add(scroll, BorderLayout.CENTER);
-        panel.add(new JScrollPane(view), BorderLayout.CENTER);
+//        panel.add(new JScrollPane(view), BorderLayout.CENTER);
         panel.add(addInsertPanel(todoRepository.getDao(), e -> {
 //            DataItemModel<?,?> model = table.getModel();
 //            model.refresh();
@@ -75,7 +78,7 @@ public class TodoPanel {
         JButton ok = new JButton("Insert");
         ok.addActionListener(e -> {
             TodoDataItem todoDataItem = new TodoDataItem(nameField.getText(), owner.getItemAt(owner.getSelectedIndex()), category.getItemAt(category.getSelectedIndex()),
-                    term.getItemAt(term.getSelectedIndex()), size.getItemAt(size.getSelectedIndex()));
+                    term.getItemAt(term.getSelectedIndex()), size.getItemAt(size.getSelectedIndex()), Progress.TODO, DateTimeUtil.date(20230101), 1);
             todoDao.insert(todoDataItem);
             listener.actionPerformed(e);
         });
@@ -85,7 +88,7 @@ public class TodoPanel {
         return panel;
     }
 
-    public static <T extends Enum<T>> JComboBox<T> makeCombo(Class<T> enumClass) {
+    public static <T extends Enum<T>> JComboBox<T> makeCombo(Class<? extends T> enumClass) {
         T[] enumConstants = enumClass.getEnumConstants();
         JComboBox<T> combo = new JComboBox<>(enumConstants);
         combo.setSelectedIndex(0);

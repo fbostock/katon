@@ -4,6 +4,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import fjdb.databases.*;
+import fjdb.databases.columns.AbstractColumn;
+import fjdb.databases.columns.IdColumn;
 import fjdb.mealplanner.Dish;
 import fjdb.mealplanner.DishDao;
 import fjdb.mealplanner.DishId;
@@ -92,7 +94,7 @@ public class DishTagDao extends ColumnDao<DishTagDao.TagEntry> {
         }
     }
 
-    private static class TagColumn extends AbstractColumn<DishTag, String>{
+    private static class TagColumn extends AbstractColumn<DishTag, String> {
         //TODO replace with TypeColumn
         protected TagColumn(String dbName) {
             super(dbName, "VARCHAR(256)", DishTag.class);

@@ -1,5 +1,7 @@
 package fjdb.hometodo;
 
+import fjdb.databases.DefaultId;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
@@ -7,20 +9,19 @@ import java.awt.*;
 
 public class TodoTable extends JTable {
 
-    private TodoTable(DataItemModel <TodoDataItem, TodoId> model) {
+    private TodoTable(DataItemModel <TodoDataItem, DefaultId> model) {
         super(model);
     }
 
-    public DataItemModel<TodoDataItem, TodoId> getModel() {
+    public DataItemModel<TodoDataItem, DefaultId> getModel() {
         TableModel model = super.getModel();
-        return (DataItemModel<TodoDataItem, TodoId>) model;
+        return (DataItemModel<TodoDataItem, DefaultId>) model;
     }
 
-    public static TodoTable makeTable(TodoDao dao) {
+    public static TodoTable makeTable(TodoDaoPlay dao) {
 
 
         //TODO want a read-only column group - adopt an interface which has getters only.
-//        columnGroup.
 
         TodoTable table = new TodoTable(new DataItemModel<>(dao));
         table.setAutoCreateRowSorter(true);

@@ -2,6 +2,8 @@ package fjdb.mealplanner;
 
 import com.google.common.collect.Lists;
 import fjdb.databases.*;
+import fjdb.databases.columns.IdColumn;
+import fjdb.databases.columns.StringColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

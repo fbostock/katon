@@ -2,6 +2,8 @@ package fjdb.mealplanner.dao;
 
 import com.google.common.collect.Lists;
 import fjdb.databases.*;
+import fjdb.databases.columns.DateColumn;
+import fjdb.databases.columns.IdColumn;
 import fjdb.mealplanner.Dish;
 import fjdb.mealplanner.DishDao;
 import fjdb.mealplanner.DishId;

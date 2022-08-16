@@ -3,6 +3,8 @@ package fjdb.databases;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashBiMap;
+import fjdb.databases.columns.AbstractColumn;
+import fjdb.databases.columns.IdColumn;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,7 +44,7 @@ public abstract class IdColumnGroup<T, I extends DataId> {
     }
 
     public List<String> getColumnNames() {
-        return columns.stream().map(Functions.toStringFunction()::apply).collect(Collectors.toList());
+        return columns.stream().map(Functions.toStringFunction()).collect(Collectors.toList());
     }
 
     public String getColumnDeclarations() {

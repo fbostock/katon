@@ -2,6 +2,7 @@ package fjdb.investments;
 
 import com.google.common.collect.Lists;
 import fjdb.databases.*;
+import fjdb.databases.columns.*;
 import fjdb.pnl.Trade;
 import fjdb.pnl.TradeId;
 import fjdb.pnl.TradeType;

@@ -1,5 +1,6 @@
-package fjdb.databases;
+package fjdb.databases.columns;
 
+import fjdb.databases.columns.AbstractColumn;
 import fjdb.util.DateTimeUtil;
 
 import java.sql.Date;

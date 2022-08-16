@@ -1,10 +1,13 @@
-package fjdb.databases;
+package fjdb.databases.columns;
+
+import fjdb.databases.DataId;
+import fjdb.databases.columns.AbstractColumn;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.function.Function;
 
-public class IdColumn<I extends DataId> extends AbstractColumn<I, Integer>{
+public class IdColumn<I extends DataId> extends AbstractColumn<I, Integer> {
 
     private final Function<Integer, I> idMaker;
 

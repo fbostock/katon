@@ -3,6 +3,7 @@ package fjdb.databases;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashBiMap;
+import fjdb.databases.columns.AbstractColumn;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
