@@ -6,9 +6,9 @@ public class TodoRepository {
 
     DatabaseAccess access = new DatabaseAccess("Todos2.sql");
 
-    private TodoDaoPlay dao = TodoDaoPlay.getDao(access);
+    private TodoDao dao = TodoDao.getDao(access);
 
-    public TodoDaoPlay getDao() {
+    public TodoDao getDao() {
         return dao;
     }
 }

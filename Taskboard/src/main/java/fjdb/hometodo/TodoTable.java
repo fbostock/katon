@@ -18,7 +18,7 @@ public class TodoTable extends JTable {
         return (DataItemModel<TodoDataItem, DefaultId>) model;
     }
 
-    public static TodoTable makeTable(TodoDaoPlay dao) {
+    public static TodoTable makeTable(TodoDao dao) {
 
 
         //TODO want a read-only column group - adopt an interface which has getters only.

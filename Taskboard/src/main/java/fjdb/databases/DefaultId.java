@@ -1,7 +1,5 @@
 package fjdb.databases;
 
-import fjdb.hometodo.TodoDaoPlay;
-
 import java.util.Objects;
 
 public class DefaultId extends DataId {

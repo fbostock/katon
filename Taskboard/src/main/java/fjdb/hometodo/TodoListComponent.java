@@ -19,12 +19,12 @@ import java.util.stream.Stream;
 
 public class TodoListComponent extends JPanel {
 
-    private TodoDaoPlay dao;
+    private TodoDao dao;
     private JPanel mainPanel = new JPanel(new BorderLayout());
     private JPanel itemPanel = new JPanel();
     private Filter filter = new Filter();
 
-    public TodoListComponent(TodoDaoPlay dao) {
+    public TodoListComponent(TodoDao dao) {
         this.dao = dao;
         itemPanel.add(makePanel(filter));
         mainPanel.add(filterPanel(), BorderLayout.NORTH);

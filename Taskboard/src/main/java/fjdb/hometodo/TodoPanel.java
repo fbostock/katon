@@ -14,8 +14,8 @@ public class TodoPanel {
     public static void updateTable() {
         DatabaseAccess accessOld = new DatabaseAccess("Todos.sql");
         DatabaseAccess accessNew = new DatabaseAccess("Todos2.sql");
-        TodoDaoPlay oldDao = TodoDaoPlay.getDao(accessOld);
-        TodoDaoPlay newDao = TodoDaoPlay.getDao(accessNew);
+        TodoDao oldDao = TodoDao.getDao(accessOld);
+        TodoDao newDao = TodoDao.getDao(accessNew);
 
         List<TodoDataItem> load = oldDao.load();
         for (TodoDataItem todoDataItem : load) {
@@ -59,7 +59,7 @@ public class TodoPanel {
     }
 
 
-    private static JPanel addInsertPanel(TodoDaoPlay todoDao, ActionListener listener) {
+    private static JPanel addInsertPanel(TodoDao todoDao, ActionListener listener) {
         JPanel panel = new JPanel();
 
         Box row = Box.createHorizontalBox();

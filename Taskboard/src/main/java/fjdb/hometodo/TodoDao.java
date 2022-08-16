@@ -10,16 +10,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
-public class TodoDaoPlay extends IdColumnDao<TodoDataItem, DefaultId> {
+public class TodoDao extends IdColumnDao<TodoDataItem, DefaultId> {
 
     private final ColumnsSet<TodoDataItem> columnSet;
 
-    public static TodoDaoPlay getDao(DatabaseAccess access) {
+    public static TodoDao getDao(DatabaseAccess access) {
         ColumnsSet<TodoDataItem> columnSet = getColumnSet();
-        return new TodoDaoPlay(access, columnSet);
+        return new TodoDao(access, columnSet);
     }
 
-    private TodoDaoPlay(DatabaseAccess access, ColumnsSet<TodoDataItem> columnSet) {
+    private TodoDao(DatabaseAccess access, ColumnsSet<TodoDataItem> columnSet) {
         super(access, columnSet);
         this.columnSet = columnSet;
         try {
