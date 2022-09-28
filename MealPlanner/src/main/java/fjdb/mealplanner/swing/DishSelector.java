@@ -128,6 +128,7 @@ public class DishSelector<T> extends JPanel {
             comp.addActionListener(e -> {
                 selected.remove(item);
                 panel.remove(comp);
+                panel.revalidate();
                 panel.repaint();
             });
             revalidate();

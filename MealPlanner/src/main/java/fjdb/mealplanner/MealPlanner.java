@@ -13,6 +13,7 @@ import fjdb.mealplanner.fx.planpanel.MealPlanPanel;
 import fjdb.mealplanner.fx.Selectors;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,6 +31,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -212,6 +214,7 @@ public class MealPlanner extends Application {
         final Scene scene = new Scene(sceneRoot, 1200, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setOnCloseRequest(windowEvent -> Platform.exit());
     }
 
     private FlowPane getDishesPane(TableView<Dish> dishTableView) {

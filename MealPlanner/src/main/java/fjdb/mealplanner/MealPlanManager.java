@@ -215,7 +215,10 @@ public class MealPlanManager {
         return dishActionFactoryLazyInitializer.get();
     }
 
-
+    /**
+     * First try /Users/username/, then app launch directory. If the latter does not exist, it creates it.
+     * @return
+     */
     public static File tryFindMealPlans() {
         String currentUsersHomeDir = System.getProperty("user.home");
         File mealPlansFolder = new File(currentUsersHomeDir, "MealPlans");

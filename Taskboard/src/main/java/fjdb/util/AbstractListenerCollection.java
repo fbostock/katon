@@ -24,7 +24,6 @@ public class AbstractListenerCollection<V> {
 
     public void addListener(V listener) {
         listeners.add(new WeakReference<>(listener));
-
     }
 
     public void removeListener(V listener) {
@@ -50,11 +49,6 @@ public class AbstractListenerCollection<V> {
             cleanse(builder::add);
         }
         return builder.build();
-    }
-
-    private void cleanse() {
-        cleanse(v -> {
-        });
     }
 
     private void cleanse(Consumer<V> consumer) {

@@ -4,13 +4,19 @@ import com.google.common.collect.Lists;
 import fjdb.mealplanner.*;
 import fjdb.mealplanner.fx.DishUtils;
 import fjdb.mealplanner.fx.DragUtils;
+import fjdb.mealplanner.search.SearchSelectorPopupFx;
 import fjdb.mealplanner.swing.MealPlannerTest;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -205,18 +211,52 @@ class MealCell extends TableCell<MealPlanPanel.DatedDayPlan, Meal> {
     }
 
 
+    private static SearchSelectorPopupFx dialog;
     @Override
     public void startEdit() {
+        /*
+        TODO convert SearchSelectorPopup to JavaFX.
+        TODO extra SearchSelectorPopup code to separate model from gui - should be able to use same machinery for java swing or javafx.
+        In the startEdit method, have it show the dialog that contains the list of matches.
+        In the commitEdit and cancelEdit methods, it should close/dispose the dialog.
+         */
+
+
         Meal item = getItem();
         currentDish = item == null ? null : item.getDish();
+
+
         if (!isEmpty()) {
             super.startEdit();
             createTextField();
             setText(null);
             setGraphic(textField);
-            textField.selectAll();
-            textField.requestFocus();
         }
+        if (dialog == null) {
+            dialog = SearchSelectorPopupFx.launchDialog(textField);
+            dialog.setAlwaysOnTop(true);
+            dialog.initOwner(textField.getScene().getWindow());
+            dialog.initStyle(StageStyle.UNDECORATED);
+        } else {
+            dialog.updateTextField(textField);
+        }
+        if (!dialog.isShowing()) {
+            dialog.show();
+            dialog.setX(textField.localToScreen(textField.getBoundsInLocal()).getMaxX() + 200);
+        }
+        Window window = textField.getScene().getWindow();
+        if (window instanceof Stage stage) {
+            stage.requestFocus();
+            stage.show();
+        }
+        textField.selectAll();
+        textField.requestFocus();
+    }
+
+    @Override
+    public void commitEdit(Meal meal) {
+        super.commitEdit(meal);
+        dialog.close();
     }
 
     @Override
@@ -226,6 +266,7 @@ class MealCell extends TableCell<MealPlanPanel.DatedDayPlan, Meal> {
         currentDish = item == null ? null : item.getDish();
         setText(getString());
         setGraphic(null);
+        dialog.close();
     }
 
     @Override
@@ -263,11 +304,11 @@ class MealCell extends TableCell<MealPlanPanel.DatedDayPlan, Meal> {
     private void createTextField() {
         textField = new TextField(getString());
         textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
-        textField.focusedProperty().addListener((arg0, arg1, arg2) -> {
-            if (!arg2) {
-                commitEdit(getMeal(textField.getText()));
-            }
-        });
+//        textField.focusedProperty().addListener((arg0, arg1, arg2) -> {
+//            if (!arg2) {
+//                commitEdit(getMeal(textField.getText()));
+//            }
+//        });
         //Allow Enter key to commit change and stop editing.
         textField.setOnAction(event -> {
             String text = textField.getText();

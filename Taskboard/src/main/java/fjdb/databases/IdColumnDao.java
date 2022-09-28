@@ -6,6 +6,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import fjdb.databases.columns.AbstractColumn;
 import fjdb.databases.columns.IdColumn;
+import fjdb.graphics.Xform;
 import fjdb.util.SqlUtil;
 
 import java.sql.ResultSet;
@@ -162,7 +163,7 @@ public abstract class IdColumnDao<T extends DataItemIF, I extends DataId> extend
         }
     }
 
-    public void updateField(T item, AbstractColumn column, Object newValue) throws SQLException {
+    public T updateField(T item, AbstractColumn column, Object newValue) throws SQLException {
         I dataId;
         synchronized (idBeanMapLock) {
             dataId = idBeanMap.inverse().get(item);
@@ -178,6 +179,8 @@ public abstract class IdColumnDao<T extends DataItemIF, I extends DataId> extend
         synchronized (idBeanMapLock) {
             idBeanMap.put(dataId, newItem);
         }
+        System.out.printf("Updated %s for type %s with new value %s\n", item, column.getDataType(), newValue);
+        return newItem;
     }
 
     @Override

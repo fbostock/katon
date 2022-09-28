@@ -37,6 +37,10 @@ public abstract class IdColumnGroup<T, I extends DataId> {
         return column.get(rs, columnIntegerMap.get(column));
     }
 
+    public AbstractColumn getColumn(int col) {
+        return columns.get(col);
+    }
+
     public abstract List<Object> getDataItemObjects(T dataItem);
 
     public String getColumnLabels() {

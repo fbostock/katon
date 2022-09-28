@@ -79,4 +79,18 @@ public class TodoDataItem implements DataItemIF {
     public int hashCode() {
         return Objects.hash(name, owner, category, term, size, progress, dueDate, priority);
     }
+
+    @Override
+    public String toString() {
+        return "TodoDataItem{" +
+                "name='" + name + '\'' +
+                ", owner=" + owner +
+                ", category=" + category +
+                ", term=" + term +
+                ", size=" + size +
+                ", progress=" + progress +
+                ", dueDate=" + dueDate +
+                ", priority=" + priority +
+                '}';
+    }
 }

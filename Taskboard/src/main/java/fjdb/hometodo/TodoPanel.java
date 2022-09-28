@@ -10,6 +10,9 @@ import java.util.List;
 
 public class TodoPanel {
 
+    //TODO Add a new Column class, being a DataItemIFColumn. It would be used to store the id of a data item of one type
+    //as a field in another type.
+
     //TODO remove old TodoDao class, remove commented code from new one, then rename.
     public static void updateTable() {
         DatabaseAccess accessOld = new DatabaseAccess("Todos.sql");
@@ -42,16 +45,18 @@ public class TodoPanel {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         JPanel panel = new JPanel(new BorderLayout());
 
-                TodoTable table = TodoTable.makeTable(todoRepository.getDao());
+        TodoTable table = TodoTable.makeTable(todoRepository.getDao(), new Filter().addProgress(Progress.TODO).addProgress(Progress.IN_PROGRESS));
         JScrollPane scroll = new JScrollPane(table);
         panel.add(scroll, BorderLayout.CENTER);
 
-        TodoListComponent view = new TodoListComponent(todoRepository.getDao());
+//        TodoTable doneTable = TodoTable.makeTable(todoRepository.getDao(), new Filter().addProgress(Progress.DONE));
+
+//        TodoListComponent view = new TodoListComponent(todoRepository.getDao());
 //        panel.add(new JScrollPane(view), BorderLayout.CENTER);
         panel.add(addInsertPanel(todoRepository.getDao(), e -> {
-//            DataItemModel<?,?> model = table.getModel();
-//            model.refresh();
-            view.refresh();
+            DataItemModel<?,?> model = table.getModel();
+            model.refresh();
+//            view.refresh();
         }), BorderLayout.SOUTH);
         frame.add(panel);
         frame.pack();
@@ -78,7 +83,7 @@ public class TodoPanel {
         JButton ok = new JButton("Insert");
         ok.addActionListener(e -> {
             TodoDataItem todoDataItem = new TodoDataItem(nameField.getText(), owner.getItemAt(owner.getSelectedIndex()), category.getItemAt(category.getSelectedIndex()),
-                    term.getItemAt(term.getSelectedIndex()), size.getItemAt(size.getSelectedIndex()), Progress.TODO, DateTimeUtil.date(20230101), 1);
+                    term.getItemAt(term.getSelectedIndex()), size.getItemAt(size.getSelectedIndex()), Progress.TODO, DateTimeUtil.date(20230101), 9);
             todoDao.insert(todoDataItem);
             listener.actionPerformed(e);
         });
