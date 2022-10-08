@@ -16,8 +16,26 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.17</source>
-                    <target>1.17</target>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit4</artifactId>
+                        <version>2.22.0</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
                 </configuration>
             </plugin>
 
@@ -41,12 +59,26 @@
                     <include>**/*.*</include>
                 </includes>
             </resource>
+            <resource>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*.fxml</include>
+                    <include>**/*.css</include>
+                </includes>
+            </resource><resource>
+                <directory>src/test/java/resources</directory>
+                <includes>
+                    <include>**/*.fxml</include>
+                    <include>**/*.css</include>
+                </includes>
+            </resource>
         </resources>
 
     </build>
     <modules>
         <module>Taskboard</module>
         <module>MealPlanner</module>
+        <module>Core</module>
         <!--        <module>crypt</module>-->
     </modules>
 
@@ -114,6 +146,12 @@
             <version>2.5.1</version>
             <type>pom</type>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.maven.surefire</groupId>-->
+<!--            <artifactId>surefire</artifactId>-->
+<!--            <version>2.22.2</version>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
 
 
         <!--<dependency>-->
@@ -167,4 +205,6 @@
 <!--        </dependency>-->
 
     </dependencies>
+
+
 </project>

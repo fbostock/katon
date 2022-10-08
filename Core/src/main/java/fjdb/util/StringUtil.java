@@ -17,7 +17,7 @@ public class StringUtil {
             for (int i = 0; i < max - length; i++) {
                 builder.append(" ");
             }
-            return input + builder.toString();
+            return input + builder;
         }
         return input;
     }
