@@ -1,6 +1,7 @@
 package fjdb.mealplanner;
 
 import fjdb.mealplanner.swing.MealPlannerTest;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import static org.junit.Assert.assertEquals;
 
 public class MealPlanManagerTest {
 
+    @Ignore
     @Test
     public void mealPlans_can_be_deserialized() throws URISyntaxException, IOException {
         //TODO, load file and deserialize

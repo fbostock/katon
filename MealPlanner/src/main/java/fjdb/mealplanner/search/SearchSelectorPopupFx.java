@@ -1,7 +1,9 @@
 package fjdb.mealplanner.search;
 
+import com.google.common.collect.Sets;
 import fjdb.mealplanner.DaoManager;
 import fjdb.mealplanner.Dish;
+import fjdb.mealplanner.MealPlanManager;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -13,6 +15,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.util.List;
+import java.util.TreeSet;
 
 public class SearchSelectorPopupFx extends Stage {
 
@@ -25,7 +28,10 @@ public class SearchSelectorPopupFx extends Stage {
 
     public SearchSelectorPopupFx(javafx.scene.control.TextField field) {
         textField = field;
-        List<Dish> dishes = new CompositeDishLoader(DaoManager.PRODUCTION).getDishes();
+        TreeSet<Dish> dishesSet = Sets.newTreeSet(new CompositeDishLoader(DaoManager.PRODUCTION).getDishes());
+//        List<Dish> dishes = new CompositeDishLoader(DaoManager.PRODUCTION).getDishes();
+        dishesSet.addAll(MealPlanManager.DishManager.getInstance().getAll());
+        List<Dish> dishes = dishesSet.stream().toList();
 
         initModality(Modality.NONE);
 

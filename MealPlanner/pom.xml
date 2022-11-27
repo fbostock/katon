@@ -11,6 +11,12 @@
 
     <artifactId>MealPlanner</artifactId>
     <dependencies>
+
+<!--        <dependency>-->
+<!--            <groupId>katon</groupId>-->
+<!--            <artifactId>Core</artifactId>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>katon</groupId>
             <artifactId>Taskboard</artifactId>

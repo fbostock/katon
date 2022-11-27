@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public interface DayPlanIF extends Serializable {
     String getToCook();
@@ -28,5 +29,9 @@ public interface DayPlanIF extends Serializable {
         map.put(MealType.LUNCH, getLunch());
         map.put(MealType.DINNER, getDinner());
         return map;
+    }
+
+    default List<Dish> getDishes() {
+        return getMeals().stream().map(Meal::getDish).collect(Collectors.toList());
     }
 }

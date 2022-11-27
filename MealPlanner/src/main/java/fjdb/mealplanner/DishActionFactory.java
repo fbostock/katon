@@ -3,6 +3,7 @@ package fjdb.mealplanner;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import fjdb.mealplanner.fx.MealPlanProxy;
+import fjdb.util.DateTimeUtil;
 import fjdb.util.ListUtil;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -19,7 +20,7 @@ public class DishActionFactory {
 
     private final MealHistoryManager mealHistoryManager;
 
-    private MealPlanProxy currentMealPlan;
+    private MealPlanProxy currentMealPlan = new MealPlanStub();
 
     public DishActionFactory(MealHistoryManager mealHistoryManager) {
         this.mealHistoryManager = mealHistoryManager;
@@ -153,5 +154,22 @@ public class DishActionFactory {
         MenuItem menuItem = new MenuItem("Add Dish to plan on " + date);
         menuItem.setOnAction(actionEvent -> currentMealPlan.addDish(dish, date, mealType));
         return menuItem;
+    }
+
+    private static class MealPlanStub implements MealPlanProxy {
+        @Override
+        public LocalDate getStart() {
+            return DateTimeUtil.today().minusWeeks(2);
+        }
+
+        @Override
+        public void addDishToHolder(Dish dish) {
+            //no-op
+        }
+
+        @Override
+        public void addDish(Dish dish, LocalDate date, MealType type) {
+            //no-op
+        }
     }
 }

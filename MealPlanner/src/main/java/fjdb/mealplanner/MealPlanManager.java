@@ -1,5 +1,6 @@
 package fjdb.mealplanner;
 
+import com.google.common.collect.Sets;
 import fjdb.threading.LazyInitializer;
 import jersey.repackaged.com.google.common.collect.Lists;
 import org.apache.commons.csv.CSVFormat;
@@ -87,28 +88,13 @@ public class MealPlanManager {
             } catch (Exception other) {
                 other.printStackTrace();
             }
-//            if (file.getName().contains("Plan-") && !file.getName().toLowerCase().contains("csv")) {
-//                try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-//                    MealPlan deserialize = SerializationUtils.deserialize(bufferedInputStream.readAllBytes());
-//                    mealPlans.add(deserialize);
-//                } catch (Exception e) {
-//                    log.warn("Could not deserialize file {}", file.getName());
-//                    e.printStackTrace();
-//                }
-//            } else {
-//                log.info("Skipping {} - not valid plan", file);
-//            }
         }
     }
 
     protected MealPlan deserialize(File file) throws IOException {
         if (file.getName().contains("Plan-") && !file.getName().toLowerCase().contains("csv")) {
             try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-                MealPlan deserialize = SerializationUtils.deserialize(bufferedInputStream.readAllBytes());
-                return deserialize;
-//            } catch (Exception e) {
-//                log.warn("Could not deserialize file {}", file.getName());
-//                e.printStackTrace();
+                return SerializationUtils.deserialize(bufferedInputStream.readAllBytes());
             }
         } else {
             log.info("Skipping {} - not valid plan", file);
@@ -217,6 +203,7 @@ public class MealPlanManager {
 
     /**
      * First try /Users/username/, then app launch directory. If the latter does not exist, it creates it.
+     *
      * @return
      */
     public static File tryFindMealPlans() {
@@ -233,5 +220,47 @@ public class MealPlanManager {
             mealPlansFolder.mkdir();
         }
         return mealPlansFolder;
+    }
+
+    public void initialise() {
+        Set<Dish> allDishes = Sets.newHashSet();
+
+        List<MealPlan> allMealPlans = getAllMealPlans();
+        for (MealPlan mealPlan : allMealPlans) {
+            List<LocalDate> dates = mealPlan.getDates();
+            for (LocalDate date : dates) {
+                DayPlanIF plan = mealPlan.getPlan(date);
+                List<Meal> meals = plan.getMeals();
+                for (Meal meal : meals) {
+                    if (Dish.isStub(meal.getDish())) {
+                        if (!meal.getNotes().isBlank()) {
+                            allDishes.add(new Dish(meal.getNotes(), ""));
+                        }
+                    } else {
+                        allDishes.add(meal.getDish());
+                    }
+                }
+                allDishes.addAll(plan.getDishes());
+            }
+        }
+        DishManager.getInstance().loadDishes(allDishes);
+    }
+
+    public static class DishManager {
+        private static DishManager instance = new DishManager();
+
+        private TreeSet<Dish> allDishes = Sets.newTreeSet();
+
+        public static DishManager getInstance() {
+            return instance;
+        }
+
+        public synchronized void loadDishes(Collection<Dish> dishes) {
+            allDishes.addAll(dishes);
+        }
+
+        public synchronized List<Dish> getAll() {
+            return Lists.newArrayList(allDishes);
+        }
     }
 }

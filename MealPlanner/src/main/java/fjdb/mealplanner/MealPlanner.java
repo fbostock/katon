@@ -2,6 +2,7 @@ package fjdb.mealplanner;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import fjdb.calendar.Holiday;
 import fjdb.databases.ColumnDao;
 import fjdb.databases.ColumnGroup;
 import fjdb.mealplanner.admin.DishTagPanel;
@@ -12,6 +13,7 @@ import fjdb.mealplanner.fx.MealPlanConfigurator;
 import fjdb.mealplanner.fx.planpanel.MealPlanPanel;
 import fjdb.mealplanner.fx.Selectors;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
+import fjdb.util.DateTimeUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -34,6 +36,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.File;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -144,6 +147,8 @@ public class MealPlanner extends Application {
         //Once there are separate archived and "current" mealplans, we can prioritise the current ones.
         //In fact, current ones should be on this thread, and archived on a separate thread.
         mealPlanManager.load();
+        mealPlanManager.initialise();
+
         //TODO have this parse the contents on a separate thread, and requests made to the manager should
         //ensure requests wait while it is loading, or at least are handled thread safely.
 
@@ -200,7 +205,7 @@ public class MealPlanner extends Application {
         menuItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                LocalDate nextDate = plansPane.getCurrentPlan().getEnd().plusDays(1);
+                LocalDate nextDate = plansPane.getNextDateForNewPlan();
                 consumer.accept(MealPlanConfigurator.makePanel(nextDate, dishList, mealPlanManager));
             }
         });
@@ -406,13 +411,25 @@ public class MealPlanner extends Application {
         public void addMealPlanPanel(MealPlanPanel mealPlanPanel) {
             ScrollPane scrollPane = new ScrollPane(mealPlanPanel);
             getTabs().add(new Tab(String.format("Plan %s", mealPlanPanel.getStart()), scrollPane));
-            if (mealPlanPanel.getStart().isAfter(currentPlan.getStart())) {
+            if (currentPlan == null || mealPlanPanel.getStart().isAfter(currentPlan.getStart())) {
                 currentPlan = mealPlanPanel;
             }
         }
 
-        public MealPlanPanel getCurrentPlan() {
+        protected MealPlanPanel getCurrentPlan() {
             return currentPlan;
+        }
+
+        protected LocalDate getNextDateForNewPlan() {
+            if (currentPlan != null) {
+                return currentPlan.getEnd().plusDays(1);
+            } else {
+                LocalDate date = DateTimeUtil.today();
+                while(!date.getDayOfWeek().equals(DayOfWeek.TUESDAY)) {
+                    date = date.plusDays(1);
+                }
+                return date;
+            }
         }
     }
 

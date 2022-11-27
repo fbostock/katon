@@ -43,4 +43,8 @@ public class DateTimeUtil {
     public static Date makeDate(LocalDate date) {
            return Date.valueOf(date);
     }
+
+    public static LocalDate today() {
+        return LocalDate.now();
+    }
 }

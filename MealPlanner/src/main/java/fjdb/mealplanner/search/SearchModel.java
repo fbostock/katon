@@ -53,6 +53,10 @@ public class SearchModel<T> {
      */
     public void searchInBackground(String text) {
         matches.clear();
+        if (text.isBlank()) {
+            matches.addAll(inputs);
+            return;
+        }
         Search<T> simpleSearch = new Search<>(new SimpleSearch<>());
         ArrayBlockingQueue<T> queue = new ArrayBlockingQueue<>(100);
         Future<List<T>> matched = simpleSearch.search(text, inputs, labeller, queue);

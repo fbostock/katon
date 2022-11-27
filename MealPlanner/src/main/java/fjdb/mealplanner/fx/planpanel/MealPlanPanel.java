@@ -14,9 +14,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -57,6 +59,7 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
     }
 
     private MealPlanPanel(MealPlanBuilder builder, LocalDate startDate, int days, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
+        super(Orientation.VERTICAL);
         this.dishList = dishList;
         mealPlanBuilder = builder;
         this.dishActionFactory = mealPlanManager.getDishActionFactory();
@@ -255,18 +258,40 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
         showDishHistory.setOnAction(actionEvent -> dishActionFactory.showDishHistory(dishList));
 
 
-        FlowPane flowPane = new FlowPane(Orientation.VERTICAL);
+        FlowPane flowPane = new FlowPane(Orientation.HORIZONTAL);
         flowPane.getChildren().add(dayPlansTable);
-        flowPane.getChildren().add(getDishSidePane());
-        getChildren().add(flowPane);
-        getChildren().add(makePlan);
-        getChildren().add(csvPlan);
-        getChildren().add(print);
-        getChildren().add(showDishHistory);
-//        getChildren().add(makeDishHolderPanel());
+//        flowPane.getChildren().add(getDishSidePane());
+
+
+        FlowPane bottomPanel = new FlowPane(Orientation.VERTICAL);
+//        flowPane.setStyle("-fx-border-color: black");
+//        FlowPane controls = new FlowPane();
+        HBox controls = new HBox();
+        controls.setSpacing(5.0);
+        controls.getChildren().add(makePlan);
+        controls.getChildren().add(csvPlan);
+        controls.getChildren().add(print);
+        controls.getChildren().add(showDishHistory);
+        bottomPanel.getChildren().add(controls);
+
+
+        //        getChildren().add(makeDishHolderPanel());
         dishHolderPanel = new DishHolderPanel();
-        getChildren().add(dishHolderPanel);
-        getChildren().add(makeNotesPanel());
+        bottomPanel.getChildren().add(dishHolderPanel);
+        bottomPanel.getChildren().add(makeNotesPanel());
+//        getChildren().add(bottomPanel);
+
+        flowPane.getChildren().add(bottomPanel);
+
+        getChildren().add(flowPane);
+        getChildren().add(getDishSidePane());
+
+
+        flowPane.setPadding(new Insets(5.0));
+        controls.setPadding(new Insets(5.0));
+        bottomPanel.setPadding(new Insets(5.0));
+        setPadding(new Insets(5.0));
+
     }
 
     private void removeMeal(TableRow<DatedDayPlan> tableRow, MealType mealType) {
