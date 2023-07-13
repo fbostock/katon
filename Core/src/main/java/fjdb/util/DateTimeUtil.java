@@ -1,7 +1,10 @@
 package fjdb.util;
 
 import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -41,10 +44,18 @@ public class DateTimeUtil {
     }
 
     public static Date makeDate(LocalDate date) {
-           return Date.valueOf(date);
+        return Date.valueOf(date);
     }
 
     public static LocalDate today() {
         return LocalDate.now();
+    }
+
+    public static LocalDateTime makeTime(Timestamp time) {
+        return time == null ? null : time.toLocalDateTime();
+    }
+
+    public static Timestamp makeTime(LocalDateTime time) {
+        return Timestamp.valueOf(time);
     }
 }

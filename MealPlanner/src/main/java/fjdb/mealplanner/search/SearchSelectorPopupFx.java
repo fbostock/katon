@@ -8,6 +8,7 @@ import fjdb.mealplanner.loaders.CompositeDishLoader;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -17,10 +18,11 @@ import javafx.stage.Stage;
 import java.util.List;
 import java.util.TreeSet;
 
-public class SearchSelectorPopupFx extends Stage {
+public class SearchSelectorPopupFx extends Stage implements SearchObserver {
 
     private TextField textField;
     private SearchModel<Dish> model;
+private ObservableList<Dish> items;
 
     public static SearchSelectorPopupFx launchDialog(javafx.scene.control.TextField field) {
         return new SearchSelectorPopupFx(field);
@@ -36,7 +38,8 @@ public class SearchSelectorPopupFx extends Stage {
         initModality(Modality.NONE);
 
         model = new SearchModel<>(dishes, Dish::toString);
-        ObservableList<Dish> items = FXCollections.observableArrayList(dishes);
+//        ObservableList<Dish> items = FXCollections.observableArrayList(dishes);
+        items = FXCollections.observableArrayList(dishes);
         ListView<Dish> listView = new ListView<>(items);
 
         Scene scene = new Scene(listView, 300, 400);
@@ -45,18 +48,22 @@ public class SearchSelectorPopupFx extends Stage {
         listView.getSelectionModel().selectedItemProperty().addListener((observableValue, dish, t1) -> {
             if (t1 != null) {
                 textField.setText(t1.getName());
+                textField.getOnAction().handle(new ActionEvent());
+//                textField.commitValue();
             }
         });
-        model.addObserver(() -> {
-
-            List<Dish> matches = model.getMatches();
-            Platform.runLater(() -> {
-                items.clear();
-                items.addAll(matches);
-            });
-        });
+        model.addObserver(this);
 
         updateTextField(textField);
+    }
+
+    @Override
+    public void update() {
+        List<Dish> matches = model.getMatches();
+        Platform.runLater(() -> {
+            items.clear();
+            items.addAll(matches);
+        });
     }
 
     public void updateTextField(TextField field) {

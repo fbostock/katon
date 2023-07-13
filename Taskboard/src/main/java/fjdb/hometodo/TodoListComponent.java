@@ -1,5 +1,6 @@
 package fjdb.hometodo;
 
+import fjdb.databases.DefaultId;
 import fjdb.databases.columns.AbstractColumn;
 import fjdb.databases.ColumnDecorator;
 import fjdb.databases.ColumnsSet;
@@ -33,7 +34,7 @@ public class TodoListComponent extends JPanel {
      */
     private JPanel makePanel(Filter filter) {
         List<TodoDataItem> items = filter.filter(dao.load());
-        ColumnsSet<TodoDataItem> columnGroup = dao.getColumnGroup();
+        ColumnsSet<TodoDataItem, DefaultId> columnGroup = dao.getColumnGroup();
         List<ColumnDecorator<TodoDataItem, ?>> columnList = columnGroup.getColumnList();
         List<String> columnNames = columnGroup.getColumnNames();
 

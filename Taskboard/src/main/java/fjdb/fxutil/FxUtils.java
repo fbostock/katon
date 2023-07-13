@@ -6,10 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -25,24 +22,6 @@ public class FxUtils {
 //                dialog.initOwner(primaryStage);
         VBox dialogVbox = new VBox(20);
         dialogVbox.getChildren().add(content);
-
-//        dialogVbox.getChildren().add(new Text("Insert New Dish"));
-//        HBox dishName = new HBox();
-//        dishName.getChildren().add(new Text("Dish Name"));
-//        TextField dishNameField = new TextField();
-//        TextField dishDetailsField = new TextField();
-//        dishName.getChildren().add(dishNameField);
-//        HBox dishDetails = new HBox();
-//        dishDetails.getChildren().add(new Text("Dish Details"));
-//        dishDetails.getChildren().add(dishDetailsField);
-//        dialogVbox.getChildren().add(dishName);
-//        dialogVbox.getChildren().add(dishDetails);
-//        DishTagDao dishTagDao = daoManager.getDishTagDao();
-//        Multimap<Dish, DishTag> dishesToTags = dishTagDao.getDishesToTags();
-//        Set<DishTag> tags = dishTagDao.getTags(false);
-//        DishTagSelectionPanel filterPanel = new DishTagSelectionPanel(tags, dishesToTags);
-//        dialogVbox.getChildren().add(filterPanel);
-
 
         HBox okCancel = new HBox();
         Button ok = new Button("OK");
@@ -66,11 +45,11 @@ public class FxUtils {
 
     public static <T> ComboBox<T> makeCombo(List<T> inputs) {
         ObservableList<T> types = FXCollections.observableArrayList(inputs);
-        return  makeCombo(types);
+        return makeCombo(types);
     }
 
     public static <T> ComboBox<T> makeCombo(ObservableList<T> inputs) {
-        return  new ComboBox<>(inputs);
+        return new ComboBox<>(inputs);
     }
 
     public static TextField getTextField() {
@@ -84,4 +63,9 @@ public class FxUtils {
     public static Button getButton(String label) {
         return new Button(label);
     }
+
+    public static TabPane prepareStage(Stage stage) {
+        return FxDemos.prepareStage(stage);
+    }
+
 }

@@ -2,6 +2,7 @@ package fjdb.databases;
 
 import com.google.common.collect.Lists;
 import fjdb.databases.columns.IdColumn;
+import fjdb.databases.columns.IdMaker;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /*
@@ -16,19 +18,17 @@ A column set ties a database definition to a DataItemIF object - the DataItemIF 
 can use the bean, but for better decoupling, it may be better to have an interface that converts the beans into usable
 objects,
  */
-public abstract class ColumnsSet<T extends DataItemIF> extends IdColumnGroup<T, DefaultId> {
+public abstract class ColumnsSet<T extends DataItemIF, I extends DataId> extends IdColumnGroup<T, I> {
 
-    private final Class<T> type;
     private final List<ColumnDecorator<T, ?>> columnList = Lists.newArrayList();
     private final Map<Integer, Thing<?>> things = new HashMap<>();
 
-    public ColumnsSet(Class<T> type, IdColumn<DefaultId> idColumn) {
+    public ColumnsSet(IdColumn<I> idColumn) {
         super(idColumn);
-        this.type = type;
     }
 
-    public ColumnsSet(Class<T> type) {
-        this(type, new IdColumn<>("ID", integer -> new DefaultId(integer, type), DefaultId.class));
+    public ColumnsSet(IdMaker<I> idMaker) {
+        this(new IdColumn<>("ID", idMaker));
     }
 
     protected <V> V resolve(ColumnDecorator<T, V> column, ResultSet rs) throws SQLException {
@@ -39,7 +39,7 @@ public abstract class ColumnsSet<T extends DataItemIF> extends IdColumnGroup<T, 
         return columnList;
     }
 
-    public <V> ColumnsSet<T> addColumnDecorator(ColumnDecorator<T, V> columnDecorator) {
+    public <V> ColumnsSet<T, I> addColumnDecorator(ColumnDecorator<T, V> columnDecorator) {
         columnList.add(columnDecorator);
         addColumn(columnDecorator.column);
         return this;
@@ -97,7 +97,7 @@ public abstract class ColumnsSet<T extends DataItemIF> extends IdColumnGroup<T, 
     }
 
     @Override
-    public DefaultId handleId(ResultSet rs) throws SQLException {
+    public I handleId(ResultSet rs) throws SQLException {
         return resolve(idColumn, rs);
     }
 

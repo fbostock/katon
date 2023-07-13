@@ -1,7 +1,6 @@
 package fjdb.databases.columns;
 
 import fjdb.databases.DataId;
-import fjdb.databases.columns.AbstractColumn;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,6 +12,11 @@ public class IdColumn<I extends DataId> extends AbstractColumn<I, Integer> {
 
     public IdColumn(String dbName, Function<Integer, I> idMaker, Class<I> type) {
         super(dbName, "INT", type);
+        this.idMaker = idMaker;
+    }
+
+    public IdColumn(String dbName, IdMaker<I> idMaker) {
+        super(dbName, "INT", idMaker.getIdType());
         this.idMaker = idMaker;
     }
 

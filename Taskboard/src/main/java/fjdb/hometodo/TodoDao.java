@@ -1,25 +1,22 @@
 package fjdb.hometodo;
 
 import fjdb.databases.*;
-import fjdb.databases.columns.DateColumn;
-import fjdb.databases.columns.IntColumn;
-import fjdb.databases.columns.StringColumn;
-import fjdb.databases.columns.TypeColumn;
+import fjdb.databases.columns.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
-public class TodoDao extends IdColumnDao<TodoDataItem, DefaultId> {
+public class TodoDao extends DecoratedColumnDao<TodoDataItem, DefaultId> {
 
-    private final ColumnsSet<TodoDataItem> columnSet;
+    private final ColumnsSet<TodoDataItem, DefaultId> columnSet;
 
     public static TodoDao getDao(DatabaseAccess access) {
-        ColumnsSet<TodoDataItem> columnSet = getColumnSet();
+        ColumnsSet<TodoDataItem, DefaultId> columnSet = getColumnSet();
         return new TodoDao(access, columnSet);
     }
 
-    private TodoDao(DatabaseAccess access, ColumnsSet<TodoDataItem> columnSet) {
+    private TodoDao(DatabaseAccess access, ColumnsSet<TodoDataItem, DefaultId> columnSet) {
         super(access, columnSet);
         this.columnSet = columnSet;
         try {
@@ -37,11 +34,11 @@ public class TodoDao extends IdColumnDao<TodoDataItem, DefaultId> {
     }
 
     @Override
-    public ColumnsSet<TodoDataItem> getColumnGroup() {
+    public ColumnsSet<TodoDataItem, DefaultId> getColumnGroup() {
         return columnSet;
     }
 
-    public static ColumnsSet<TodoDataItem> getColumnSet() {
+    public static ColumnsSet<TodoDataItem, DefaultId> getColumnSet() {
         ColumnDecorator<TodoDataItem, String> nameColumn = new ColumnDecorator<>(new StringColumn("NAME", "VARCHAR(256)"), TodoDataItem::getName);
         ColumnDecorator<TodoDataItem, Owner> ownerColumn = new ColumnDecorator<>(new TypeColumn<>(Owner.class, "OWNER", "VARCHAR(256)"), TodoDataItem::getOwner);
         ColumnDecorator<TodoDataItem, Category> categoryColumn = new ColumnDecorator<>(new TypeColumn<>(Category.class, "CATEGORY", "VARCHAR(256)"), TodoDataItem::getCategory);
@@ -50,7 +47,7 @@ public class TodoDao extends IdColumnDao<TodoDataItem, DefaultId> {
         ColumnDecorator<TodoDataItem, Progress> progressColumn = new ColumnDecorator<>(new TypeColumn<>(Progress.class, "PROGRESS", "VARCHAR(256)"), TodoDataItem::getProgress);
         ColumnDecorator<TodoDataItem, LocalDate> dueDateColumn = new ColumnDecorator<>(new DateColumn("DUEDATE"), TodoDataItem::getDueDate);
         ColumnDecorator<TodoDataItem, Integer> priorityColumn = new ColumnDecorator<>(new IntColumn("PRIORITYLEVEL"), TodoDataItem::getPriority);
-        return new ColumnsSet<>(TodoDataItem.class) {
+        return new ColumnsSet<TodoDataItem, DefaultId>(new DefaultIdMaker()) {
             @Override
             public TodoDataItem makeItem(ResultSet rs) throws SQLException {
                 return new TodoDataItem(

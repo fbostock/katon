@@ -46,7 +46,8 @@ public class MCSolver {
     }
 
     /**
-     * Sets the number of grids to generate and siolve. Not relevant when solving a provided TileGrid.
+     * Sets the number of grids to generate and solve. Not relevant when solving a provided TileGrid.
+     *
      * @return
      */
     public MCSolver setGridGenerations(int generations) {
@@ -84,38 +85,54 @@ public class MCSolver {
         return gridGenerator.makeGrid(new TileProducer());
     }
 
-    public JobResult solveSingle() {
+    public JobResultExtra solveSingle() {
         return solveSingle1("0");
     }
 
-    private JobResult solveSingle1(String trialNumber) {
-        List<Integer> data = Lists.newArrayList();
+    private JobResultExtra solveSingle1(String trialNumber) {
         TileGrid tileGrid = getGrid();
         JobResultExtra jobResult = GameSolving.solveByMonteCarlo(tileGrid, solutionAttemps);
 
         if (jobResult.getSteps() <= minimumPassLevel) {
 
-            if (saveResults) {
+
+            System.out.println(jobResult.getBestPositions());
+
+            boolean saveCondition = false;
+            int minBin = -1;
+            if (plotResults) {
+//                List<Integer> data = Lists.newArrayList();
+//                int maxSteps = 0;
+//                data.addAll(jobResult.getData());
+//                double[] doubleData = new double[data.size()];
+//                for (int i = 0; i < data.size(); i++) {
+//                    Integer integer = data.get(i);
+//                    doubleData[i] = integer;
+//                    maxSteps = Math.max(maxSteps, integer);
+//                }
+//                GameSolving.Histogram histogram = new GameSolving.Histogram(doubleData, maxSteps, String.valueOf(labelForPlottingAndSaving + "_" + trialNumber));
+                GameSolving.Histogram histogram = jobResult.getHistogram(labelForPlottingAndSaving + "_" + trialNumber);
+                minBin = histogram.getMinBin();
+                double minBinValue = histogram.getBinValue(minBin);
+                double nextMinBinValue = histogram.getBinValue(minBin + 1);
+                double nextNextMinBinValue = histogram.getBinValue(minBin + 2);
+                if (5 * minBinValue < nextMinBinValue || 5 * nextMinBinValue < nextNextMinBinValue) {
+                    saveCondition = true;
+                    System.out.println("will save this one");
+                }
+                if (saveCondition)
+                    histogram.createFrame();
+//                GameSolving.HistogramTools.chartHistogram(doubleData, maxSteps, String.valueOf(labelForPlottingAndSaving + "_" + trialNumber));
+
+            }
+
+            if (saveCondition && saveResults) {
                 try {
-                    GridFile.createFile(savePath + String.format("/puzzleTest_%s.txt", labelForPlottingAndSaving + "_" + trialNumber), tileGrid);
+                    GridFile.createFile(savePath + String.format("/puzzleTest_%s.txt", labelForPlottingAndSaving + "_" + trialNumber+ "_"+ minBin), tileGrid);
                 } catch (IOException e) {
 
                     e.printStackTrace();
                 }
-            }
-            System.out.println(jobResult.getBestPositions());
-
-            if (plotResults) {
-                int maxSteps = 0;
-                data.addAll(jobResult.getData());
-                double[] doubleData = new double[data.size()];
-                for (int i = 0; i < data.size(); i++) {
-                    Integer integer = data.get(i);
-                    doubleData[i] = integer;
-                    maxSteps = Math.max(maxSteps, integer);
-                }
-                GameSolving.HistogramTools.chartHistogram(doubleData, maxSteps, String.valueOf(labelForPlottingAndSaving + "_" + trialNumber));
-
             }
         } else {
             System.out.println("Failed to find quick solution");
@@ -126,7 +143,7 @@ public class MCSolver {
     public List<JobResult> solveMany() {
         //TODO perform solution.
 
-        List<JobResult> results  = Lists.newArrayList();
+        List<JobResult> results = Lists.newArrayList();
         for (int trial = 0; trial < gridGenerations; trial++) {
             JobResult jobResult = solveSingle1("" + trial);
             results.add(jobResult);
@@ -137,9 +154,10 @@ public class MCSolver {
 
     /**
      * Convenience method for solving a grid with the given number of attempts
+     *
      * @return The best result, including minimum steps to solve and the solution.
      */
-    public static JobResult solve(TileGrid grid, int attempts) {
+    public static JobResultExtra solve(TileGrid grid, int attempts) {
         return new MCSolver().setSolutionAttempts(attempts).setTileGrid(grid).solveSingle();
     }
 

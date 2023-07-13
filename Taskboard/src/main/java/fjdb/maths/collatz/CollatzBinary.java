@@ -127,7 +127,14 @@ takes us to an odd number. That would merely entail applying another 3x+3 operat
                 }
             });
             grid.add(label);
-            JButton button = new JButton("Expand");
+            String messageLabel = "Expand";
+            if (dependents < 5) {
+                messageLabel = result.printout();
+            } else {
+                String printout = result.printout();
+                messageLabel = printout.substring(0, Math.min(printout.length(), 25)) + "...";
+            }
+            JButton button = new JButton(messageLabel);
             grid.add(button);
             button.addActionListener(e -> {
                 String message = result.printout();

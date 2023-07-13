@@ -1,4 +1,4 @@
-package fjdb.investments;
+package fjdb.calendar;
 
 import fjdb.util.DateTimeUtil;
 import org.junit.Assert;

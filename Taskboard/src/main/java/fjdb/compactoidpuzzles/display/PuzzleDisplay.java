@@ -20,6 +20,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -310,13 +311,17 @@ public class PuzzleDisplay extends Application {
                         turns = gameSolver.solveByBruteForceParallelised(maxSteps);
                         textArea.setText(String.format("Brute Force Parallel (max %s): %s turns\nPositions: %s", maxSteps, turns, gameSolver.getSelectedPositions()));
                     }
-                    case MC -> {
+                    case MC, MC_PLOT -> {
                         int trials = parse(params.getText(), 1000);
                         MCSolver mcSolver = new MCSolver().setTileGrid(grid).setSolutionAttempts(trials).setMinimumPassLevel(Integer.MAX_VALUE);
 //                        JobResult jobResult = GameSolving.solveByMonteCarlo(grid, trials, Integer.MAX_VALUE);
-                        JobResult jobResult = mcSolver.solveSingle();
+                        JobResultExtra jobResult = mcSolver.solveSingle();
                         turns = jobResult.getSteps();
                         textArea.setText(String.format("MC (%s trials): %s turns: %s", trials, turns, jobResult.getBestPositions()));
+                        if (solvers.getValue().equals(SolverType.MC_PLOT)) {
+                            GameSolving.Histogram histogram = jobResult.getHistogram("");
+                            histogram.createFrame();
+                        }
                     }
                     case CENTRAL_SQUARE -> {
                         turns = gameSolver.solveByCentralSquare();
@@ -346,6 +351,7 @@ public class PuzzleDisplay extends Application {
             getChildren().add(rotateGrid);
 
             ComboBox<GridFile> gridFileComboBox = new ComboBox<>(FXCollections.observableList(PuzzleFileManager.getInstance().getGridFiles()));
+//            ComboBox<GridFile> gridFileComboBox = new ComboBox<>(FXCollections.observableList(PuzzleFileManager.get(new File("/Users/francisbostock/Documents/CompactoidPuzzles/Selected/New_20221021/10By10Grids")).getGridFiles()));
             gridFileComboBox.valueProperty().addListener(new ChangeListener<GridFile>() {
                 @Override
                 public void changed(ObservableValue<? extends GridFile> observableValue, GridFile gridFile, GridFile t1) {
@@ -460,7 +466,15 @@ public class PuzzleDisplay extends Application {
         BRUTE_FORCE,
         BRUTE_FORCE_PARALLEL,
         MC,
+        MC_PLOT,
         CENTRAL_SQUARE,
         LARGEST_AREA
     }
+
+    /*
+    1) Check what format we need to write out the tileGrid in C#.
+    2) Write a script to import a TileGrid file, then generate the appropriate output for C#.
+    3) Work out what puzzles to make. Perhaps 40* 7*7 grids, 40* 8*8, 40 9*9, 40 10*10. They can have different min solutions.
+
+     */
 }

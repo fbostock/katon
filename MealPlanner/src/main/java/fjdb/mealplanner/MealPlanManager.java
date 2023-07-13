@@ -1,13 +1,19 @@
 package fjdb.mealplanner;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import fjdb.threading.LazyInitializer;
-import jersey.repackaged.com.google.common.collect.Lists;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +21,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class MealPlanManager {
@@ -173,6 +180,95 @@ public class MealPlanManager {
         return file;
     }
 
+    private File toExcel(MealPlan plan, File file) {
+        try {
+            String[] headers = new String[]{MealPlan.DATE, MealPlan.UNFREEZE, MealPlan.COOK, MealPlan.BREAKFAST, MealPlan.LUNCH, MealPlan.DINNER};
+            List<LocalDate> dates = plan.getDates();
+            Workbook workbook = new HSSFWorkbook();
+
+            Sheet sheet = workbook.createSheet("MealPlan");
+            sheet.setColumnWidth(0, 4000);
+            sheet.setColumnWidth(1, 6000);
+            for (int i = 2; i < headers.length; i++) {
+                sheet.setColumnWidth(i, 6000);
+            }
+
+            Row header = sheet.createRow(0);
+
+            for (int i = 0; i < headers.length; i++) {
+                String label = headers[i];
+                Cell headerCell = header.createCell(i);
+                headerCell.setCellValue(label);
+            }
+
+            CellStyle style = workbook.createCellStyle();
+            style.setWrapText(true);
+
+            for (int rowNumber = 0; rowNumber < dates.size(); rowNumber++) {
+                LocalDate date = dates.get(rowNumber);
+                DayPlanIF dayPlan = plan.getPlan(date);
+                Object[] details = new Object[]{formatter.format(date), dayPlan.getUnfreeze(), dayPlan.getToCook(), dayPlan.getBreakfast().getDescription(), dayPlan.getLunch().getDescription(), dayPlan.getDinner().getDescription()};
+                Row row = sheet.createRow(rowNumber + 1);
+                for (int i = 0; i < details.length; i++) {
+                    Object detail = details[i];
+                    Cell cell = row.createCell(i);
+                    cell.setCellValue(detail.toString());
+                    cell.setCellStyle(style);
+                }
+            }
+
+            FileOutputStream outputStream = new FileOutputStream(file);
+            workbook.write(outputStream);
+            workbook.close();
+        } catch (IOException ex) {
+            System.out.println("Failure to save file.");
+            ex.printStackTrace();
+        }
+        return file;
+    }
+
+    private File toPdf(MealPlan mealPlan, File file) {
+        Document document = new Document(PageSize.A4.rotate());
+
+        try {
+            PdfWriter.getInstance(document, new FileOutputStream(file));
+
+            document.open();
+
+            String[] headers = new String[]{MealPlan.DATE, MealPlan.UNFREEZE, MealPlan.COOK, MealPlan.BREAKFAST, MealPlan.LUNCH, MealPlan.DINNER};
+            List<LocalDate> dates = mealPlan.getDates();
+
+            PdfPTable table = new PdfPTable(headers.length);
+            table.setWidthPercentage(100);
+            Arrays.stream(headers).forEach(columnTitle -> {
+                PdfPCell header = new PdfPCell();
+                header.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                header.setBorderWidth(2);
+                header.setPhrase(new Phrase(columnTitle));
+                table.addCell(header);
+            });
+
+            for (LocalDate date : dates) {
+                DayPlanIF dayPlan = mealPlan.getPlan(date);
+                Object[] details = new Object[]{formatter.format(date), dayPlan.getUnfreeze(), dayPlan.getToCook(), dayPlan.getBreakfast().getDescription(), dayPlan.getLunch().getDescription(), dayPlan.getDinner().getDescription()};
+                for (Object detail : details) {
+                    table.addCell(detail.toString());
+                }
+            }
+            document.add(table);
+            document.close();
+
+//        Font font = FontFactory.getFont(FontFactory.COURIER, 16, BaseColor.BLACK);
+//        Chunk chunk = new Chunk("Hello World", font);
+//        document.add(chunk);
+            document.close();
+        } catch (DocumentException | FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return file;
+    }
+
     public MealPlan fromCSV(File file) {
 //TODO not necessary, as we won't generally be importing from excel.
         try {
@@ -196,6 +292,15 @@ public class MealPlanManager {
     public File toCSV(MealPlan plan) {
         return toCSV(plan, new File(getCSVDirectory(), plan.getName() + ".csv"));
     }
+
+    public File toPdf(MealPlan plan) {
+        return toPdf(plan, new File(getCSVDirectory(), plan.getName() + ".pdf"));
+    }
+
+    public File toExcel(MealPlan plan) {
+        return toExcel(plan, new File(getCSVDirectory(), plan.getName() + ".xls"));
+    }
+
 
     public DishActionFactory getDishActionFactory() {
         return dishActionFactoryLazyInitializer.get();
@@ -259,6 +364,12 @@ public class MealPlanManager {
             allDishes.addAll(dishes);
         }
 
+        /**
+         * All dishes used in meal plans, whether concrete dishes or not. Concrete dishes which exist in the database
+         * but not used in any meal plans will <i>not</i> appear in this list.
+         *
+         * @return
+         */
         public synchronized List<Dish> getAll() {
             return Lists.newArrayList(allDishes);
         }

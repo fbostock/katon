@@ -219,6 +219,13 @@ public class MealPlanner extends Application {
         final Scene scene = new Scene(sceneRoot, 1200, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent windowEvent) {
+
+                Platform.exit();
+            }
+        });
         primaryStage.setOnCloseRequest(windowEvent -> Platform.exit());
     }
 

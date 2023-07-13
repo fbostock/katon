@@ -1,6 +1,4 @@
-package fjdb.investments;
-
-import com.google.common.collect.Lists;
+package fjdb.series;
 
 import java.time.LocalDate;
 import java.util.List;

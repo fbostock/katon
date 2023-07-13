@@ -18,7 +18,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -27,11 +26,13 @@ import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static fjdb.mealplanner.fx.DragUtils.DISH_FORMAT;
@@ -64,6 +65,7 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
         mealPlanBuilder = builder;
         this.dishActionFactory = mealPlanManager.getDishActionFactory();
         dishActionFactory.setCurrentMealPlan(this);
+
 
         TableView<DatedDayPlan> dayPlansTable = new TableView<>();
 
@@ -224,17 +226,11 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
             MealPlan mealPlan = mealPlanBuilder.makePlan();
             mealPlanManager.addMealPlan(mealPlan);
         });
-        Button csvPlan = new Button("Create CSV");
-        csvPlan.setOnAction(actionEvent -> {
-            MealPlan mealPlan = mealPlanBuilder.makePlan();
-            mealPlanManager.toCSV(mealPlan);
-            try {
-                Runtime.getRuntime().exec("open " + mealPlanManager.getDirectory());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+        Button csvPlan = createButton("Create CSV", mealPlanManager::toCSV, mealPlanManager.getCSVDirectory(), mealPlanManager);
+        Button pdfPlan = createButton("Create PDF", mealPlanManager::toPdf, mealPlanManager.getCSVDirectory(), mealPlanManager);
+        Button xlsPlan = createButton("Create XLS", mealPlanManager::toExcel, mealPlanManager.getCSVDirectory(), mealPlanManager);
         Button print = new Button("print meals");
+
         print.setOnAction(actionEvent -> {
             MealPlan mealPlan = mealPlanBuilder.makePlan();
             List<LocalDate> dates = mealPlan.getDates();
@@ -270,6 +266,8 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
         controls.setSpacing(5.0);
         controls.getChildren().add(makePlan);
         controls.getChildren().add(csvPlan);
+        controls.getChildren().add(pdfPlan);
+        controls.getChildren().add(xlsPlan);
         controls.getChildren().add(print);
         controls.getChildren().add(showDishHistory);
         bottomPanel.getChildren().add(controls);
@@ -292,6 +290,21 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
         bottomPanel.setPadding(new Insets(5.0));
         setPadding(new Insets(5.0));
 
+    }
+
+    private Button createButton(String label, Consumer<MealPlan> operation, File directory, MealPlanManager mealPlanManager) {
+        Button button = new Button(label);
+        button.setOnAction(actionEvent -> {
+            MealPlan mealPlan = mealPlanBuilder.makePlan();
+            mealPlanManager.addMealPlan(mealPlan);
+            operation.accept(mealPlan);
+            try {
+                Runtime.getRuntime().exec("open " + directory);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        return button;
     }
 
     private void removeMeal(TableRow<DatedDayPlan> tableRow, MealType mealType) {

@@ -24,38 +24,46 @@ public class FrankiePlay {
 
 
 //        System.out.println(declaredFields1);
-    if (true) return;
+//    if (true) return;
 
         //        System.out.println(String.format("%s", test(1.12)));
 
-        File directory = new File("/Users/francisbostock/Desktop/bostockwebsite/php/CampaignGP/MainCampaignSection");
+//        File directory = new File("/Users/francisbostock/Desktop/bostockwebsite/php/CampaignGP/MainCampaignSection");
+        File directory = new File("/Users/francisbostock/Desktop/BostockMedalsWebsite/BACKUPS/20230321/php/CampaignGP/MainCampaignSection");
         File itemList = new File(directory, "ItemList.txt");
 //        File itemList = new File(file, "TempItemList.txt");
         File removed = new File(directory, "removeditems.txt");
+
+
+
         File[] list = directory.listFiles();
-
-
-
         List<File> files = Lists.newArrayList(list);
         Collections.sort(files);
 
-        for (File file : files) {
-            List<String> lines = getLines(file);
-            String join = Joiner.on(",").join(lines);
-            if (join.contains("B933")) {
-                System.out.println(file);
-                break;
-            }
-        }
-        if (true) return;
+//        for (File file : files) {
+//            List<String> lines = getLines(file);
+//            String join = Joiner.on(",").join(lines);
+//            if (join.contains("B933")) {
+//                System.out.println(file);
+//                break;
+//            }
+//        }
+//        if (true) return;
         BufferedReader bufferedReader1 = new BufferedReader(new FileReader(itemList));
-        List<String> fileNames1 = Lists.newArrayList();
+        List<String> listOfFilenames = Lists.newArrayList();
         String line1;
         while ((line1 = bufferedReader1.readLine()) != null) {
-            fileNames1.add(line1);
+            listOfFilenames.add(line1);
         }
 
-        File imageFile = new File("/Users/francisbostock/Desktop/bostockwebsite/Backups/Backup_20210818/public_html/BstMilMMVI/NeuesSys/CampaignGP/CampaignGPPics");
+        List<File> listOfFiles = Lists.newArrayList();
+        for (String s : listOfFilenames) {
+            File fileName = new File(directory, s + ".txt");
+            listOfFiles.add(fileName);
+        }
+
+//        File imageFile = new File("/Users/francisbostock/Desktop/bostockwebsite/Backups/Backup_20210818/public_html/BstMilMMVI/NeuesSys/CampaignGP/CampaignGPPics");
+        File imageFile = new File("/Users/francisbostock/Desktop/BostockMedalsWebsite/BACKUPS/20230321/BstMilMMVI/NeuesSys/CampaignGP/CampaignGPPics");
         File[] images = imageFile.listFiles();
         List<String> imageNames = Lists.newArrayList();
         for (File image : images) {
@@ -67,17 +75,12 @@ public class FrankiePlay {
         Pattern pattern = Pattern.compile("(?i).*/?(.*\\.jpg).*");
         Pattern subpattern = Pattern.compile("(?i)/([\\w-]*\\.jpg)");
 
-        List<File> things = Lists.newArrayList();
-        for (String s : fileNames1) {
-            File fileName = new File(directory, s + ".txt");
-            things.add(fileName);
-        }
 
         List<String> matches = new ArrayList<>();
         List<String> usedImages = new ArrayList<>();
         Map<File, String> matchesFiles = new TreeMap<>();
 
-        for (File thing : things) {
+        for (File thing : listOfFiles) {
             List<String> lines = getLines(thing);
             boolean hasMatch = false;
             for (String myLine : lines) {

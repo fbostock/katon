@@ -1,5 +1,8 @@
 package fjdb.threading;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 public abstract class LazyInitializer<T> {
     private volatile T instance;
 
@@ -16,4 +19,12 @@ public abstract class LazyInitializer<T> {
         return instance;
     }
 
+    public static <T> LazyInitializer<T> makeInitializer(Supplier<T> supplier) {
+        return new LazyInitializer<T>() {
+            @Override
+            public T make() {
+                return supplier.get();
+            }
+        };
+    }
 }
