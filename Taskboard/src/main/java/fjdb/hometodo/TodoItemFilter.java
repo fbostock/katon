@@ -1,10 +1,11 @@
 package fjdb.hometodo;
 
 import fjdb.databases.ColumnsSet;
+import fjdb.databases.DefaultId;
 
 public class TodoItemFilter {
 
-    public TodoItemFilter(ColumnsSet<TodoDataItem> columnSet) {
+    public TodoItemFilter(ColumnsSet<TodoDataItem, DefaultId> columnSet) {
 
         /*
         want to potentially have filters for each field.

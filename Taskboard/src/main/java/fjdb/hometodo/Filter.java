@@ -43,6 +43,11 @@ public class Filter implements IFilter<TodoDataItem>{
         return this;
     }
 
+    public Filter addProgress(Progress ... progress) {
+        progresses.addAll(List.of(progress));
+        return this;
+    }
+
     public void clear() {
         categories.clear();
         owners.clear();

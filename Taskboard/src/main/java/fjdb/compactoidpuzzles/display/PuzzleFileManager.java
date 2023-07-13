@@ -20,21 +20,26 @@ public class PuzzleFileManager {
     3) Create a WeakListener collection, which wraps listeners in WeakReferences for the purposes of avoiding memory leaks.
 
      */
-    private static final File fileDirectory = new File("/Users/francisbostock/Documents/CompactoidPuzzles");
+    private static final File default_fileDirectory = new File("/Users/francisbostock/Documents/CompactoidPuzzles");
 
     private final Map<String, GridFile> gridFilesCache = new HashMap<>();
+    private final File fileDirectory;
 
 //    private final List<GridFileListener> listeners = Lists.newArrayList();
     private final AbstractListenerCollection<GridFileListener> listeners = new AbstractListenerCollection<>();
 
-    private static final PuzzleFileManager instance = new PuzzleFileManager();
+    private static final PuzzleFileManager instance = new PuzzleFileManager(default_fileDirectory);
 
     public static final PuzzleFileManager getInstance() {
         return instance;
     }
 
+    public static final PuzzleFileManager get(File tileGridFileDirectory) {
+        return new PuzzleFileManager(tileGridFileDirectory);
+    }
 
-    private PuzzleFileManager() {
+    private PuzzleFileManager(File filedir) {
+        fileDirectory = filedir;
         loadGridFiles();
     }
 

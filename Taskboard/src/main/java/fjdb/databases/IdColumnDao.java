@@ -163,6 +163,18 @@ public abstract class IdColumnDao<T extends DataItemIF, I extends DataId> extend
         }
     }
 
+    // TODO: 13/06/2023  THIS REQUIRES TESTING
+    public void update(T update, I id) throws SQLException {
+        synchronized (idBeanMapLock) {
+            T oldItem = idBeanMap.get(id);
+            if (oldItem == null) {
+                throw new SQLException("Item not found for id: " + id);
+            } else {
+                update(oldItem, update);
+            }
+        }
+    }
+
     public T updateField(T item, AbstractColumn column, Object newValue) throws SQLException {
         I dataId;
         synchronized (idBeanMapLock) {

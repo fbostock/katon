@@ -32,9 +32,9 @@ public class RegionalGenerator implements GGenerator {
 
         List<Position> initialPositions = Lists.newArrayList();
 
-        int x = -gridSize / 2;
+        int x = -(gridSize) / 2;
         for (int i = 0; i < gridSize; i++) {
-            int y = -gridSize / 2;
+            int y = -(gridSize) / 2;
             for (int j = 0; j < gridSize; j++) {
                 initialPositions.add(new Position(x, y));
                 y++;
@@ -69,7 +69,8 @@ public class RegionalGenerator implements GGenerator {
     }
 
     private boolean outOfBounds(Position position) {
-        return position.X < -gridSize / 2 || position.X > gridSize / 2 || position.Y < -gridSize / 2 || position.Y > gridSize / 2;
+//        return position.X < -gridSize / 2 || position.X > gridSize / 2 || position.Y < -gridSize / 2 || position.Y > gridSize / 2;
+        return position.X < -gridSize / 2 || position.X >= gridSize / 2 || position.Y < -gridSize / 2 || position.Y >= gridSize / 2;
     }
 
     private List<Position> generatePositions(Position position) {

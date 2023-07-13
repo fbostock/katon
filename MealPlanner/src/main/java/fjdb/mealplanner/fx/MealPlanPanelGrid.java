@@ -8,8 +8,10 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.function.Consumer;
 
 public class MealPlanPanelGrid extends FlowPane {
 
@@ -32,42 +34,38 @@ public class MealPlanPanelGrid extends FlowPane {
         LocalDate endDate = startDate.plusDays(days - 1);
         LocalDate date = startDate;
         while (date.isBefore(endDate)) {
-            DayPlanIF dayPlan = mealPlanBuilder.getDayPlan(date);
-//            dayPlansTable.getItems().add(new MealPlanPanel.DatedDayPlan(date, dayPlan));
             date = date.plusDays(1);
         }
 
         Button makePlan = new Button("Make MealPlan");
-        makePlan.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                MealPlan mealPlan = mealPlanBuilder.makePlan();
-                //TODO add to MealPlanManager, and get application tabs to update.
-//                mealPlan.print();
-                mealPlanManager.addMealPlan(mealPlan);
-            }
+        makePlan.setOnAction(actionEvent -> {
+            MealPlan mealPlan = mealPlanBuilder.makePlan();
+            mealPlanManager.addMealPlan(mealPlan);
         });
 
-        Button csvPlan = new Button("Create CSV");
-        csvPlan.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                MealPlan mealPlan = mealPlanBuilder.makePlan();
-                //TODO add to MealPlanManager, and get application tabs to update.
-                mealPlanManager.toCSV(mealPlan);
-                try {
-                    Runtime.getRuntime().exec("open " + mealPlanManager.getCSVDirectory());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        Button csvPlan = createButton("Create CSV", mealPlanManager::toCSV, mealPlanManager.getCSVDirectory());
+        Button pdfPlan = createButton("Create PDF", mealPlanManager::toPdf, mealPlanManager.getCSVDirectory());
+        Button xlsPlan = createButton("Create Excel", mealPlanManager::toExcel, mealPlanManager.getCSVDirectory());
 
         FlowPane flowPane = new FlowPane(Orientation.VERTICAL);
-//        flowPane.getChildren().add(dayPlansTable);
-//        flowPane.getChildren().add(getDishSidePane(dishListener));
         getChildren().add(flowPane);
         getChildren().add(makePlan);
+        getChildren().add(pdfPlan);
         getChildren().add(csvPlan);
+        getChildren().add(xlsPlan);
+    }
+
+    private Button createButton(String label, Consumer<MealPlan> operation, File directory) {
+        Button button = new Button(label);
+        button.setOnAction(actionEvent -> {
+            MealPlan mealPlan = mealPlanBuilder.makePlan();
+            operation.accept(mealPlan);
+            try {
+                Runtime.getRuntime().exec("open " + directory);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        return button;
     }
 }

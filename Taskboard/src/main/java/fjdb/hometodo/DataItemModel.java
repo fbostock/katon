@@ -20,6 +20,12 @@ public class DataItemModel<T extends DataItemIF, I extends DataId> extends Abstr
         items.addAll(filter.filter(dao.load()));
     }
 
+    public DataItemModel(IdColumnDao<T, I> dao) {
+        this.dao = dao;
+        columnGroup = dao.getColumnGroup();
+        items.addAll(dao.load());
+    }
+
     IdColumnGroup<T, I> columnGroup;
     List<T> items = Lists.newArrayList();
 

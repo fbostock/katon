@@ -1,6 +1,7 @@
 package fjdb.hometodo;
 
 import fjdb.databases.DatabaseAccess;
+import fjdb.databases.tools.DataTable;
 import fjdb.util.DateTimeUtil;
 
 import javax.swing.*;
@@ -45,7 +46,7 @@ public class TodoPanel {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         JPanel panel = new JPanel(new BorderLayout());
 
-        TodoTable table = TodoTable.makeTable(todoRepository.getDao(), new Filter().addProgress(Progress.TODO).addProgress(Progress.IN_PROGRESS));
+        DataTable table = DataTable.makeTable(todoRepository.getDao(), new Filter().addProgress(Progress.TODO, Progress.IN_PROGRESS));
         JScrollPane scroll = new JScrollPane(table);
         panel.add(scroll, BorderLayout.CENTER);
 

@@ -4,6 +4,10 @@ import com.google.common.collect.Lists;
 import fjdb.graphics.Xform;
 import fjdb.util.Pool;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -18,12 +22,13 @@ public class CollatzAnalyser {
     private boolean printUpdates = false;
 
     public static void main(String[] args) {
-
+//        createCalculator();
+//         if (true) return;
         //TODO for roots we could not solve, it would be nice if we could store a Result object to encapsulate this, in particular so
         //that if another number depends on a root which could not be found, the calculation stops gracefully.
-        CollatzAnalyser analyser = new CollatzAnalyser(new Collatz(5, 5, new FindingRootFactory()));
+        CollatzAnalyser analyser = new CollatzAnalyser(new Collatz(3, 3, new FindingRootFactory()));
 //        analyser.setMax(100000).trackMostDeps(true).calculateRoots(true);
-        analyser.setMax(100000).trackMostDeps(false).printUpdates(true).calculateRoots(true);
+        analyser.setMax(100).trackMostDeps(false).printUpdates(true).calculateRoots(true);
     }
 
     public CollatzAnalyser(Collatz algo) {
@@ -120,4 +125,52 @@ public class CollatzAnalyser {
         }
     }
 
+
+    private static void createCalculator() {
+
+//        CollatzAnalyser analyser = new CollatzAnalyser(new Collatz(3, 1, new FindingRootFactory()));
+//        analyser.setMax(100000).trackMostDeps(true).calculateRoots(true);
+//        analyser.setMax(100).trackMostDeps(false).printUpdates(true).calculateRoots(true);
+
+        JFrame frame = new JFrame("");
+        frame.setPreferredSize(new Dimension(500, 500));
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        JPanel panel = new JPanel(new BorderLayout());
+        JButton run = new JButton("Run");
+        JTextField numField = new JFormattedTextField();
+        JPanel results = new JPanel();
+        run.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                results.removeAll();
+                String text = numField.getText();
+                long i = Long.parseLong(text);
+                Result research = new Collatz(3, 1, new FindingRootFactory()).research((long) i);
+                int dependents = research.numDependents();
+                Result root = research.getRoot();
+                int stepsForRoot = research.stepsForRoot();
+                int evenOperations = research.numEvenOperations();
+                int oddOperations = research.numOddOperations();
+                String message = research.printout();
+                message += String.format("\nSteps %s\n", stepsForRoot);
+                message += String.format("\nDependents %s\n", dependents);
+                message += String.format("\nOdd ops %s\n", oddOperations);
+                message += String.format("\nEven ops %s\n", evenOperations);
+                results.add(new JTextArea(message));
+                results.revalidate();
+                results.repaint();
+            }
+        });
+        Box topBox = Box.createHorizontalBox();
+        topBox.add(run);
+        topBox.add(numField);
+
+        panel.add(topBox, BorderLayout.NORTH);
+        panel.add(results, BorderLayout.CENTER);
+
+
+        frame.add(panel);
+        frame.pack();
+        frame.setVisible(true);
+    }
 }

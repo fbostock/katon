@@ -1,4 +1,4 @@
-package fjdb.investments;
+package fjdb.series;
 
 import org.junit.Test;
 

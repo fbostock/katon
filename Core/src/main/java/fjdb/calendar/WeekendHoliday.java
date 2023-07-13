@@ -1,4 +1,4 @@
-package fjdb.investments;
+package fjdb.calendar;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;

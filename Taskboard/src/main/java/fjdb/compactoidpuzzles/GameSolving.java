@@ -27,13 +27,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import static fjdb.compactoidpuzzles.GameSolving.HistogramTools.createHistogram;
+
 public class GameSolving {
 
     public static final File fileDirectory = new File("/Users/francisbostock/Documents/CompactoidPuzzles");
 
     public static void main(String[] args) throws IOException {
         TileProducer tileProducer = new TileProducer();
-        generateGridsAndSolve(true, 7);
+        generateGridsAndSolve();
         if (true) return;
 
 //        FileGridGenerator fileGridGenerator0 = new FileGridGenerator(GridFile.makeGrid(fileDirectory + "/puzzleTest_98765.txt"));
@@ -121,10 +123,11 @@ public class GameSolving {
      * Routine which generates random tile grids and attempts to solve them by Monte Carlo. Grids which can be solved quickly
      * are saved down and histograms plotted
      */
-    public static void generateGridsAndSolve(boolean multithread, int gridSize) {
-        MCSolver mcSolver = new MCSolver().setGridSize(gridSize).setSolutionAttempts(1000).setMinimumPassLevel(5).setSavePath(fileDirectory.getAbsolutePath());
-        mcSolver.plotResults(true).setGridGenerations(20);
+    public static void generateGridsAndSolve() {
+        MCSolver mcSolver = new MCSolver().setGridSize(10).setSolutionAttempts(1000).setMinimumPassLevel(7).setSavePath(fileDirectory.getAbsolutePath());
+        mcSolver.plotResults(true).setGridGenerations(1000);
         mcSolver.solveMany();
+        System.out.println("Completed solving grids");
     }
 
     public static JobResultExtra solveByMonteCarlo(TileGrid tileGrid, int nTrials) {
@@ -229,6 +232,48 @@ public class GameSolving {
 //                currentTheme.apply(chart);
                 return chart;
             }
+        }
+    }
+
+    public static class Histogram {
+        private final HistogramDataset histogramDataset;
+        private String title;
+        private int bins;
+
+        public Histogram(double[] data, int bins, String title) {
+            this.title = title;
+            this.bins = bins;
+            histogramDataset = new HistogramDataset();
+            histogramDataset.addSeries("tiles", data, bins, 0, bins);
+        }
+
+        public int getMinBin() {
+            int min = 0;
+            for (int i = 0; i < bins; i++) {
+                double value = (double) histogramDataset.getY(0, i);
+                if (value == 0.0) continue;
+                min = i;
+                break;
+            }
+            return min;
+        }
+
+        public double getBinValue(int bin) {
+            return (double) histogramDataset.getY(0, bin);
+        }
+
+        public void createFrame() {
+            JFreeChart histogram = createHistogram("Best values " + title, "", "count", histogramDataset, PlotOrientation.VERTICAL, false, false, false);
+            ChartPanel chartPanel = new ChartPanel(histogram);
+
+            JFrame frame = new JFrame("");
+            frame.setPreferredSize(new Dimension(800, 500));
+            frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            JPanel panel = new JPanel();
+            panel.add(chartPanel);
+            frame.add(panel);
+            frame.pack();
+            frame.setVisible(true);
         }
     }
 

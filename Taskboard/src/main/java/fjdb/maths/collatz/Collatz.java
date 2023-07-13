@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 public class Collatz {
 
     public static void main(String[] args) {
+        Collatz algo = new Collatz(3, 1, new FindingRootFactory());
+        System.out.println(algo.research(100L).printout());
+        if (true) return;
+
         for (int i = 1; i < 200; i = i + 2) {
             calculateRoots(3, i, false);
         }

@@ -1,55 +1,56 @@
-package fjdb.hometodo;
+package fjdb.databases.tools;
 
 import fjdb.databases.ColumnDecorator;
-import fjdb.databases.DefaultId;
+import fjdb.databases.DataId;
+import fjdb.databases.DataItemIF;
+import fjdb.hometodo.DataItemModel;
+import fjdb.hometodo.DecoratedColumnDao;
+import fjdb.hometodo.IFilter;
+import fjdb.hometodo.IntegerEditor;
 
 import javax.swing.*;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableModel;
 import java.awt.*;
-import java.util.EventObject;
-import java.util.List;
+import java.util.ArrayList;
 
-public class TodoTable extends JTable {
+public class DataTable<T extends DataItemIF, I extends DataId> extends JTable {
 
-    private TodoTable(DataItemModel<TodoDataItem, DefaultId> model) {
+    private DataTable(DataItemModel<T, I> model) {
         super(model);
     }
 
-    public DataItemModel<TodoDataItem, DefaultId> getModel() {
+    public DataItemModel<T, I> getModel() {
         TableModel model = super.getModel();
-        return (DataItemModel<TodoDataItem, DefaultId>) model;
+        return (DataItemModel<T, I>) model;
     }
 
-    public static TodoTable makeTable(TodoDao dao) {
-        return makeTable(dao, new Filter());
+//    public static TodoTable makeTable(TodoDao dao) {
+//        return makeTable(dao, new Filter());
+//    }
+
+    public static <T extends DataItemIF, I extends DataId> DataTable<T, I> makeTable(DecoratedColumnDao<T, I> dao) {
+        return makeTable(dao, ArrayList::new);
     }
 
-    public static TodoTable makeTable(TodoDao dao, IFilter<TodoDataItem> filter) {
+    public static <T extends DataItemIF, I extends DataId> DataTable<T, I> makeTable(DecoratedColumnDao<T, I> dao, IFilter<T> filter) {
 
         //TODO want a read-only column group - adopt an interface which has getters only.
 
-        TodoTable table = new TodoTable(new DataItemModel<>(dao, filter));
+        DataTable<T, I> table = new DataTable<>(new DataItemModel<>(dao, filter));
         table.setAutoCreateRowSorter(true);
         table.setDefaultRenderer(Object.class, makeRenderer());
         table.setDefaultRenderer(Integer.class, makeRenderer());
         table.getColumnModel().getColumn(0).setMinWidth(200);
 
-        for (ColumnDecorator<TodoDataItem, ?> column : dao.getColumnGroup().getColumnList()) {
+        for (ColumnDecorator<T, ?> column : dao.getColumnList()) {
             if (column.getColumn().getDataType().isEnum()) {
                 table.setDefaultEditor(column.getColumn().getDataType(), makeCellEditor(column.getColumn().getDataType()));
             } else if (column.getColumn().getDataType() == Integer.class) {
                 table.setDefaultEditor(Integer.class, makeIntegerEditor());
             }
         }
-
-
-
         return table;
     }
 
@@ -87,5 +88,6 @@ public class TodoTable extends JTable {
             }
         };
     }
+
 
 }
