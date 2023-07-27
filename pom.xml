@@ -79,6 +79,7 @@
         <module>Taskboard</module>
         <module>MealPlanner</module>
         <module>Core</module>
+        <module>FxApplications</module>
         <!--        <module>crypt</module>-->
     </modules>
 
