@@ -1,5 +1,6 @@
 package fjdb.notesapp;
 
+import com.google.common.collect.Lists;
 import fjdb.databases.DefaultId;
 import fjdb.databases.tools.DataTable;
 import fjdb.hometodo.*;
@@ -8,6 +9,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class NotesPanel {
 
@@ -49,7 +52,7 @@ public class NotesPanel {
         row.add(contentField);
         JButton ok = new JButton("Insert");
         ok.addActionListener(e -> {
-            NoteDataItem noteDataItem = new NoteDataItem(nameField.getText(), LocalDate.now(), LocalDate.now(), nameField.getText());
+            NoteDataItem noteDataItem = new NoteDataItem(nameField.getText(), LocalDateTime.now(), LocalDateTime.now(), nameField.getText(), NoteCategory.NORMAL, Lists.newArrayList(Tag.NONE));
             notesDao.insert(noteDataItem);
             listener.actionPerformed(e);
         });

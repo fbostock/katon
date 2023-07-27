@@ -6,12 +6,12 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import fjdb.databases.columns.AbstractColumn;
 import fjdb.databases.columns.IdColumn;
-import fjdb.graphics.Xform;
 import fjdb.util.SqlUtil;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,7 +77,20 @@ public abstract class IdColumnDao<T extends DataItemIF, I extends DataId> extend
 
     @Override
     public void insert(T dataItem) {
+        create(dataItem);
+    }
 
+    public HashMap<I, T> loadIdToDataItems() {
+        load();
+        synchronized (idBeanMapLock) {
+            return new HashMap<>(idBeanMap);
+        }
+    }
+
+    /**
+     * Inserts a new dataItem into the database, and returns the id of the newly created item.
+     */
+    public I create(T dataItem) {
         try {
             List<Object> tradeObjects = columnGroup.getDataItemObjects(dataItem);
             if (tradeObjects.size() != columnGroup.columnCount()) {
@@ -89,9 +102,11 @@ public abstract class IdColumnDao<T extends DataItemIF, I extends DataId> extend
             synchronized (idBeanMapLock) {
                 idBeanMap.put(id, dataItem);
             }
+            return id;
         } catch (SQLException e) {
             //TODO should propagate the exception
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -198,6 +213,7 @@ public abstract class IdColumnDao<T extends DataItemIF, I extends DataId> extend
     @Override
     public void delete(T dataItem) {
 //            TODO
+        throw new UnsupportedOperationException("Delete not yet implemented");
     }
 
 

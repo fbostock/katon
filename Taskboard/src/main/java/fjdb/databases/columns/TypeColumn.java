@@ -1,7 +1,5 @@
 package fjdb.databases.columns;
 
-import fjdb.databases.columns.AbstractColumn;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

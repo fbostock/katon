@@ -1,5 +1,7 @@
 package fjdb.taskboard;
 
+import fjdb.fxutil.ApplicationBoard;
+import fjdb.fxutil.FxUtils;
 import fjdb.taskboard.tasks.*;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -11,6 +13,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -22,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Created by Frankie Bostock on 11/06/2017.
@@ -50,49 +54,50 @@ public class TaskBoard extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
         primaryStage.setTitle("TaskBoard");
-        //TODO add menu
+
 
         manager = new TaskManager(new TaskLoader());
         List<TaskItem> tasks = manager.getTasks();
 
 
-        final Pane panelsPane = new Pane();
-
-        taskPaneManager = new TaskPaneManager(panelsPane, tasks);
-
-        manager.addListener(taskPaneManager);
-
-        panelsPane.setOnMousePressed(new EventHandler<MouseEvent>() {
+        ApplicationBoard applicationBoard = new ApplicationBoard();
+        applicationBoard.setupBoard(new Consumer<MouseEvent>() {
             @Override
-            public void handle(MouseEvent event) {
-                if (event.getClickCount() == 2) {
+            public void accept(MouseEvent mouseEvent) {
+                if (mouseEvent.getClickCount() == 2) {
                     //TODO any double click actions? Maybe that to create new task
                     TaskItem newTask = manager.createNewTask();
                     taskPaneManager.add(newTask);
                 }
             }
+        }, new Consumer<ContextMenuEvent>() {
+            @Override
+            public void accept(ContextMenuEvent contextMenuEvent) {
+                ContextMenu contextMenu = new ContextMenu();
+                MenuItem item = new MenuItem("Create new task");
+                item.setOnAction(new EventHandler<ActionEvent>() {
+                    public void handle(ActionEvent e) {
+                        TaskItem newTask = manager.createNewTask();
+                        taskPaneManager.add(newTask);
+
+                    }
+                });
+                contextMenu.getItems().add(item);
+                contextMenu.show(applicationBoard.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+
+            }
         });
 
-        panelsPane.setOnContextMenuRequested(event -> {
-                    ContextMenu contextMenu = new ContextMenu();
-                    MenuItem item1 = new MenuItem("Create new task");
-                    item1.setOnAction(new EventHandler<ActionEvent>() {
-                        public void handle(ActionEvent e) {
-                            TaskItem newTask = manager.createNewTask();
-                            taskPaneManager.add(newTask);
+        taskPaneManager = new TaskPaneManager(applicationBoard, tasks);
 
-                        }
-                    });
-                    contextMenu.show(panelsPane.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-                }
-        );
+        manager.addListener(taskPaneManager);
+
 
         final BorderPane sceneRoot = new BorderPane();
 
-        BorderPane.setAlignment(panelsPane, Pos.TOP_LEFT);
-        sceneRoot.setCenter(panelsPane);
+        BorderPane.setAlignment(applicationBoard, Pos.TOP_LEFT);
+        sceneRoot.setCenter(applicationBoard);
 
         final CheckBox dragModeCheckbox = new CheckBox("Drag mode");
         BorderPane.setMargin(dragModeCheckbox, new Insets(6));
@@ -197,7 +202,7 @@ public class TaskBoard extends Application {
                 menu.show(pane, event.getScreenX(), event.getScreenY());
                 event.consume();
             });
-            node = TaskBoardUtils.makeDraggable(pane);
+            node = FxUtils.makeDraggable(pane);
 
         }
 
