@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class NotesRepository {
 
@@ -16,9 +17,20 @@ public class NotesRepository {
 
     private final NotesDao dao = NotesDao.getDao(access);
     private final HashMap<DefaultId, NoteDataItem> dataMap;
+    private final HashMap<DefaultId, NoteDataItem> archivedDataMap;
 
     public NotesRepository() {
-        dataMap = dao.loadIdToDataItems();
+        dataMap = new HashMap<>();
+        archivedDataMap = new HashMap<>();
+        HashMap<DefaultId, NoteDataItem> data = dao.loadIdToDataItems();
+        for (Map.Entry<DefaultId, NoteDataItem> entry : data.entrySet()) {
+            if (NoteCategory.ARCHIVE.equals(entry.getValue().getCategory())) {
+                archivedDataMap.put(entry.getKey(), entry.getValue());
+            } else {
+                dataMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+
     }
 
     public NotesDao getDao() {
@@ -58,7 +70,9 @@ public class NotesRepository {
 
     public void delete(Note note) {
         //TODO do we actually want to delete, or merely archive? Perhaps archive unless content empty.
+        //Item should be written out to a deletedFolder.
         dao.delete(dataMap.get(note.id));
+
     }
 
     public static class Note {

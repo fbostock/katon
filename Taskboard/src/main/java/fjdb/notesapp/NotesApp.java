@@ -6,10 +6,12 @@ import fjdb.fxutil.FxUtils;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -23,9 +25,12 @@ import java.util.function.Consumer;
 
 public class NotesApp extends Application {
 
+    private static final int _noteHeight = 180;
+    private static final int _noteSpacing = 10;
+
     NotesRepository repository;
     ApplicationBoard applicationBoard;
-    List<NoteWidget> widgetList = Lists.newArrayList();
+    List<Node> widgetList = Lists.newArrayList();
 
     public NotesApp() {
         repository = new NotesRepository();
@@ -53,11 +58,9 @@ public class NotesApp extends Application {
                 ContextMenu contextMenu = new ContextMenu();
                 //TODO
                 MenuItem item = new MenuItem("Create new note");
-                item.setOnAction(new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent actionEvent) {
-                        addNewNote();
-                    }
+                item.setOnAction(actionEvent -> {
+                    NoteWidget noteWidget = addNewNote();
+                    noteWidget.editAction();
                 });
                 contextMenu.getItems().add(item);
                 contextMenu.show(applicationBoard.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
@@ -84,22 +87,24 @@ public class NotesApp extends Application {
         addAllToBoard(widgetList);
     }
 
+    private static final int columns = 6;
     static int totalNodes = 0;
 
     private static void addNodeToBoard(ApplicationBoard board, Node node) {
         //go for 4 cols.
-        int rows = totalNodes / 4;
-        int col = totalNodes % 4;
+        int rows = totalNodes / columns;
+        int col = totalNodes % columns;
         board.getChildren().add(node);
         node.setLayoutX(10 + col * 120);
-        node.setLayoutY(10 + rows * 160);
+        node.setLayoutY(10 + rows * _noteHeight + _noteSpacing);
         totalNodes++;
     }
 
-    private void addNewNote() {
+    private NoteWidget addNewNote() {
         NoteWidget noteWidget = createNoteWidget();
         widgetList.add(0, noteWidget);
         refreshBoard();
+        return noteWidget;
     }
 
     private void addAllToBoard(List<? extends Node> nodes) {
@@ -112,33 +117,75 @@ public class NotesApp extends Application {
         return new NoteWidget(repository.generate("New Note"));
     }
 
-    private class NoteWidget extends Label {
+
+    private class NoteWidget extends VBox {
         private final NotesRepository.Note note;
 
         public NoteWidget(NotesRepository.Note note) {
-            super(String.format("%s", snippet(note.getTitle(), note.getContent())));
+
+            Label content = new Label(snippet("", note.getContent()));
             this.note = note;
-            this.setMinWidth(100);
-            this.setMinHeight(150);
-            this.setWrapText(true);
-            this.setStyle("-fx-border-color: black");
+            content.setMinWidth(100);
+            content.setMinHeight(_noteHeight-40);
+            content.setMaxWidth(100);
+            content.setMaxHeight(_noteHeight-40);
+            content.setWrapText(true);
+            content.setPadding(new Insets(0,2,2,2));
+            content.setStyle("-fx-font-family: 'Arial'; -fx-border-color: black;  -fx-text-fill: blue; -fx-font-size:9; -fx-background-color:pink");
+            Label title = new Label(note.getTitle());
+            title.setMinWidth(100);
+            title.setMinHeight(40);
+            title.setMaxWidth(100);
+            title.setMaxHeight(40);
+            title.setWrapText(true);
+            title.setStyle("-fx-font-family: 'Arial'; -fx-border-color: none; -fx-font-weight: bold; -fx-text-fill: red");
+            DropShadow shadow = new DropShadow();
+            content.setEffect(shadow);
+            getChildren().addAll(content, title);
+//            getChildren().addAll(content);
             this.setOnMousePressed(new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
-                    //TODO setup an editor pane, which takes up whole view in app.
-                    Editor editor = new Editor(NoteWidget.this);
-                    editor.prefHeightProperty().bind(applicationBoard.heightProperty());
-                    editor.prefWidthProperty().bind(applicationBoard.widthProperty());
-                    applicationBoard.getChildren().add(editor);
+                    editAction();
                 }
             });
-            //        ScrollBar scrollBarv = (ScrollBar)widget.lookup(".scroll-bar:vertical");
-//        scrollBarv.setDisable(true);
+            this.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
+                @Override
+                public void handle(ContextMenuEvent contextMenuEvent) {
+                    ContextMenu contextMenu = new ContextMenu();
+                    MenuItem edit = new MenuItem("Edit");
+                    edit.setOnAction(e->editAction());
+                    MenuItem delete = new MenuItem("Delete");
+                    delete.setOnAction(e->deleteAction());
+
+                    contextMenu.getItems().add(edit);
+                    contextMenu.show(applicationBoard.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+
+                }
+            });
+        }
+
+        private void deleteAction() {
+            widgetList.remove(this);
+            refreshBoard();
+            System.out.println("Widget just removed. Item still in database");
+            //TODO delete from database, or archive.
+        }
+
+        private void editAction() {
+            Editor editor = new Editor(NoteWidget.this);
+            editor.prefHeightProperty().bind(applicationBoard.heightProperty());
+            editor.prefWidthProperty().bind(applicationBoard.widthProperty());
+            applicationBoard.getChildren().add(editor);
         }
 
         private static String snippet(String title, String content) {
-            return title;
+            int length = Math.min(200 - title.length(), content.length());
+            String ellipsis =  (length < content.length()) ? "..." : "";
+//            return title + System.lineSeparator() + content.substring(0, length) + ellipsis;
+            return title + content.substring(0, length) + ellipsis;
         }
+
         public NotesRepository.Note getNote() {
             return note;
         }
@@ -148,8 +195,8 @@ public class NotesApp extends Application {
 
         private final TextArea textArea;
         private final TextField label;
-        private NotesRepository.Note note;
-        private NoteWidget noteWidget;
+        private final NotesRepository.Note note;
+        private final NoteWidget noteWidget;
         private boolean changeMade = false;
 
         public Editor(NoteWidget noteWidget) {

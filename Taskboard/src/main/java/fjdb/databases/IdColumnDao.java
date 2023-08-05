@@ -33,6 +33,20 @@ public abstract class IdColumnDao<T extends DataItemIF, I extends DataId> extend
         this.columnGroup = columnGroup;
     }
 
+    //TODO this is temporary hack until we create a refined approach using the columns and values.
+    public List<T> load(String filter) {
+        List<T> dataItems = new ArrayList<>();
+        try {
+            String selectQuery = "SELECT * FROM " + getTableName();
+            selectQuery += (filter.toLowerCase().contains("where") ? filter : "WHERE " + filter);
+            selectQuery += " ORDER BY " + columnGroup.idColumn.getName() + " ASC";
+            dataItems.addAll(doSelect(selectQuery, new ArrayList<>(), handler()));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return dataItems;
+    }
+
     public List<T> load() {
         List<T> dataItems = new ArrayList<>();
         try {
@@ -82,6 +96,14 @@ public abstract class IdColumnDao<T extends DataItemIF, I extends DataId> extend
 
     public HashMap<I, T> loadIdToDataItems() {
         load();
+        synchronized (idBeanMapLock) {
+            return new HashMap<>(idBeanMap);
+        }
+    }
+
+    //TODO this is not a good solution. The filter merely reflects the latest data to be retrieved from the db, not what's in the returned map.
+    public HashMap<I, T> loadIdToDataItems(String filter) {
+        load(filter);
         synchronized (idBeanMapLock) {
             return new HashMap<>(idBeanMap);
         }
