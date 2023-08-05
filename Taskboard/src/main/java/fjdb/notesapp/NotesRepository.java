@@ -1,6 +1,5 @@
 package fjdb.notesapp;
 
-import com.google.common.collect.Lists;
 import fjdb.databases.DatabaseAccess;
 import fjdb.databases.DefaultId;
 
@@ -41,9 +40,22 @@ public class NotesRepository {
      * Returns a list of all notes. They are returned ordered by last time modified.
      */
     public List<Note> getNotes() {
-        return dataMap.entrySet().stream()
+        return getNotes(false);
+    }
+
+    public List<Note> getNotes(boolean isArchive) {
+        if (isArchive) {
+            return getNotes(archivedDataMap);
+        } else {
+            return getNotes(dataMap);
+        }
+    }
+
+    private List<Note> getNotes(Map<DefaultId, NoteDataItem> map) {
+        return map.entrySet().stream()
                 .map(entry -> new Note(entry.getValue().getTitle(), entry.getValue().getContent(), entry.getKey()))
                 .sorted(Comparator.comparing(o -> dataMap.get(o.id).getTimeModified())).toList();
+
     }
 
     public Note generate(String title) {
