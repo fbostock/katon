@@ -14,7 +14,7 @@ public class WeekendHolidayTest {
 
     @Test
     public void verifies_weekend_as_holidays() {
-        WeekendHoliday weekendHoliday = new WeekendHoliday();
+        WeekendHoliday weekendHoliday = WeekendHoliday.WEEKEND;
         Assert.assertFalse(weekendHoliday.isHoliday(date(2022, 4, 1)));
         Assert.assertTrue(weekendHoliday.isHoliday(date(2022, 4, 2)));
         Assert.assertTrue(weekendHoliday.isHoliday(date(2022, 4, 3)));
@@ -26,7 +26,7 @@ public class WeekendHolidayTest {
 
     @Test
     public void goodDays_skips_holidays() {
-        WeekendHoliday weekendHoliday = new WeekendHoliday();
+        WeekendHoliday weekendHoliday = WeekendHoliday.WEEKEND;
         LocalDate startInclusive = date(2022, 4, 1);
         LocalDate endExclusive = date(2022, 4, 12);
         Iterator<LocalDate> goodDays = weekendHoliday.getGoodDays(startInclusive, endExclusive);
@@ -48,7 +48,7 @@ public class WeekendHolidayTest {
 
     @Test
     public void goodDays_skips_start_on_holiday() {
-        WeekendHoliday weekendHoliday = new WeekendHoliday();
+        WeekendHoliday weekendHoliday = WeekendHoliday.WEEKEND;
         LocalDate startInclusive = date(2022, 4, 2);
         LocalDate endExclusive = date(2022, 4, 6);
         Iterator<LocalDate> goodDays = weekendHoliday.getGoodDays(startInclusive, endExclusive);
@@ -64,7 +64,7 @@ public class WeekendHolidayTest {
 
     @Test
     public void goodDays_skips_end_on_holiday() {
-        WeekendHoliday weekendHoliday = new WeekendHoliday();
+        WeekendHoliday weekendHoliday = WeekendHoliday.WEEKEND;
         LocalDate startInclusive = date(2022, 4, 4);
         LocalDate endExclusive = date(2022, 4, 10);
         Iterator<LocalDate> goodDays = weekendHoliday.getGoodDays(startInclusive, endExclusive);
@@ -83,7 +83,7 @@ public class WeekendHolidayTest {
 
     @Test
     public void goodDays_empty_with_only_holidays() {
-        WeekendHoliday weekendHoliday = new WeekendHoliday();
+        WeekendHoliday weekendHoliday = WeekendHoliday.WEEKEND;
         LocalDate startInclusive = date(2022, 4, 2);
         LocalDate endExclusive = date(2022, 4, 4);
         Iterator<LocalDate> goodDays = weekendHoliday.getGoodDays(startInclusive, endExclusive);

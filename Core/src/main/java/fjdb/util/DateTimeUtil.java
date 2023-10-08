@@ -1,5 +1,7 @@
 package fjdb.util;
 
+import org.apache.tools.ant.taskdefs.Local;
+
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -24,6 +26,13 @@ public class DateTimeUtil {
         return LocalDate.parse(yyyyMMdd, formatter);
     }
 
+    public static LocalDate previous() {
+        return LocalDate.now().minusDays(1);
+    }
+
+    public static LocalDate next() {
+        return LocalDate.now().plusDays(1);
+    }
 
     public static LocalDate date(int yyyyMMdd) {
         return date(String.valueOf(yyyyMMdd));
