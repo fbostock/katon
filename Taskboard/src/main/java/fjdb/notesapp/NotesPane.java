@@ -34,16 +34,19 @@ public class NotesPane {
 
         applicationBoard.setupBoard(mouseEvent -> {
 
-        }, contextMenuEvent -> {
-            ContextMenu contextMenu = new ContextMenu();
-            //TODO
-            MenuItem item = new MenuItem("Create new note");
-            item.setOnAction(actionEvent -> {
-                NoteWidget noteWidget = addNewNote();
-                noteWidget.editAction();
-            });
-            contextMenu.getItems().add(item);
-            contextMenu.show(applicationBoard.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+        }, new Consumer<ContextMenuEvent>() {
+            @Override
+            public void accept(ContextMenuEvent contextMenuEvent) {
+                ContextMenu contextMenu = new ContextMenu();
+                //TODO
+                MenuItem item = new MenuItem("Create new note");
+                item.setOnAction(actionEvent -> {
+                    NoteWidget noteWidget = addNewNote();
+                    noteWidget.editAction();
+                });
+                contextMenu.getItems().add(item);
+                contextMenu.show(applicationBoard.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+            }
         });
 
         List<NotesRepository.Note> notes = repository.getNotes(isArchive);
