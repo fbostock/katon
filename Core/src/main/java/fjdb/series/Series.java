@@ -57,6 +57,7 @@ public class Series<T extends Comparable<? super T>, V> {
         return new Series<>(keys, values, startIndex + startInclusive, startIndex + (endExclusive - startInclusive));
     }
 
+    //TODO BUG this fails if startExclusive or endExclusive is not in the list.
     public Series<T, V> subsequence(T startInclusive, T endExclusive) {
         //TODO validation on start/end index
         //TODO add tests for a subsequence of a subsequence

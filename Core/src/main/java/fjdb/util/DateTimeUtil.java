@@ -1,5 +1,6 @@
 package fjdb.util;
 
+import fjdb.calendar.WeekendHoliday;
 import org.apache.tools.ant.taskdefs.Local;
 
 import java.sql.Date;
@@ -28,6 +29,9 @@ public class DateTimeUtil {
 
     public static LocalDate previous() {
         return LocalDate.now().minusDays(1);
+    }
+    public static LocalDate previousWeekDay() {
+        return WeekendHoliday.WEEKEND.previous(today());
     }
 
     public static LocalDate next() {

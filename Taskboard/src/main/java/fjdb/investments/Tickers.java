@@ -9,15 +9,14 @@ public class Tickers {
 
     private static final List<Ticker> s_tickers = Lists.newArrayList();
 
-    public static final Ticker FTSE_100 = make("VUKE.L");
-    public static final Ticker FTSE_250 = make("VMID.L");
-    public static final Ticker SNP_500 = make("VUSA.L");
-    public static final Ticker Germany_AllShare = make("VGER.L");
-    public static final Ticker NASDAQ = make("CNX1.L");
-    public static final Ticker DowJonesIndustrialAverage_iShares = make("CIND.L");
-    public static final Ticker Lyxor_CAC_40 = make("CACX.L");
-    public static final Ticker XTrackers_Nikkei_225 = make("XDJP.L");
-
+    public static final Ticker FTSE_100 = make("VUKE.L", "Vanguard FTSE100");
+    public static final Ticker FTSE_250 = make("VMID.L", "Vanguard FTSE250");
+    public static final Ticker SNP_500 = make("VUSA.L", "Vanguard SNP500");
+    public static final Ticker Germany_AllShare = make("VGER.L", "Vanguard Germany AllShare");
+    public static final Ticker NASDAQ = make("CNX1.L", "Nasdaq 100");
+    public static final Ticker DowJonesIndustrialAverage_iShares = make("CIND.L", "iShares Dow Jones Industrial Average");
+    public static final Ticker Lyxor_CAC_40 = make("CACX.L", "Lyxor CAC40");
+    public static final Ticker XTrackers_Nikkei_225 = make("XDJP.L", "Xtrackers Nikkei225");
 
     public static final Ticker Vanguard_USD_Treasury = make("VUTY.L", "Vanguard USD Treasury Bond UCITS ETF");
     public static final Ticker iSharesCoreUKGilt = make("IGLT.L", "iShares Core UK Gilts UCITS ETF");

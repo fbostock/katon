@@ -18,4 +18,5 @@ public interface Model {
     boolean takeOff(MutableTrade trade, LocalDate date);
 
     ModelParams getParams();
+
 }

@@ -39,7 +39,7 @@ public class YahooDataLoader {
      * Fetches data between from and to dates, then merges with any existing data. Data fetched will overwrite any existing data.
      */
     private static TimeSeries<Double> fetchAndMergeData(String ticker, LocalDate from, LocalDate to) {
-        if (!from.isBefore(to)) {
+        if (from.isAfter(to)) {
             System.out.printf("Full data for %s up to %s. Nothing to fetch\n", ticker, from);
             return null;
         }
@@ -112,7 +112,9 @@ public class YahooDataLoader {
         for (Ticker ticker : tickers) {
             TimeSeries<Double> load = load(ticker.getName());
             LocalDate from = WeekendHoliday.WEEKEND.next(load.lastKey());
-            fetchAndMergeData(ticker.getName(), from, WeekendHoliday.WEEKEND.previous(DateTimeUtil.today()));
+//            LocalDate from = DateTimeUtil.previousWeekDay();
+//            fetchAndMergeData(ticker.getName(), from, WeekendHoliday.WEEKEND.previous(DateTimeUtil.today()));
+            fetchAndMergeData(ticker.getName(), from, (DateTimeUtil.today()));
         }
     }
 
