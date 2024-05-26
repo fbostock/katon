@@ -6,7 +6,11 @@ import java.util.Iterator;
 public interface Holiday {
 
     default
-    public Iterator<LocalDate> getGoodDays(LocalDate start, boolean includeStart, LocalDate end, boolean includeEnd) {
+    Iterable<LocalDate> getGoodDaysIterable(LocalDate start, boolean includeStart, LocalDate end, boolean includeEnd) {
+        return () -> getGoodDays(start, includeStart, end, includeEnd);
+    }
+
+    default Iterator<LocalDate> getGoodDays(LocalDate start, boolean includeStart, LocalDate end, boolean includeEnd) {
         return new Iterator<>() {
             LocalDate currentDate = (!includeStart || isHoliday(start)) ? nextDate(start) : start;
 

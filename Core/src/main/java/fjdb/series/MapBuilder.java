@@ -22,6 +22,17 @@ public class MapBuilder<K extends Comparable<? super K>, V> {
         data.put(key, value);
     }
 
+    public void putAll(Series<K, V> series) {
+        Series.SeriesIterator<K, V> iterator = series.iterator();
+        while(iterator.moveNext()) {
+            data.put(iterator.currentKey(), iterator.curentValue());
+        }
+    }
+
+    public V get(K key) {
+        return data.get(key);
+    }
+
     protected Pair<List<K>, List<V>> getKeysValues() {
         Set<Map.Entry<K, V>> entries = data.entrySet();
         List<K> keys = Lists.newArrayList();
