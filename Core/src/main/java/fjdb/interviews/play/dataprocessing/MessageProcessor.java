@@ -20,7 +20,7 @@ public class MessageProcessor {
         executorService.submit(new Runnable() {
             @Override
             public void run() {
-                while(true) {
+                while (true) {
                     try {
                         Update poll = queue.take();
                         executorService.submit(() -> dataStores.get(poll.getDataKey()).add(poll.getPrice(), poll.getTime()));

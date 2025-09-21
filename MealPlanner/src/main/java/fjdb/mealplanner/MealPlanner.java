@@ -2,7 +2,6 @@ package fjdb.mealplanner;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import fjdb.calendar.Holiday;
 import fjdb.databases.ColumnDao;
 import fjdb.databases.ColumnGroup;
 import fjdb.mealplanner.admin.DishTagPanel;
@@ -10,10 +9,12 @@ import fjdb.mealplanner.dao.DishHistoryDao;
 import fjdb.mealplanner.dao.DishTagDao;
 import fjdb.mealplanner.fx.DishTagSelectionPanel;
 import fjdb.mealplanner.fx.MealPlanConfigurator;
-import fjdb.mealplanner.fx.planpanel.MealPlanPanel;
 import fjdb.mealplanner.fx.Selectors;
+import fjdb.mealplanner.fx.planpanel.MealPlanPanel;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
-import fjdb.util.DateTimeUtil;
+import fjdb.mealplanner.panels.PlansPane;
+import fjdb.mealplanner.web.MealWebServer;
+import fjdb.mealplanner.web.email.EmailAddresses;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -35,9 +36,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-import java.io.File;
-import java.time.DayOfWeek;
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -56,6 +57,8 @@ public class MealPlanner extends Application {
     private ObservableList<Dish> dishList;
     private final MealPlanManager mealPlanManager;
     private PlansPane plansPane;
+
+    public static List<String> addresses = new ArrayList<>();
 
     /*
 
@@ -202,15 +205,102 @@ public class MealPlanner extends Application {
         VBox vBox = new VBox(menuBar);
         Menu functions = new Menu("Functions");
         MenuItem menuItem = new MenuItem("Add new default plan");
-        menuItem.setOnAction(new EventHandler<ActionEvent>() {
+        menuItem.setOnAction(actionEvent -> {
+            LocalDate nextDate = plansPane.getNextDateForNewPlan();
+            consumer.accept(MealPlanConfigurator.makePanel(nextDate, dishList, mealPlanManager));
+        });
+        functions.getItems().add(menuItem);
+        RadioMenuItem frankieMenuItem = new RadioMenuItem("francis.bostock@gmail.com");
+        RadioMenuItem kateMenuItem = new RadioMenuItem("kate.bostock@yahoo.co.uk");
+        RadioMenuItem both = new RadioMenuItem("Both");
+        ToggleGroup toggleGroup = new ToggleGroup();
+        frankieMenuItem.setToggleGroup(toggleGroup);
+        kateMenuItem.setToggleGroup(toggleGroup);
+        both.setToggleGroup(toggleGroup);
+
+        functions.getItems().add(new SeparatorMenuItem());
+        functions.getItems().add(frankieMenuItem);
+        functions.getItems().add(kateMenuItem);
+        functions.getItems().add(both);
+        functions.getItems().add(new SeparatorMenuItem());
+
+        frankieMenuItem.setOnAction(actionEvent -> {
+            addresses.clear();
+            addresses.add(frankieMenuItem.getText());
+        });
+        kateMenuItem.setOnAction(actionEvent -> {
+            addresses.clear();
+            addresses.add(kateMenuItem.getText());
+        });
+        both.setOnAction(actionEvent -> {
+            addresses.clear();
+            addresses.add(frankieMenuItem.getText());
+            addresses.add(kateMenuItem.getText());
+        });
+        both.setSelected(true);
+        addresses.addAll(EmailAddresses.DEFAULT_ADDRESSES);
+
+        //TODO add templates menu, as a separate menu in the menu bar.
+        Menu templatesMenu = new Menu("Templates");
+        MenuItem templateEdit = new MenuItem("Edit menu template");
+        MenuItem templateLoad = new MenuItem("Create plan from template");
+        templateLoad.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
                 LocalDate nextDate = plansPane.getNextDateForNewPlan();
-                consumer.accept(MealPlanConfigurator.makePanel(nextDate, dishList, mealPlanManager));
+                MealPlan mealPlan = MealPlanTemplates.makePlanFromTemplate(mealPlanManager.loadTemplate(), nextDate);
+                MealPlanPanel mealPlanPanel = new MealPlanPanel(mealPlan, dishList, mealPlanManager);
+                plansPane.addMealPlanPanel(mealPlanPanel);
             }
         });
-        functions.getItems().add(menuItem);
+
+
+        templatesMenu.getItems().add(templateLoad);
+        templateEdit.setOnAction(actionEvent -> {
+            MealPlan templatePlan = mealPlanManager.loadTemplate();
+            plansPane.loadTemplatePlan(templatePlan);
+        });
+        templatesMenu.getItems().add(templateEdit);
+
+        Menu serverMenu = new Menu("Server");
+        MenuItem loadDishes = new MenuItem("Load server dishes to current plan");
+        MenuItem uploadDishes = new MenuItem("Upload dishes to server");
+        MenuItem loadServerPlan = new MenuItem("Load Plan from Server");
+        MenuItem uploadServerPlan = new MenuItem("Upload Current Plan to Server");
+        loadDishes.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+//                List<Dish> dishes = MealWebServer.requestDishes();
+                List<Dish> dishes = MealWebServer.requestDishList();
+                dishes.forEach(dish -> plansPane.getLatestPlan().addTempDish(dish));
+            }
+        });
+        uploadDishes.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                List<Meal> mealList = plansPane.getLatestPlan().getMealList();
+                try {
+                    MealWebServer.uploadMealList(mealList);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        uploadServerPlan.setOnAction(event -> MealWebServer.uploadMealPlan(plansPane.getLatestPlan().makePlan()));
+
+        loadServerPlan.setOnAction(event -> {
+            MealPlan mealPlan = MealWebServer.requestMealPlan();
+            plansPane.addMealPlanPanel(new MealPlanPanel(mealPlan, dishList, mealPlanManager));
+            System.out.println(mealPlan);
+        });
+        serverMenu.getItems().addAll(uploadDishes, uploadServerPlan);
+        serverMenu.getItems().addAll(loadDishes, loadServerPlan);
+
         menuBar.getMenus().add(functions);
+        menuBar.getMenus().add(templatesMenu);
+        menuBar.getMenus().add(serverMenu);
+
 
         final BorderPane sceneRoot = new BorderPane();
         sceneRoot.setCenter(mainTabs);
@@ -336,7 +426,7 @@ public class MealPlanner extends Application {
     private FlowPane getMealHistoryPanel() {
         FlowPane flowPane = new FlowPane(Orientation.VERTICAL);
         DishActionFactory dishActionFactory = mealPlanManager.getDishActionFactory();
-        dishActionFactory.setCurrentMealPlan(plansPane.getCurrentPlan());
+        dishActionFactory.setCurrentMealPlan(plansPane.getLatestPlan());
         TableView<DishActionFactory.HistoryRow> historyTable = dishActionFactory.getHistoryTable(dishList);
         historyTable.prefHeightProperty().bind(flowPane.heightProperty());
         historyTable.prefWidthProperty().bind(flowPane.widthProperty());
@@ -399,45 +489,7 @@ public class MealPlanner extends Application {
         return flowPane;
     }
 
-    private static class PlansPane extends TabPane {
-
-        private MealPlanPanel currentPlan = null;
-
-        public PlansPane(MealPlanManager manager, ObservableList<Dish> dishList, boolean isArchive) {
-            if (!isArchive) {
-                getTabs().add(new Tab("Archive", new PlansPane(manager, dishList, true)));
-            }
-            List<MealPlan> mealPlans = isArchive ? manager.getArchived() : manager.getMealPlans();
-            for (MealPlan mealPlan : mealPlans) {
-                MealPlanPanel mealPlanPanel = new MealPlanPanel(mealPlan, dishList, manager);
-                currentPlan = mealPlanPanel;
-                addMealPlanPanel(mealPlanPanel);
-            }
-        }
-
-        public void addMealPlanPanel(MealPlanPanel mealPlanPanel) {
-            ScrollPane scrollPane = new ScrollPane(mealPlanPanel);
-            getTabs().add(new Tab(String.format("Plan %s", mealPlanPanel.getStart()), scrollPane));
-            if (currentPlan == null || mealPlanPanel.getStart().isAfter(currentPlan.getStart())) {
-                currentPlan = mealPlanPanel;
-            }
-        }
-
-        protected MealPlanPanel getCurrentPlan() {
-            return currentPlan;
-        }
-
-        protected LocalDate getNextDateForNewPlan() {
-            if (currentPlan != null) {
-                return currentPlan.getEnd().plusDays(1);
-            } else {
-                LocalDate date = DateTimeUtil.today();
-                while(!date.getDayOfWeek().equals(DayOfWeek.TUESDAY)) {
-                    date = date.plusDays(1);
-                }
-                return date;
-            }
-        }
+    public static boolean isMasterApplication() {
+        return System.getProperty("user.home").contains("francis");
     }
-
 }

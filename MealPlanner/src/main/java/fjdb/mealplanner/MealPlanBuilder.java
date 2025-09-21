@@ -16,7 +16,7 @@ public class MealPlanBuilder {
             return new MutableDayPlan();
         }
     };
-    private final Set<Dish> tempDishes = Sets.newTreeSet();
+    private final Set<Meal> tempMeals = Sets.newTreeSet();
     private String notes = "";
 
     public MealPlanBuilder() {
@@ -27,8 +27,8 @@ public class MealPlanBuilder {
         for (LocalDate date : dates) {
             setDayPlan(date, plan.getPlan(date));
         }
-        Set<Dish> tempDishes = plan.getTempDishes();
-        this.tempDishes.addAll(tempDishes);
+        Set<Meal> tempDishes = plan.getTempDishes();
+        this.tempMeals.addAll(tempDishes);
         setNotes(plan.getNotes());
     }
 
@@ -106,16 +106,16 @@ public class MealPlanBuilder {
         return getPlan(date);
     }
 
-    public void addTempDish(Dish dish) {
-        tempDishes.add(dish);
+    public void addTempDish(Meal meal) {
+        tempMeals.add(meal);
     }
 
-    public void removeTempDish(Dish dish) {
-        tempDishes.remove(dish);
+    public void removeTempDish(Meal dish) {
+        tempMeals.remove(dish);
     }
 
     public void clearTempDishes() {
-        tempDishes.clear();
+        tempMeals.clear();
     }
 
     public void setNotes(String notes) {
@@ -126,8 +126,8 @@ public class MealPlanBuilder {
         return notes;
     }
 
-    public Set<Dish> getTempDishes() {
-        return tempDishes;
+    public Set<Meal> getTempMeals() {
+        return tempMeals;
     }
 
     public MealPlan makePlan() {
@@ -137,7 +137,7 @@ public class MealPlanBuilder {
         for (LocalDate date : dates) {
             treeMap.put(date, map.get(date).toDayPlan());
         }
-        return new MealPlan(treeMap, Sets.newTreeSet(tempDishes), notes);
+        return new MealPlan(treeMap, notes, Sets.newTreeSet(tempMeals));
     }
 
     private static class MutableDayPlan implements DayPlanIF {

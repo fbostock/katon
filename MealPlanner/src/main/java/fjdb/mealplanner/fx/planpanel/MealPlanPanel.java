@@ -18,11 +18,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
+import org.apache.commons.collections4.list.UnmodifiableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,19 +47,25 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
     private final ObservableList<Dish> dishList;
     private final DishHolderPanel dishHolderPanel;
     private final TableView<DatedDayPlan> tableView;
+    private final boolean isTemplate;
 
     private final HashMap<TableColumn<DatedDayPlan, ?>, MealType> columnMap = new HashMap<>();
 
     public MealPlanPanel(MealPlanConfigurator.Configuration configuration, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
-        this(new MealPlanBuilder(), configuration.getDate(), configuration.getDays(), dishList, mealPlanManager);
+        this(new MealPlanBuilder(), configuration.getDate(), configuration.getDays(), dishList, mealPlanManager, false);
     }
 
     public MealPlanPanel(MealPlan mealPlan, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
-        this(new MealPlanBuilder(mealPlan), mealPlan.getStart(), mealPlan.getDates().size(), dishList, mealPlanManager);
+        this(new MealPlanBuilder(mealPlan), mealPlan.getStart(), mealPlan.getDates().size(), dishList, mealPlanManager, false);
     }
 
-    private MealPlanPanel(MealPlanBuilder builder, LocalDate startDate, int days, ObservableList<Dish> dishList, MealPlanManager mealPlanManager) {
+    public MealPlanPanel(MealPlan mealPlan, ObservableList<Dish> dishList, MealPlanManager mealPlanManager, boolean isTemplate) {
+        this(new MealPlanBuilder(mealPlan), mealPlan.getStart(), mealPlan.getDates().size(), dishList, mealPlanManager, isTemplate);
+    }
+
+    private MealPlanPanel(MealPlanBuilder builder, LocalDate startDate, int days, ObservableList<Dish> dishList, MealPlanManager mealPlanManager, boolean isTemplate) {
         super(Orientation.VERTICAL);
+        this.isTemplate = isTemplate;
         this.dishList = dishList;
         mealPlanBuilder = builder;
         this.dishActionFactory = mealPlanManager.getDishActionFactory();
@@ -68,8 +73,11 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
 
 
         TableView<DatedDayPlan> dayPlansTable = new TableView<>();
-
         tableView = dayPlansTable;
+//        tableView.getSelectionModel().setSelectionMode(
+//                SelectionMode.MULTIPLE
+//        );
+
         dishList.addListener((ListChangeListener<Dish>) change -> dayPlansTable.refresh());
 
         LocalDate endDate = startDate.plusDays(days - 1);
@@ -87,11 +95,39 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
         //required to show individual cells highlighted on their own, rather than the whole row:
         dayPlansTable.getSelectionModel().setCellSelectionEnabled(true);
 
-        TableColumn<DatedDayPlan, String> dateColumn = new TableColumn<>("Date");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E yyyyMMdd");
-        dateColumn.setCellValueFactory(x -> Bindings.createObjectBinding(() -> formatter.format(x.getValue().getDate())));
 
+        LocalDate dateToday = LocalDate.now();
         Callback<TableColumn<DatedDayPlan, String>, TableCell<DatedDayPlan, String>> cellFactory = p -> new EditingCell();
+
+        TableColumn<DatedDayPlan, LocalDate> dateColumn = new TableColumn<>("Date");
+        Callback<TableColumn<DatedDayPlan, LocalDate>, TableCell<DatedDayPlan, LocalDate>> dateCellFactory = new Callback<>() {
+            @Override
+            public TableCell<DatedDayPlan, LocalDate> call(TableColumn<DatedDayPlan, LocalDate> param) {
+                return new TableCell<>() {
+                    @Override
+                    protected void updateItem(LocalDate item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null) {
+                            setText(null);
+                            setGraphic(null);
+                        } else {
+                            setText(formatter.format(item));
+                            if (dateToday.equals(item)) {
+                                TableRow<DatedDayPlan> currentRow = getTableRow();
+                                if (currentRow != null) {
+                                    currentRow.setStyle("-fx-background-color:lightblue");
+                                }
+                            }
+
+                        }
+                    }
+                };
+            }
+        };
+
+        dateColumn.setCellFactory(dateCellFactory);
+        dateColumn.setCellValueFactory(x -> Bindings.createObjectBinding(() -> x.getValue().getDate()));
 
         TableColumn<DatedDayPlan, String> unfreeze = new TableColumn<>("Unfreeze");
         unfreeze.setPrefWidth(PREFERRED_COL_WIDTH);
@@ -119,50 +155,45 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
         dayPlansTable.getColumns().addAll(breakfastMeal, lunchMeal, dinnerMeal);
         dayPlansTable.getColumns().forEach(c -> c.setSortable(false));
 
-        dayPlansTable.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent keyEvent) {
-                if (KeyCode.DELETE.equals(keyEvent.getCode()) || KeyCode.BACK_SPACE.equals(keyEvent.getCode())) {
-                    DatedDayPlan selectedItem = dayPlansTable.getSelectionModel().getSelectedItem();
-                    LocalDate date = selectedItem.getDate();
-                    ObservableList<TablePosition> selectedCells = dayPlansTable.getSelectionModel().getSelectedCells();
-                    for (TablePosition selectedCell : selectedCells) {
-                        TableColumn tableColumn = selectedCell.getTableColumn();
-                        if (tableColumn instanceof MealColumn) {
-                            MealColumn column = (MealColumn) tableColumn;
-                            MealType mealType = column.mealType;
-                            mealPlanBuilder.setMeal(date, mealType, Meal.stub());
-                        }
+        dayPlansTable.setOnKeyPressed(keyEvent -> {
+            if (KeyCode.DELETE.equals(keyEvent.getCode()) || KeyCode.BACK_SPACE.equals(keyEvent.getCode())) {
+                DatedDayPlan selectedItem = dayPlansTable.getSelectionModel().getSelectedItem();
+                LocalDate date1 = selectedItem.getDate();
+                ObservableList<TablePosition> selectedCells = dayPlansTable.getSelectionModel().getSelectedCells();
+                for (TablePosition selectedCell : selectedCells) {
+                    TableColumn tableColumn = selectedCell.getTableColumn();
+                    if (tableColumn instanceof MealColumn) {
+                        MealColumn column = (MealColumn) tableColumn;
+                        MealType mealType = column.mealType;
+                        mealPlanBuilder.setMeal(date1, mealType, Meal.stub());
                     }
-                    dayPlansTable.refresh();
                 }
+                dayPlansTable.refresh();
             }
         });
-        dayPlansTable.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent keyEvent) {
-                if (keyEvent.isControlDown()) {
-                    List<LocalDate> dates = builder.getDates();
-                    ObservableList<DatedDayPlan> selectedItems = dayPlansTable.getSelectionModel().getSelectedItems();
-                    for (DatedDayPlan selectedItem : selectedItems) {
-                        ObservableList<TablePosition> selectedCells = dayPlansTable.getSelectionModel().getSelectedCells();
-                        if (selectedCells.size() > 1) continue;
+        dayPlansTable.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
+            if (keyEvent.isControlDown()) {
+                List<LocalDate> dates = builder.getDates();
+                ObservableList<DatedDayPlan> selectedItems = dayPlansTable.getSelectionModel().getSelectedItems();
+                for (DatedDayPlan selectedItem : selectedItems) {
+                    ObservableList<TablePosition> selectedCells = dayPlansTable.getSelectionModel().getSelectedCells();
+                    if (selectedCells.size() == 1) {
                         TableColumn tableColumn = selectedCells.get(0).getTableColumn();
                         MealType type = columnMap.get(tableColumn);
                         Meal meal = selectedItem.getMeal(type);
-                        LocalDate date = selectedItem.getDate();
+                        LocalDate date12 = selectedItem.getDate();
 
                         if (KeyCode.D.equals(keyEvent.getCode())) {
 
-                            if (ListUtil.last(dates).isAfter(date)) {
-                                builder.setMeal(date.plusDays(1), type, meal);
+                            if (ListUtil.last(dates).isAfter(date12)) {
+                                builder.setMeal(date12.plusDays(1), type, meal);
                                 dayPlansTable.refresh();
                             }
                         } else if (KeyCode.F.equals(keyEvent.getCode())) {
                             MealPlanProxy currentMealPlan = dishActionFactory.getCurrentMealPlan();
                             if (currentMealPlan != null) {
-                                LocalDate dateInNextPlan = getDateInNextPlan(builder, date, currentMealPlan.getStart());
-                                currentMealPlan.addDish(meal.getDish(), dateInNextPlan, type);
+                                LocalDate dateInNextPlan = getDateInNextPlan(builder, date12, currentMealPlan.getStart());
+                                currentMealPlan.addDish(meal, dateInNextPlan, type);
                             }
 
                         } else if (KeyCode.C.equals(keyEvent.getCode())) {
@@ -173,24 +204,31 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
                         } else if (KeyCode.V.equals(keyEvent.getCode())) {
                             if (Clipboard.getSystemClipboard().hasContent(DISH_FORMAT)) {
                                 Dish dish = DragUtils.getContent(Clipboard.getSystemClipboard(), DISH_FORMAT);
-                                mealPlanBuilder.setMeal(date, type, new Meal(dish, ""));
+                                mealPlanBuilder.setMeal(date12, type, new Meal(dish, ""));
                                 dayPlansTable.refresh();
                             } else if (Clipboard.getSystemClipboard().hasContent(MEAL_FORMAT)) {
                                 Meal mealPaste = DragUtils.getContent(Clipboard.getSystemClipboard(), MEAL_FORMAT);
-                                mealPlanBuilder.setMeal(date, type, mealPaste);
+                                mealPlanBuilder.setMeal(date12, type, mealPaste);
                                 dayPlansTable.refresh();
                             }
 
                         }
                     }
-
-
                 }
             }
         });
 
         ContextMenu cm = new ContextMenu();
-        MenuItem mi1 = new MenuItem("Add extra date");
+        MenuItem addDayBefore = new MenuItem("Add extra date before");
+        cm.getItems().add(addDayBefore);
+        addDayBefore.setOnAction(actionEvent -> {
+            List<LocalDate> dates = mealPlanBuilder.getDates();
+            LocalDate newFirstDate = ListUtil.first(dates).minusDays(1);
+            DayPlanIF dayPlan = mealPlanBuilder.getDayPlan(newFirstDate);
+            ObservableList<DatedDayPlan> items = dayPlansTable.getItems();
+            items.add(0, new DatedDayPlan(newFirstDate, dayPlan));
+        });
+        MenuItem mi1 = new MenuItem("Add extra date after");
         cm.getItems().add(mi1);
         mi1.setOnAction(actionEvent -> {
             List<LocalDate> dates = mealPlanBuilder.getDates();
@@ -220,18 +258,24 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
 
 
         dayPlansTable.setContextMenu(cm);
-        Button makePlan = new Button("Make MealPlan");
+        Button makePlan = new Button(isTemplate ? "Save Template" : "Make MealPlan");
 
         makePlan.setOnAction(actionEvent -> {
-            MealPlan mealPlan = mealPlanBuilder.makePlan();
-            mealPlanManager.addMealPlan(mealPlan);
+            if (isTemplate) {
+                mealPlanManager.saveTemplate(mealPlanBuilder.makePlan());
+            } else {
+                MealPlan mealPlan = mealPlanBuilder.makePlan();
+                mealPlanManager.addMealPlan(mealPlan);
+            }
         });
         Button csvPlan = createButton("Create CSV", mealPlanManager::toCSV, mealPlanManager.getCSVDirectory(), mealPlanManager);
         Button pdfPlan = createButton("Create PDF", mealPlanManager::toPdf, mealPlanManager.getCSVDirectory(), mealPlanManager);
+        Button pdfEmailPlan = createButton("Make & Email PDF", mealPlanManager::toPdfAndEmail, mealPlanManager.getCSVDirectory(), mealPlanManager);
         Button xlsPlan = createButton("Create XLS", mealPlanManager::toExcel, mealPlanManager.getCSVDirectory(), mealPlanManager);
         Button print = new Button("print meals");
 
         print.setOnAction(actionEvent -> {
+            mealPlanManager.printAllMeals();
             MealPlan mealPlan = mealPlanBuilder.makePlan();
             List<LocalDate> dates = mealPlan.getDates();
             for (LocalDate localDate : dates) {
@@ -267,6 +311,7 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
         controls.getChildren().add(makePlan);
         controls.getChildren().add(csvPlan);
         controls.getChildren().add(pdfPlan);
+        controls.getChildren().add(pdfEmailPlan);
         controls.getChildren().add(xlsPlan);
         controls.getChildren().add(print);
         controls.getChildren().add(showDishHistory);
@@ -476,11 +521,15 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
         private final HBox dishListBox;
 
         class DishButton extends Button {
-            private final Dish dish;
+            private final Meal meal;
 
             public DishButton(Dish dish) {
-                super(dish.getName());
-                this.dish = dish;
+                this(new Meal(dish, ""));
+            }
+
+            public DishButton(Meal dish) {
+                super(dish.getDescription());
+                this.meal = dish;
                 mealPlanBuilder.addTempDish(dish);
                 setOnAction(actionEvent -> {
                     remove();
@@ -490,7 +539,7 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
                     @Override
                     public void handle(MouseEvent mouseEvent) {
                         Dragboard db = startDragAndDrop(TransferMode.COPY);
-                        db.setContent(DragUtils.makeContent(DISH_FORMAT, dish));
+                        db.setContent(DragUtils.makeContent(MEAL_FORMAT, dish));
                     }
                 });
                 setOnDragDone(new EventHandler<DragEvent>() {
@@ -506,7 +555,7 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
             }
 
             private void remove() {
-                mealPlanBuilder.removeTempDish(dish);
+                mealPlanBuilder.removeTempDish(meal);
                 dishListBox.getChildren().remove(DishButton.this);
             }
         }
@@ -550,8 +599,8 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
             });
 
 
-            for (Dish tempDish : mealPlanBuilder.getTempDishes()) {
-                addDish(tempDish);
+            for (Meal tempDish : mealPlanBuilder.getTempMeals()) {
+                addMeal(tempDish);
             }
 
             flowPane.setOnDragDropped(new EventHandler<DragEvent>() {
@@ -571,7 +620,7 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
                         Meal content = DragUtils.getContent(dragboard, MEAL_FORMAT);
                         //TODO allow meals to be stored here as well. Either store two lists, or just meals.
                         if (!Dish.isStub(content.getDish())) {
-                            addDish(content.getDish());
+                            addMeal(content);
                             success = true;
                         }
                     }
@@ -592,143 +641,12 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
             dishListBox.getChildren().add(new DishButton(tempDish));
         }
 
-    }
-    /*A panel that holds a list of dishes as a temporary storage area.*/
-/*
-    private FlowPane makeDishHolderPanel() {
-        FlowPane flowPane = new FlowPane();
-        flowPane.setStyle("-fx-border-color: black");
-        VBox vBox = new VBox();
-        HBox dishListBox = new HBox();
-        Text text = new Text("DishList");
-
-        class DishButton extends Button {
-            private final Dish dish;
-
-            public DishButton(Dish dish) {
-                super(dish.getName());
-                this.dish = dish;
-                mealPlanBuilder.addTempDish(dish);
-                setOnAction(actionEvent -> {
-                    remove();
-                });
-                setTooltip(new Tooltip("Click to remove"));
-                setOnDragDetected(new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent mouseEvent) {
-                        Dragboard db = startDragAndDrop(TransferMode.COPY);
-                        db.setContent(DragUtils.makeContent(DISH_FORMAT, dish));
-                    }
-                });
-                setOnDragDone(new EventHandler<DragEvent>() {
-                    public void handle(DragEvent event) {
-                        */
-    /* the drag and drop gesture ended *//*
-
-     */
-    /* if the data was successfully moved, clear it *//*
-
-                        if (event.getTransferMode() == TransferMode.COPY) {
-                            remove();
-                        }
-                        event.consume();
-                    }
-                });
-            }
-
-            private void remove() {
-                mealPlanBuilder.removeTempDish(dish);
-                dishListBox.getChildren().remove(DishButton.this);
-            }
+        public void addMeal(Meal tempMeal) {
+            dishListBox.getChildren().add(new DishButton(tempMeal));
         }
 
 
-        flowPane.setOnDragEntered(new EventHandler<DragEvent>() {
-            public void handle(DragEvent event) {
-                */
-    /* the drag-and-drop gesture entered the target *//*
-
-     */
-    /* show to the user that it is an actual gesture target *//*
-
-                boolean hasDish = event.getDragboard().hasContent(DISH_FORMAT);
-                boolean hasMeal = event.getDragboard().hasContent(MEAL_FORMAT);
-                if (event.getGestureSource() != flowPane && (hasDish || hasMeal)) {
-                    flowPane.setStyle("-fx-border-color: green");
-                }
-                event.consume();
-            }
-        });
-        flowPane.setOnDragExited(event -> {
-            */
-    /* mouse moved away, remove the graphical cues *//*
-
-            flowPane.setStyle("-fx-border-color: black");
-            event.consume();
-        });
-
-        flowPane.setOnDragOver(event -> {
-            */
-    /* data is dragged over the target *//*
-
-     */
-    /* accept it only if it is not dragged from the same node
-     * and if it has a string data *//*
-
-            if (event.getGestureSource() != flowPane && event.getGestureSource().getClass() != DishButton.class &&
-                    (event.getDragboard().hasContent(DISH_FORMAT) || event.getDragboard().hasContent(MEAL_FORMAT))) {
-                */
-    /* allow for both copying and moving, whatever user chooses *//*
-
-                event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
-            }
-            event.consume();
-        });
-
-
-        for (Dish tempDish : mealPlanBuilder.getTempDishes()) {
-            dishListBox.getChildren().add(new DishButton(tempDish));
-        }
-
-        flowPane.setOnDragDropped(new EventHandler<DragEvent>() {
-            public void handle(DragEvent event) {
-                */
-    /* data dropped *//*
-
-     */
-    /* if there is a string data on dragboard, read it and use it *//*
-
-                System.out.println("Dropping");
-                Dragboard dragboard = event.getDragboard();
-                boolean hasDish = dragboard.hasContent(DISH_FORMAT);
-                boolean hasMeal = dragboard.hasContent(MEAL_FORMAT);
-                boolean success = false;
-                if (hasDish) {
-                    Dish dish = DragUtils.getContent(dragboard, DISH_FORMAT);
-                    dishListBox.getChildren().add(new DishButton(dish));
-                    success = true;
-                } else if (hasMeal) {
-                    Meal content = DragUtils.getContent(dragboard, MEAL_FORMAT);
-                    //TODO allow meals to be stored here as well. Either store two lists, or just meals.
-                    if (!Dish.isStub(content.getDish())) {
-                        dishListBox.getChildren().add(new DishButton(content.getDish()));
-                        success = true;
-                    }
-                }
-                */
-    /* let the source know whether the string was successfully
-     * transferred and used *//*
-
-                event.setDropCompleted(success);
-                event.consume();
-            }
-        });
-        vBox.getChildren().add(text);
-        vBox.getChildren().add(dishListBox);
-        flowPane.getChildren().add(vBox);
-        return flowPane;
     }
-*/
 
     private FlowPane makeNotesPanel() {
         FlowPane flowPane = new FlowPane();
@@ -821,7 +739,9 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
         }
     }
 
-
+    /**
+     * A wrapper class for a DayPlanIF, associating a specific LocalDate to it.
+     */
     public static class DatedDayPlan implements DayPlanIF {
         final LocalDate date;
         final DayPlanIF dayPlan;
@@ -902,8 +822,21 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
     }
 
     @Override
-    public void addDish(Dish dish, LocalDate date, MealType type) {
-        mealPlanBuilder.setMeal(date, type, new Meal(dish, ""));
+    public void addDish(Meal meal, LocalDate date, MealType type) {
+        mealPlanBuilder.setMeal(date, type, meal);
         tableView.refresh();
     }
+
+    public List<Meal> getMealList() {
+        return new UnmodifiableList<>(new ArrayList<>(mealPlanBuilder.getTempMeals()));
+    }
+
+    public void addTempDish(Dish dish) {
+        dishHolderPanel.addDish(dish);
+    }
+
+    public MealPlan makePlan() {
+        return mealPlanBuilder.makePlan();
+    }
+
 }

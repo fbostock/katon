@@ -1,15 +1,17 @@
 package fjdb.investments.backtests;
 
+import fjdb.investments.tickers.Ticker;
+
 import java.time.LocalDate;
 import java.util.List;
 
 public class Portfolio {
-    private final String ticker;
+    private final Ticker ticker;
     private final List<Trade> trades;
     private final List<MutableTrade> liveTrades;
     private double totalPnl = 0.0;
 
-    public Portfolio(String ticker, List<Trade> trades, List<MutableTrade> liveTrades) {
+    public Portfolio(Ticker ticker, List<Trade> trades, List<MutableTrade> liveTrades) {
         this.ticker = ticker;
         this.trades = trades;
         this.liveTrades = liveTrades;

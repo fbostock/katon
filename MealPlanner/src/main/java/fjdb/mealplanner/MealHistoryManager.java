@@ -6,10 +6,18 @@ import com.google.common.collect.TreeMultimap;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.NavigableSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class MealHistoryManager {
 
     private final TreeMultimap<Dish, LocalDate> dishHistories = TreeMultimap.create();
+
+    public TreeSet<String> getAllDishes() {
+        return allDishes;
+    }
+
+    private final TreeSet<String> allDishes = new TreeSet<>();
 
     private LocalDate currentDate;
 
@@ -19,6 +27,7 @@ public class MealHistoryManager {
             loadMeals(mealPlan);
         }
     }
+
 
     private void loadMeals(MealPlan mealPlan) {
         if (mealPlan.getStart().isAfter(currentDate)) return;
@@ -36,10 +45,17 @@ public class MealHistoryManager {
     }
 
     private void populate(Meal meal, LocalDate date) {
+        allDishes.add(meal.toString());
+        allDishes.add(meal.getNotes());
+        allDishes.add(meal.getDish().getName());
+        allDishes.add(meal.getDish().getDescription());
+
         if (!Meal.isStub(meal)) {
             Dish dish = meal.getDish();
             if (!Dish.isStub(dish)) {
                 dishHistories.put(dish, date);
+            } else {
+                int x = 0;
             }
         }
     }

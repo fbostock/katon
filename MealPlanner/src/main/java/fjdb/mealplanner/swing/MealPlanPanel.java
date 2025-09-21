@@ -28,6 +28,7 @@ public class MealPlanPanel extends JPanel {
      */
 
     public static void main(String[] args) {
+
         JFrame frame = new JFrame("");
         frame.setPreferredSize(new Dimension(500, 500));
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

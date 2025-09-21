@@ -27,4 +27,8 @@ public abstract class LazyInitializer<T> {
             }
         };
     }
+
+    public synchronized void reset() {
+        instance = null;
+    }
 }

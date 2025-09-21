@@ -109,7 +109,7 @@ class MealCell extends TableCell<MealPlanPanel.DatedDayPlan, Meal> {
                         getTableView().refresh();
                     } else if (KeyCode.F.equals(keyEvent.getCode())) {
                         //TODO ideally, this would add a meal, not just a dish.
-                        factory.getCurrentMealPlan().addDish(getItem().getDish(), getDateInNextPlan(mealPlanBuilder), mealType);
+                        factory.getCurrentMealPlan().addDish(getItem(), getDateInNextPlan(mealPlanBuilder), mealType);
                     }
                     //TODO add controls to copy and paste meals as well.
                 }
@@ -171,7 +171,7 @@ class MealCell extends TableCell<MealPlanPanel.DatedDayPlan, Meal> {
             if (!Dish.isStub(dish)) {
                 Menu dishMenu = factory.getDishMenu(dish);
                 LocalDate date = getDateInNextPlan(builder);
-                dishMenu.getItems().add(factory.addDishToMealPlan(dish, date, mealType));
+                dishMenu.getItems().add(factory.addDishToMealPlan(meal, date, mealType));
                 list.add(dishMenu);
             } else {
                 List<Dish> candidates = DishUtils.getDishMatches(meal.getNotes(), dishes);
@@ -183,6 +183,7 @@ class MealCell extends TableCell<MealPlanPanel.DatedDayPlan, Meal> {
                             builder.setMeal(getDate(), mealType, newMeal);
                             getTableView().refresh();
                         });
+                        list.add(factory.addDishToMealPlan(meal, getDateInNextPlan(builder), mealType));
                         list.add(dishOption);
                     }
 

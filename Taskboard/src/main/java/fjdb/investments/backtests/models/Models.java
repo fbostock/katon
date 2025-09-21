@@ -1,11 +1,13 @@
 package fjdb.investments.backtests.models;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import fjdb.investments.SeriesMaths;
+import fjdb.calendar.WeekendHoliday;
+import fjdb.investments.tickers.Ticker;
 import fjdb.investments.backtests.MutableTrade;
 import fjdb.investments.backtests.Portfolio;
 import fjdb.investments.backtests.Trade;
-import fjdb.series.Series;
 import fjdb.series.TimeSeries;
 
 import java.time.LocalDate;
@@ -32,12 +34,12 @@ public class Models {
      */
 
 
-    public static Model makeRegionalMaxModel(String ticker) {
+    public static Model makeRegionalMaxModel(Ticker ticker) {
         return RegionalMaxModel.makeRegionalMaxModel(ticker, 0.03, 0.025, 30, 1);
     }
 
 
-    public static Portfolio runModel(String ticker, Model model, TimeSeries<Double> priceSeries, LocalDate start, LocalDate end, double initialAmount) {
+    public static Portfolio runModel(Ticker ticker, Model model, TimeSeries<Double> priceSeries, LocalDate start, LocalDate end, double initialAmount) {
         List<LocalDate> keys = priceSeries.subsequence(start, end).getKeys();
 
         int maxTrades = model.getParams().getClips();
@@ -91,5 +93,67 @@ public class Models {
         }
 
         return new Portfolio(ticker, completedTrades, tradesOn);
+    }
+
+    public static Portfolio runModel(Ticker ticker, List<Model> models, List<TimeSeries<Double>> priceSeries, LocalDate start, LocalDate end, double initialAmount) {
+        double initialAmountPerModelTrade = initialAmount / models.size(); //£1000.0
+//        double contractSize = initialAmountPerModelTrade / ((priceSeries.first() / 100.0));
+//        double contractSizes[] = new double[]{contractSize * 4.0/3.0, contractSize * 2.0/3.0};
+        double contractSizes[] = new double[models.size()];
+        for (int i = 0; i < priceSeries.size(); i++) {
+            TimeSeries<Double> series = priceSeries.get(i);
+            contractSizes[i] = initialAmountPerModelTrade / (series.get(start)/100.0);
+        }
+        //        double firstContract = contractSize * 4.0/3.0;
+//        double secondContract = contractSize * 2.0/3.0;
+
+        List<Trade> completedTrades = Lists.newArrayList();
+
+        ListMultimap<Model, MutableTrade> tradesOn = ArrayListMultimap.create();
+
+        for(LocalDate date : WeekendHoliday.WEEKEND.getGoodDaysIterable(start, true, end, true)) {
+            if (date.isBefore(end)) {
+                for (int j = 0; j < models.size(); j++) {
+                    Model model = models.get(j);
+                    Double price = priceSeries.get(j).get(date) / 100.0;
+
+                    Iterator<MutableTrade> iterator = tradesOn.get(model).iterator();
+                    while (iterator.hasNext()) {
+                        MutableTrade mutableTrade = iterator.next();
+                        mutableTrade.lastPrice(price);
+                        mutableTrade.put(date, contractSizes[j] * price);
+
+
+                        if (model.takeOff(mutableTrade, date)) {
+                            Trade make = mutableTrade.make();
+                            completedTrades.add(make);
+                            iterator.remove();
+                            if (model.getParams().printTrading()) {
+                                System.out.printf("Removing trade on %s (traded on %s), was on for %s days. Trades on %s\n", date, make.getTradeDate(), make.getPnlSeries().getSize(), tradesOn.size());
+                            }
+                        }
+                    }
+                    if (tradesOn.get(model).size() < 1) {
+                        if (model.doTrades(date, tradesOn.get(model))) {
+//                        initialTradeAmount = contractSize * price;
+                          Double initialTradeAmount = contractSizes[tradesOn.size()] * price;
+//                        MutableTrade newTrade = new MutableTrade(ticker, price, initialTradeAmount, date);
+                            MutableTrade newTrade = new MutableTrade(ticker, price, initialTradeAmount, date);
+                            tradesOn.get(model).add(newTrade);
+                            newTrade.put(date, initialTradeAmount);
+                            if (model.getParams().printTrading()) {
+                                System.out.printf("Placing trade on %s, %s trades on\n", date, tradesOn.size());
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+        List<MutableTrade> liveTrades = Lists.newArrayList();
+        for (Model model : tradesOn.keySet()) {
+            liveTrades.addAll(tradesOn.get(model));
+        }
+        return new Portfolio(ticker, completedTrades, liveTrades);
     }
 }

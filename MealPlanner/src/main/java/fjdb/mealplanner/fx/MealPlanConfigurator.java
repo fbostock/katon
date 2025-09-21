@@ -2,6 +2,7 @@ package fjdb.mealplanner.fx;
 
 import fjdb.mealplanner.Dish;
 import fjdb.mealplanner.MealPlanManager;
+import fjdb.mealplanner.MealPlanTemplates;
 import fjdb.mealplanner.fx.planpanel.MealPlanPanel;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -25,23 +26,28 @@ public class MealPlanConfigurator extends FlowPane {
         SpinnerValueFactory<Integer> valueFactory = daySpinner.getValueFactory();
         valueFactory.setValue(14);
 
+        CheckBox useTemplate = new CheckBox("Use Template");
+
         getChildren().add(datePicker);
         getChildren().add(daySpinner);
+        getChildren().add(useTemplate);
         Button ok = new Button("OK");
-        ok.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                //TODO get date and daySpinner, and fire result to an object passed into the constructor to deal with
-                //selections.
-                //We could even define the selection set as a generic which the MealPlanConfigurator could be typed on,
-                //but that isn't necessary here.
-                LocalDate selectedDate = datePicker.getValue();
-                Integer daysInPlan = daySpinner.getValue();
-                Configuration configuration = new Configuration(selectedDate, daysInPlan);
+        ok.setOnAction(actionEvent -> {
+            //TODO get date and daySpinner, and fire result to an object passed into the constructor to deal with
+            //selections.
+            //We could even define the selection set as a generic which the MealPlanConfigurator could be typed on,
+            //but that isn't necessary here.
+            LocalDate selectedDate = datePicker.getValue();
+            Integer daysInPlan = daySpinner.getValue();
+            Configuration configuration = new Configuration(selectedDate, daysInPlan);
 
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setContentText("Some message");
-                alert.show();
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+//            alert.setTitle();
+            alert.setContentText("Created MealPlan from " + selectedDate);
+            alert.show();
+            if (useTemplate.isSelected()) {
+                consumer.accept(new MealPlanPanel(MealPlanTemplates.makePlanFromTemplate(mealPlanManager.loadTemplate(), selectedDate, daysInPlan), dishList, mealPlanManager));
+            } else {
                 consumer.accept(new MealPlanPanel(configuration, dishList, mealPlanManager));
             }
         });

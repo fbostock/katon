@@ -4,7 +4,7 @@ import fjdb.mealplanner.swing.MealPlannerTest;
 
 import java.io.Serializable;
 
-public class Meal implements Serializable {
+public class Meal implements Serializable, Comparable<Meal> {
     private static final long serialVersionUID = 20210720L;
 
     //TODO we may want another object between Dish and Meal, encapsulating the Dish and some notes.
@@ -42,7 +42,7 @@ public class Meal implements Serializable {
     //should be handled accordingly e.g. display should be blank.
     @Override
     public String toString() {
-        return dish.getName();
+        return dish.getName().isBlank() ? getNotes(): dish.getName();
     }
 
     public String getDescription() {
@@ -51,5 +51,14 @@ public class Meal implements Serializable {
         } else {
             return String.format("%s %s", dish.getName(), notes.isEmpty() ? "" : ": " + notes);
         }
+    }
+
+    @Override
+    public int compareTo(Meal o) {
+        int dishComparison = dish.compareTo(o.dish);
+        if (dishComparison==0) {
+            return notes.compareTo(o.getNotes());
+        }
+        return dishComparison;
     }
 }

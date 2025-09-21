@@ -1,17 +1,18 @@
 package fjdb.investments.backtests;
 
+import fjdb.investments.tickers.Ticker;
 import fjdb.series.TimeSeries;
 
 import java.time.LocalDate;
 
 public class Trade {
-    String ticker;
+    Ticker ticker;
     LocalDate tradeDate;
     LocalDate endDate;
     Double pnl;
     TimeSeries<Double> pnlSeries;
 
-    public Trade(String ticker, LocalDate tradeDate, LocalDate endDate, Double pnl, TimeSeries<Double> pnlSeries) {
+    public Trade(Ticker ticker, LocalDate tradeDate, LocalDate endDate, Double pnl, TimeSeries<Double> pnlSeries) {
         this.ticker = ticker;
         this.tradeDate = tradeDate;
         this.endDate = endDate;
@@ -19,7 +20,7 @@ public class Trade {
         this.pnlSeries = pnlSeries;
     }
 
-    public String getTicker() {
+    public Ticker getTicker() {
         return ticker;
     }
 

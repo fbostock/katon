@@ -13,15 +13,20 @@ public class Collatz {
     public static void main(String[] args) {
         Collatz algo = new Collatz(3, 1, new FindingRootFactory());
         System.out.println(algo.research(100L).printout());
-        if (true) return;
+//        if (true) return;
+//1162261467
+//        for (int i = 1; i < 200; i = i + 2) {
+//            calculateRoots(3, i, false);
+//        }
 
-        for (int i = 1; i < 200; i = i + 2) {
-            calculateRoots(3, i, false);
+        for (int i = 15; i < 21; i++) {
+            System.out.println(3 + "^" +(5+i));
+            calculateRoots(3, (int)Math.pow(3, 5+i), false);
         }
     }
 
     public static void calculateRoots(int p, int q, boolean print) {
-        System.out.println(String.format("\nAnalysis for {%s,%s}", p, q));
+        System.out.printf("\nAnalysis for {%s,%s}%n", p, q);
 //        long MAX = 1000000;
 //        long MAX = 100;
         long MAX = 10000;
@@ -36,10 +41,10 @@ public class Collatz {
                 algo.research(i);
                 roots.get(algo.getResultsCache().get(i).getRoot().getValue()).incrementAndGet();
                 if (print && i % 10000 == 0) {
-                    System.out.println(String.format("DONE %s", i));
+                    System.out.printf("DONE %s%n", i);
                 }
             } catch (Exception ex) {
-                System.out.println(String.format("Problem for value %s", i));
+                System.out.printf("Problem for value %s%n", i);
                 throw ex;
             }
         }

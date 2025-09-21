@@ -2,6 +2,7 @@ package fjdb.mealplanner;
 
 import fjdb.databases.DataItemIF;
 import fjdb.mealplanner.swing.MealPlannerTest;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -38,7 +39,7 @@ public class Dish implements DataItemIF, Comparable<Dish>, Serializable {
     @Override
     public String toString() {
         String details = getDetails();
-        if (details.isEmpty()) {
+        if (StringUtils.isBlank(details)) {
             return String.format("%s", getName());
         } else {
             return String.format("%s: %s", getName(), details);

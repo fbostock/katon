@@ -19,4 +19,7 @@ public interface Model {
 
     ModelParams getParams();
 
+    <T> T getParameter(ModelParameter<T> parameter);
+
+    <T> void setParameter(ModelParameter<T> parameter, T value);
 }

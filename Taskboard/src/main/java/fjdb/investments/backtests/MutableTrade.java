@@ -1,5 +1,6 @@
 package fjdb.investments.backtests;
 
+import fjdb.investments.tickers.Ticker;
 import fjdb.series.TimeSeries;
 import fjdb.series.TimeSeriesMapBuilder;
 
@@ -9,12 +10,12 @@ public class MutableTrade {
 
     private final Double startPrice;
     private Double initialTradeAmount;
-    String ticker;
+    Ticker ticker;
     TimeSeriesMapBuilder<Double> pnlBuilder = new TimeSeriesMapBuilder<>(Double.class);
     private Double lastPrice;
     private LocalDate startDate;
 
-    public MutableTrade(String ticker, Double startPrice, Double initialTradeAmount, LocalDate startDate) {
+    public MutableTrade(Ticker ticker, Double startPrice, Double initialTradeAmount, LocalDate startDate) {
         this.ticker = ticker;
         this.startPrice = startPrice;
         this.initialTradeAmount = initialTradeAmount;

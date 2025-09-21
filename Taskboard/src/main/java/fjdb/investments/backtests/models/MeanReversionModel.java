@@ -2,6 +2,7 @@ package fjdb.investments.backtests.models;
 
 import fjdb.investments.FinancialDataSource;
 import fjdb.investments.SeriesMaths;
+import fjdb.investments.tickers.Ticker;
 import fjdb.investments.backtests.MutableTrade;
 import fjdb.series.Series;
 
@@ -17,7 +18,7 @@ public class MeanReversionModel extends ModelBase {
     private final double fraction;
     private final int days;
 
-    public MeanReversionModel(String ticker, double fraction, FinancialDataSource financialDataSource, int days) {
+    public MeanReversionModel(Ticker ticker, double fraction, FinancialDataSource financialDataSource, int days) {
         super(ticker, financialDataSource);
         this.fraction = fraction;
         this.days = days;

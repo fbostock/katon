@@ -4,8 +4,10 @@ import com.google.common.collect.Lists;
 import fjdb.calendar.WeekendHoliday;
 import fjdb.investments.FinancialDataSource;
 import fjdb.investments.SeriesMaths;
+import fjdb.investments.tickers.Ticker;
 import fjdb.investments.backtests.MutableTrade;
 import fjdb.series.Series;
+import fjdb.util.DateTimeUtil;
 import fjdb.util.ListUtil;
 
 import java.time.LocalDate;
@@ -17,6 +19,8 @@ public class RegionalMaxModel extends ModelBase {
 
     public static final ModelParameter<Double> FRACTION_ON = new ModelParameter<>(0.02);
     public static final ModelParameter<Double> FRACTION_OFF = new ModelParameter<>(0.02);
+    public static final ModelParameter<Boolean> WAIT_TILL_TROUGH_TO_PUTON = new ModelParameter<>(false);
+    public static final ModelParameter<Boolean> WAIT_TILL_PEAK_TO_TAKEOFF = new ModelParameter<>(true);
     private final int days;
     Map<LocalDate, TradeParams> tradesInProgress = new ConcurrentHashMap<>();
 
@@ -28,29 +32,35 @@ public class RegionalMaxModel extends ModelBase {
     - For second/third etc. lots, we apply constraint that the prices need to have stopped descending,
     - For the primary lot, we apply the constraint that the prices been to be increasing when it is below 2%.
 
+    - construct a model for two clips which applies different constraints based on the first or second clip.
+        + Have constraints like FRACTION_ON done on a per clip basis within a model
+        + Have a Composite model made of >=2 models, where one model trades only if first has for instance
+
+
      */
 
     public static List<ModelMaker> models = Lists.newArrayList();
-    public static ModelMaker ON_3_OFF_2_30_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.03, 0.02, 30, 1));
-    public static ModelMaker ON_2_OFF_2_30_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.02, 0.02, 30, 1));
-    public static ModelMaker ON_3_OFF_2_30_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.03, 0.02, 30, 2));
-    public static ModelMaker ON_2_OFF_2_30_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.02, 0.02, 30, 2));
-    public static ModelMaker ON_3_OFF_2_15_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.03, 0.02, 15, 1));
-    public static ModelMaker ON_2_OFF_2_15_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.02, 0.02, 15, 1));
-    public static ModelMaker ON_3_OFF_2_15_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.03, 0.02, 15, 2));
-    public static ModelMaker ON_2_OFF_2_15_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.02, 0.02, 15, 2));
-    public static ModelMaker ON_3_OFF_2_60_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.03, 0.02, 60, 1));
-    public static ModelMaker ON_2_OFF_2_60_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.02, 0.02, 60, 1));
-    public static ModelMaker ON_3_OFF_2_60_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.03, 0.02, 60, 2));
-    public static ModelMaker ON_2_OFF_2_60_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.02, 0.02, 60, 2));
+    public static ModelMaker ON_3_OFF_2_30_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker, 0.03, 0.02, 30, 1));
+    public static ModelMaker ON_2_OFF_2_30_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker, 0.02, 0.02, 30, 1));
+    //    public static ModelMaker ON_3_OFF_2_30_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.03, 0.02, 30, 2));
+//    public static ModelMaker ON_2_OFF_2_30_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.02, 0.02, 30, 2));
+    public static ModelMaker ON_3_OFF_2_15_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker, 0.03, 0.02, 15, 1));
+    public static ModelMaker ON_2_OFF_2_15_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker, 0.02, 0.02, 15, 1));
+    //    public static ModelMaker ON_3_OFF_2_15_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.03, 0.02, 15, 2));
+//    public static ModelMaker ON_2_OFF_2_15_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.02, 0.02, 15, 2));
+    public static ModelMaker ON_3_OFF_2_60_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker, 0.03, 0.02, 60, 1));
+    public static ModelMaker ON_2_OFF_2_60_DAYS_SINGLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker, 0.02, 0.02, 60, 1));
+//    public static ModelMaker ON_3_OFF_2_60_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.03, 0.02, 60, 2));
+//    public static ModelMaker ON_2_OFF_2_60_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker.getName(), 0.02, 0.02, 60, 2));
+    public static ModelMaker ON_1_OFF_1_30_DAYS_DOUBLE = createModelMaker(ticker -> makeRegionalMaxModel(ticker, 0.01, 0.01, 30, 1));
 
     private static ModelMaker createModelMaker(ModelMaker modelMaker) {
         models.add(modelMaker);
         return modelMaker;
     }
 
-    public static Model makeRegionalMaxModel(String ticker, double on, double off, int days, int clips) {
-        FinancialDataSource financialDataSource = new FinancialDataSource();
+    public static Model makeRegionalMaxModel(Ticker ticker, double on, double off, int days, int clips) {
+        FinancialDataSource financialDataSource = FinancialDataSource.FILLED_DATASOURCE;
         ModelBase model = new RegionalMaxModel(ticker, financialDataSource, days);
         model.setParameter(RegionalMaxModel.FRACTION_ON, on);
         model.setParameter(RegionalMaxModel.FRACTION_OFF, off);
@@ -58,7 +68,7 @@ public class RegionalMaxModel extends ModelBase {
         return model;
     }
 
-    public RegionalMaxModel(String ticker, FinancialDataSource financialDataSource, int days) {
+    public RegionalMaxModel(Ticker ticker, FinancialDataSource financialDataSource, int days) {
         super(ticker, financialDataSource);
         this.days = days;
         params.setParameter(FRACTION_ON);
@@ -81,6 +91,9 @@ public class RegionalMaxModel extends ModelBase {
 
     @Override
     public boolean doTrades(LocalDate date, List<MutableTrade> currentTrades) {
+        if (date.isAfter(DateTimeUtil.date(20240107))) {
+            System.out.println();
+        }
         if (currentTrades.isEmpty()) {
             Double targetPrice = calcTargetPrice(date);
             boolean tradePutOn = priceSeries.get(date) < targetPrice && isTradeGood(date);
@@ -116,16 +129,11 @@ public class RegionalMaxModel extends ModelBase {
 
     private boolean isTradeGood(LocalDate date) {
         //check price, last price. If last price less than price (going back up) yes, we're good.
-        if (true) return true;
+        if (!getParameter(WAIT_TILL_TROUGH_TO_PUTON)) return true;
         Double currentPrice = priceSeries.get(date);
-        Double previousPrice = null;
-        LocalDate prevDate = date;
-        while (previousPrice == null) {
-            prevDate = WeekendHoliday.WEEKEND.previous(prevDate);
-            previousPrice = priceSeries.get(prevDate);
-        }
+        Double previousPrice = getPreviousPrice(date);
         if (previousPrice > currentPrice) {
-            System.out.printf("PREVENTING TRADE DUE TO FALLING KNIFE %s Current %.2f Previous %.2f\n", date, currentPrice, previousPrice);
+//            System.out.printf("PREVENTING TRADE DUE TO FALLING KNIFE %s Current %.2f Previous %.2f\n", date, currentPrice, previousPrice);
         }
         return currentPrice > previousPrice;
     }
@@ -148,11 +156,33 @@ public class RegionalMaxModel extends ModelBase {
 
     public boolean takeOff(MutableTrade trade, LocalDate date) {
         TradeParams tradeParams = tradesInProgress.get(trade.getStartDate());
-        if (priceSeries.get(date) > tradeParams.priceToTakeOff) {
+        if (priceSeries.get(date) > tradeParams.priceToTakeOff && tradeOkToTakeOff(date)) {
             tradesInProgress.remove(date);
             return true;
         }
         return false;
+    }
+
+    private boolean tradeOkToTakeOff(LocalDate date) {
+        //price has to be less than previous day
+        if (!getParameter(WAIT_TILL_PEAK_TO_TAKEOFF)) return true;
+
+        Double currentPrice = priceSeries.get(date);
+        Double previousPrice = getPreviousPrice(date);
+        if (currentPrice > previousPrice) {
+//            System.out.printf("KEEPING TRADE ON UNTIL PEAK IS REACHED %s Current %.2f Previous %.2f\n", date, currentPrice, previousPrice);
+        }
+        return currentPrice < previousPrice;
+    }
+
+    private Double getPreviousPrice(LocalDate date) {
+        Double previousPrice = null;
+        LocalDate prevDate = date;
+        while (previousPrice == null && !prevDate.isBefore(priceSeries.firstKey())) {
+            prevDate = WeekendHoliday.WEEKEND.previous(prevDate);
+            previousPrice = priceSeries.get(prevDate);
+        }
+        return previousPrice;
     }
 
     private record TradeParams(double pricePutOn, double priceToTakeOff) {

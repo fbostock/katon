@@ -26,6 +26,10 @@ public class DishActionFactory {
         this.mealHistoryManager = mealHistoryManager;
     }
 
+    public MealHistoryManager getMealHistoryManager() {
+        return mealHistoryManager;
+    }
+
     public void getDishHistory(Dish dish) {
         List<LocalDate> dates = mealHistoryManager.getDates(dish);
 
@@ -150,9 +154,9 @@ public class DishActionFactory {
         return menuItem;
     }
 
-    public MenuItem addDishToMealPlan(Dish dish, LocalDate date, MealType mealType) {
-        MenuItem menuItem = new MenuItem("Add Dish to plan on " + date);
-        menuItem.setOnAction(actionEvent -> currentMealPlan.addDish(dish, date, mealType));
+    public MenuItem addDishToMealPlan(Meal meal, LocalDate date, MealType mealType) {
+        MenuItem menuItem = new MenuItem("Add Meal to plan on " + date);
+        menuItem.setOnAction(actionEvent -> currentMealPlan.addDish(meal, date, mealType));
         return menuItem;
     }
 
@@ -168,7 +172,7 @@ public class DishActionFactory {
         }
 
         @Override
-        public void addDish(Dish dish, LocalDate date, MealType type) {
+        public void addDish(Meal meal, LocalDate date, MealType type) {
             //no-op
         }
     }

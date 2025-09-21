@@ -1,9 +1,9 @@
 package fjdb.investments;
 
+import fjdb.investments.tickers.Ticker;
+import fjdb.investments.tickers.Tickers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class TickerTest {
 

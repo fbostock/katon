@@ -31,9 +31,16 @@ public class Threading {
 
     /**
      * Submits runnables and returns immediately.
+     * @return
      */
-    public static void runAndReturn(List<Runnable> runnables) {
-        throw new UnsupportedOperationException("To be implemented when required");
+    public static List<Future<?>> runAndReturn(List<Runnable> runnables) {
+        List<Future<?>> results = new ArrayList<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(runnables.size());
+        for (Runnable runnable : runnables) {
+            results.add(executorService.submit(runnable));
+        }
+        executorService.shutdown();
+        return results;
     }
 
     public static <V> List<Future<V>> submit(List<Callable<V>> callables) {

@@ -52,9 +52,10 @@ public class NotesRepository {
     }
 
     private List<Note> getNotes(Map<DefaultId, NoteDataItem> map) {
+        Comparator<Note> comparing = Comparator.<Note, LocalDateTime>comparing(o -> dataMap.get(o.id).getTimeModified()).reversed();
         return map.entrySet().stream()
                 .map(entry -> new Note(entry.getValue().getTitle(), entry.getValue().getContent(), entry.getKey()))
-                .sorted(Comparator.comparing(o -> dataMap.get(o.id).getTimeModified())).toList();
+                .sorted(comparing).toList();
 
     }
 

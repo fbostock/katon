@@ -1,0 +1,8 @@
+module Core {
+//    requires guava;
+
+    exports fjdb.util;
+//    exports fjdb.series;
+//    exports fjdb.calendar;
+//    exports fjdb.threading;
+}

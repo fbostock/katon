@@ -6,10 +6,7 @@ import fjdb.util.ListUtil;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 public class MealPlan implements Serializable {
     private static final long serialVersionUID = 20210720L;
@@ -22,16 +19,24 @@ public class MealPlan implements Serializable {
     public static final String DINNER = "Dinner";
 
     private final TreeMap<LocalDate, DayPlanIF> mealPlan;
-    private final Set<Dish> tempDishes;
+    /*@Deprecated. Use tempMeals */
+    private final Set<Dish> tempDishes = new HashSet<>();
+    private Set<Meal> tempMeals = new HashSet<>();
     private final String notes;
 
     public MealPlan(TreeMap<LocalDate, DayPlanIF> mealPlan) {
-        this(mealPlan, Sets.newHashSet(), "");
+        this(mealPlan, "", Sets.newHashSet());
     }
 
     public MealPlan(TreeMap<LocalDate, DayPlanIF> mealPlan, Set<Dish> tempDishes, String notes) {
         this.mealPlan = mealPlan;
-        this.tempDishes = tempDishes;
+        this.tempDishes.addAll(tempDishes);
+        this.notes = notes;
+    }
+
+    public MealPlan(TreeMap<LocalDate, DayPlanIF> mealPlan, String notes, Set<Meal> tempMeals) {
+        this.mealPlan = mealPlan;
+        this.tempMeals.addAll(tempMeals);
         this.notes = notes;
     }
 
@@ -59,8 +64,14 @@ public class MealPlan implements Serializable {
         return String.format("Plan-%s-%s", getStart(), getEnd());
     }
 
-    public Set<Dish> getTempDishes() {
-        return tempDishes;
+    public Set<Meal> getTempDishes() {
+        if (tempMeals == null) {
+            tempMeals = new HashSet<>();
+            tempDishes.forEach(d->tempMeals.add(new Meal(d, "")));
+            System.out.println("TempMeals is null due to deserialized meal plan. Creating tempMeals from temp dishes (" + tempDishes.size() + ")");
+        }
+
+        return tempMeals;
     }
 
     public String getNotes() {

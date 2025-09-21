@@ -2,6 +2,9 @@ package fjdb.investments;
 
 import com.google.common.collect.Lists;
 import fjdb.calendar.WeekendHoliday;
+import fjdb.investments.tickers.Ticker;
+import fjdb.investments.tickers.Tickers;
+import fjdb.investments.yahoofinance.StockPrice;
 import fjdb.series.SeriesBuilder;
 import fjdb.series.TimeSeries;
 import fjdb.series.TimeSeriesMapBuilder;
@@ -22,17 +25,35 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+/**
+ * A class to fetch data for yahoo.
+ * It contains machinery to load data currently stored in csv files, and merge fetched data with them.
+ * That data storage should be extracted to another class and abstracted via an interface, but it's fine for now.
+ * Data goes back to START_DATE, 20180102, which is just some arbitary point in the past - it's not based on when data is available
+ * in yahoo.
+ *
+ */
 public class YahooDataLoader {
 
     public static DateCache dateCache = new DateCache();
-    private static final LocalDate s_startDate = DateTimeUtil.date(20180102);
-
-    static List<String> s_tickers = Lists.newArrayList("VMID.L", "VUKE.L", "VUSA.L", "VGER.L", "CNX1.L", "CIND.L", "CACX.L", "XDJP.L");
+//    private static final LocalDate START_DATE = DateTimeUtil.date(20180102);
+    private static final LocalDate START_DATE = DateTimeUtil.date(20240516);
+    private static final File data_directory = new File("/Users/francisbostock/TradeData/");
 
     public static void main(String[] args) {
-        updateDataScript(Tickers.getAll());
+//        for (Ticker ticker : Tickers.getAll()) {
+//            forwardFill(ticker, DateTimeUtil.date(20231115), DateTimeUtil.date(20231116));
+//        }
+//        updateDataScript(Tickers.Index_ETFs);
+//        fetchData(new Ticker("MSFT"), START_DATE, DateTimeUtil.previous());
+//        updateDataScript(Tickers.NASDAQ_CONSTITUENTS);
+        updateDataScript(Tickers.TekCapital);
+//        updateDataScript(Tickers.TEKCAPITAL_PORTFOLIO);
     }
 
     /**
@@ -43,15 +64,27 @@ public class YahooDataLoader {
             System.out.printf("Full data for %s up to %s. Nothing to fetch\n", ticker, from);
             return null;
         }
-        TimeSeries<Double> priceSeries = fetchData2(ticker, from, to);
+        TimeSeries<Double> priceSeries = fetchData3(ticker, from, to);
         if (priceSeries != null) {
-            writeAndMergeSeries(ticker, priceSeries);
-            System.out.printf("Completed fetch for %s from %s to %s%n", ticker, from, to);
+            int datesAdded = writeAndMergeSeries(ticker, priceSeries);
+            System.out.printf("Completed fetch for %s from %s to %s adding %d dates%n", ticker, from, to, datesAdded);
         }
         return priceSeries;
     }
 
-    private static TimeSeries<Double> fetchData2(String ticker, LocalDate from, LocalDate to) {
+    private static void forwardFill(Ticker ticker, LocalDate from, LocalDate to) {
+        TimeSeries<Double> load = load(ticker.getName());
+        List<LocalDate> dates = List.of(to);
+        List<Double> prices = List.of(load.get(from));
+        TimeSeries<Double> doubleTimeSeries = SeriesBuilder.makeTimeSeries(dates, prices);
+        writeAndMergeSeries(ticker.getName(), doubleTimeSeries);
+    }
+
+    private static TimeSeries<Double> fetchData3(String ticker, LocalDate from, LocalDate to) {
+        TimeSeries<Double> series = StockPrice.getSeries(ticker);
+        return series.timeSubsequence(from, to.plusDays(1));
+    }
+        private static TimeSeries<Double> fetchData2(String ticker, LocalDate from, LocalDate to) {
         System.out.printf("Starting fetch for %s from %s to %s%n", ticker, from, to);
         String fromDate = dateInTime(from);
         //add one day to end, to ensure its at end of day when converted to epoch seconds.
@@ -97,7 +130,7 @@ public class YahooDataLoader {
     }
 
     public static void fetchData(Ticker ticker) {
-        fetchData(ticker, s_startDate, WeekendHoliday.WEEKEND.previous(DateTimeUtil.today()));
+        fetchData(ticker, START_DATE, WeekendHoliday.WEEKEND.previous(DateTimeUtil.today()));
     }
 
     /**
@@ -107,37 +140,47 @@ public class YahooDataLoader {
         fetchAndMergeData(ticker.getName(), startDate, endDate);
     }
 
-    private static void updateDataScript(List<Ticker> tickers) {
+    public static void updateDataScript(Ticker ticker) {
+        updateDataScript(List.of(ticker));
+    }
+
+    public static void updateDataScript(List<Ticker> tickers) {
         //iterate through all tickers. For each ticker:
         for (Ticker ticker : tickers) {
             TimeSeries<Double> load = load(ticker.getName());
-            LocalDate from = WeekendHoliday.WEEKEND.next(load.lastKey());
-//            LocalDate from = DateTimeUtil.previousWeekDay();
+            LocalDate from = load.isEmpty() ? START_DATE : WeekendHoliday.WEEKEND.next(load.lastKey());
+//            LocalDate from = DateTimeUtil.date(20230901);
 //            fetchAndMergeData(ticker.getName(), from, WeekendHoliday.WEEKEND.previous(DateTimeUtil.today()));
             fetchAndMergeData(ticker.getName(), from, (DateTimeUtil.today()));
+//            fetchAndMergeData(ticker.getName(), DateTimeUtil.date(20231116), DateTimeUtil.date(20231116));
         }
     }
 
-    private static final File data_directory = new File("/Users/francisbostock/TradeData/");
 
     /**
      * For the given ticker, writes the timeeries to file, merging with any existing data. If there is any overlap, the
      * input series will overwrite.
      */
-    private static void writeAndMergeSeries(String ticker, TimeSeries<Double> doubleTimeSeries) {
+    private static int writeAndMergeSeries(String ticker, TimeSeries<Double> doubleTimeSeries) {
+        int datesAdded = 0;
         TimeSeries<Double> priceSeries;
         TimeSeries<Double> load = load(ticker);
         if (load.isEmpty()) {
             priceSeries = doubleTimeSeries;
         } else {
             TimeSeriesMapBuilder<Double> builder = new TimeSeriesMapBuilder<>(Double.class);
-            for (LocalDate key : load.getKeys()) {
+            List<LocalDate> originalKeys = load.getKeys();
+            for (LocalDate key : originalKeys) {
                 builder.put(key, load.get(key));
             }
             for (LocalDate key : doubleTimeSeries.getKeys()) {
                 builder.put(key, doubleTimeSeries.get(key));
             }
             priceSeries = builder.make();
+
+            Set<LocalDate> newKeys = new HashSet<>(doubleTimeSeries.getKeys());
+            newKeys = newKeys.stream().filter(key-> !originalKeys.contains(key)).collect(Collectors.toSet());
+            datesAdded = newKeys.size();
         }
         try (FileWriter writer = new FileWriter(makeFile(ticker))) {
             writer.write("Date,Close" + System.lineSeparator());
@@ -148,6 +191,7 @@ public class YahooDataLoader {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+        return datesAdded;
     }
 
     private static File makeFile(String ticker) {

@@ -6,7 +6,12 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import fjdb.calendar.NoHoliday;
+import fjdb.mealplanner.web.email.Gmailer;
+import fjdb.mealplanner.web.MealWebServer;
 import fjdb.threading.LazyInitializer;
+import fjdb.util.DateTimeUtil;
+import javafx.scene.control.Alert;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
@@ -20,8 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MealPlanManager {
@@ -29,12 +34,14 @@ public class MealPlanManager {
     private static final Logger log = LoggerFactory.getLogger(MealPlanManager.class);
     //    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-EEE");
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE-dd-MM-yy");
+    private final String templatePlanFilePath = "templates/mealPlanTemplate";
 
     private final File directory;
     private final File csvDirectory;
 
     //    private final List<MealPlan> mealPlans = Lists.newArrayList();
     private final Map<LocalDate, MealPlan> mealPlans = new TreeMap<>();
+
 
     private final LazyInitializer<DishActionFactory> dishActionFactoryLazyInitializer = new LazyInitializer<>() {
         @Override
@@ -43,6 +50,33 @@ public class MealPlanManager {
             return new DishActionFactory(historyManager);
         }
     };
+
+    private final LazyInitializer<MealPlan> mealPlanTemplate = new LazyInitializer<>() {
+        @Override
+        public MealPlan make() {
+            File file = new File(directory, templatePlanFilePath);
+            return makeTemplate(file);
+        }
+    };
+
+    private static MealPlan makeTemplate(File file) {
+        if (file.exists()) {
+            log.info("Template file {} exists, attempting to deserialize mealplan", file);
+            try {
+                return deserializeForced(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        log.info("Could not find or deserialize template plan. Creating new blank one.");
+        MealPlanBuilder builder = new MealPlanBuilder();
+        LocalDate start = DateTimeUtil.date(20240630);
+        Iterator<LocalDate> goodDays = new NoHoliday().getGoodDays(start, true, start.plusDays(28), true);
+        while (goodDays.hasNext()) {
+            builder.getDayPlan(goodDays.next());//by putting an item in the mealPlans pool, it adds a blank plan.
+        }
+        return builder.makePlan();
+    }
 
     public MealPlanManager(File directory) {
         this.directory = directory;
@@ -76,29 +110,37 @@ public class MealPlanManager {
         File[] files = directory.listFiles();
         for (File file : files) {
             if (file.isDirectory()) continue;
-            try {
-                MealPlan deserializedPlan = deserialize(file);
-                if (deserializedPlan != null) {
-                    MealPlan previousPlan = mealPlans.get(deserializedPlan.getStart());
-                    if (previousPlan != null) {
-                        log.warn("Multiple plans with same start date {}", deserializedPlan.getStart());
-                        if (deserializedPlan.getEnd().isBefore(previousPlan.getEnd())) {
-                            log.warn("Did not load {} as plan with same start date already exists", deserializedPlan);
-                            continue;
-                        }
-                    }
-                    mealPlans.put(deserializedPlan.getStart(), deserializedPlan);
-                }
-            } catch (IOException e) {
-                log.warn("Could not deserialize file {}", file.getName());
-                e.printStackTrace();
-            } catch (Exception other) {
-                other.printStackTrace();
+            MealPlan extracted = extracted(file);
+            if (extracted != null) {
+                mealPlans.put(extracted.getStart(), extracted);
             }
         }
     }
 
-    protected MealPlan deserialize(File file) throws IOException {
+    private MealPlan extracted(File file) {
+        try {
+            MealPlan deserializedPlan = deserialize(file);
+            if (deserializedPlan != null) {
+                MealPlan previousPlan = mealPlans.get(deserializedPlan.getStart());
+                if (previousPlan != null) {
+                    log.warn("Multiple plans with same start date {}", deserializedPlan.getStart());
+                    if (deserializedPlan.getEnd().isBefore(previousPlan.getEnd())) {
+                        log.warn("Did not load {} as plan with same start date already exists", deserializedPlan);
+                        return null;
+                    }
+                }
+                return deserializedPlan;
+            }
+        } catch (IOException e) {
+            log.warn("Could not deserialize file {}", file.getName());
+            e.printStackTrace();
+        } catch (Exception other) {
+            other.printStackTrace();
+        }
+        return null;
+    }
+
+    protected static MealPlan deserialize(File file) throws IOException {
         if (file.getName().contains("Plan-") && !file.getName().toLowerCase().contains("csv")) {
             try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
                 return SerializationUtils.deserialize(bufferedInputStream.readAllBytes());
@@ -109,13 +151,23 @@ public class MealPlanManager {
         return null;
     }
 
+    public static MealPlan deserializeForced(File file) throws IOException {
+        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+            return SerializationUtils.deserialize(bufferedInputStream.readAllBytes());
+        }
+    }
+
     public void addMealPlan(MealPlan plan) {
         MealPlan oldPlan = mealPlans.put(plan.getStart(), plan);
         if (oldPlan != null) {
             System.out.printf("Replaced old plan starting on %s%n", oldPlan.getStart());
         }
+        serializePlan(new File(directory, plan.getName()), plan);
+    }
+
+    public static void serializePlan(File file, MealPlan plan) {
         byte[] serialize = SerializationUtils.serialize(plan);
-        try (FileOutputStream fileOutputStream = new FileOutputStream(new File(directory, plan.getName()))) {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
             try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
                 bufferedOutputStream.write(serialize);
             }
@@ -297,6 +349,21 @@ public class MealPlanManager {
         return toPdf(plan, new File(getCSVDirectory(), plan.getName() + ".pdf"));
     }
 
+    public File toPdfAndEmail(MealPlan plan) {
+        MealWebServer.uploadMealPlan(plan);
+        File file = toPdf(plan);
+        String subject = String.format("Meal Plan Starting %s", plan.getStart());
+//        Emailer2.sendMessage(subject, DEFAULT_ADDRESSES, "Meal Plan", file);
+//        Emailer2.sendMessage(subject, MealPlanner.addresses, "Meal Plan", file);
+
+
+        Gmailer.sendMessage(subject, MealPlanner.addresses, "Meal Plan", file);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setContentText("Email sent");
+        alert.show();
+        return file;
+    }
+
     public File toExcel(MealPlan plan) {
         return toExcel(plan, new File(getCSVDirectory(), plan.getName() + ".xls"));
     }
@@ -349,6 +416,28 @@ public class MealPlanManager {
             }
         }
         DishManager.getInstance().loadDishes(allDishes);
+    }
+
+    public MealPlan loadTemplate() {
+        return mealPlanTemplate.get();
+    }
+
+    public void saveTemplate(MealPlan templatePlan) {
+
+        File file = new File(directory, templatePlanFilePath);
+        if (!file.exists()) {
+            new File(file.getParent()).mkdirs();
+        }
+        serializePlan(file, templatePlan);
+        mealPlanTemplate.reset();
+    }
+
+    public void printAllMeals() {
+        MealHistoryManager mealHistoryManager = dishActionFactoryLazyInitializer.get().getMealHistoryManager();
+        TreeSet<String> allDishes = mealHistoryManager.getAllDishes();
+        for (String allDish : allDishes) {
+            System.out.println(allDish);
+        }
     }
 
     public static class DishManager {

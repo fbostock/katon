@@ -130,10 +130,10 @@ public class NotesPane {
                     ContextMenu contextMenu = new ContextMenu();
                     MenuItem edit = new MenuItem("Edit");
                     edit.setOnAction(e->editAction());
-                    MenuItem delete = new MenuItem("Delete");
+                    MenuItem delete = new MenuItem("Delete (from view, not db yet)");
                     delete.setOnAction(e->deleteAction());
 
-                    contextMenu.getItems().add(edit);
+                    contextMenu.getItems().addAll(edit, delete);
                     contextMenu.show(applicationBoard.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
 
                 }

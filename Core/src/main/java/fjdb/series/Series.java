@@ -12,12 +12,8 @@ public class Series<T extends Comparable<? super T>, V> {
 
     T[] keys;
     V[] values;
-    private int startIndex;
-    private int size;
-
-    public Series(List<T> keys, List<V> values, int startIndex, int size) {
-
-    }
+    protected int startIndex;
+    protected int size;
 
     public Series(T[] keys, V[] values, int startIndex, int size) {
         this.keys = keys;
@@ -83,10 +79,29 @@ public class Series<T extends Comparable<? super T>, V> {
         return new Series<>(keys, values, startIndex + startInclusive, size-startInclusive);
     }
 
+    /**
+     * Retrieve a series starting from startKey continuing to the end of the series.
+     */
     public Series<T, V> end(T startKey) {
         //TODO validation on start/end index
         //TODO add tests for a subsequence of a subsequence
-        return end(indexOf(startKey));
+        int startInclusive = indexOf(startKey);
+        if (startInclusive < 0) {
+            int effectivePosition = effectivePosition(startInclusive);
+            if (effectivePosition >= size) return null;//TODO need to return empty series.
+            if (effectivePosition == 0) return this;
+            return end(effectivePosition);
+        } else {
+            return end(startInclusive);
+        }
+    }
+
+    /**
+     * If the index is negative, we have been given index = (-(insertion point) - 1). So we revert to get the insertion point
+     */
+    protected int effectivePosition(int index) {
+        if (index >=0) return index;
+        return -(index + 1);
     }
 
     //TODO make this a view of the keys, minimizing object allocation.
@@ -178,5 +193,15 @@ public class Series<T extends Comparable<? super T>, V> {
         public V curentValue() {
             return series.values[currentIndex];
         }
+    }
+
+
+
+
+    public static <T extends Comparable<? super T>, V, S extends Series<T, V>> S subseries() {
+        //TODO for a given Series implementation, like TimeSeries, I want to create another object.
+        //e.g. TimeSeries timeSeries = ....
+        //TimeSeries end = timeSeries.end(LocalDate.of(2025,4,1);
+        return null;
     }
 }
