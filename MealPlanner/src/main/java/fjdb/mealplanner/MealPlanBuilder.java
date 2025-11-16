@@ -17,6 +17,7 @@ public class MealPlanBuilder {
         }
     };
     private final Set<Meal> tempMeals = Sets.newTreeSet();
+    private final Set<Meal> recentMeals = Sets.newTreeSet();
     private String notes = "";
 
     public MealPlanBuilder() {
@@ -112,6 +113,11 @@ public class MealPlanBuilder {
 
     public void removeTempDish(Meal dish) {
         tempMeals.remove(dish);
+        recentMeals.add(dish);
+    }
+
+    public Set<Meal> getRecentMeals() {
+        return recentMeals;
     }
 
     public void clearTempDishes() {

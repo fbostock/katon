@@ -11,7 +11,7 @@
 
     <artifactId>MealPlanner</artifactId>
     <!--Last release 1.0.4 on 20241005. Updated version for next release-->
-    <version>1.0.6</version>
+    <version>1.0.8</version>
     <dependencies>
 
 <!--        <dependency>-->
@@ -35,11 +35,11 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.eclipse.angus/angus-mail -->
-        <dependency>
-            <groupId>org.eclipse.angus</groupId>
-            <artifactId>angus-mail</artifactId>
-            <version>2.0.3</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.eclipse.angus</groupId>-->
+<!--            <artifactId>angus-mail</artifactId>-->
+<!--            <version>2.0.3</version>-->
+<!--        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp/okhttp -->
         <dependency>
@@ -93,18 +93,18 @@
             <classifier>mac</classifier>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.eclipse.angus</groupId>-->
-<!--            <artifactId>angus-mail</artifactId>-->
-<!--            <version>2.0.1</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.eclipse.angus</groupId>
+            <artifactId>angus-mail</artifactId>
+            <version>2.0.1</version>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.google.apis/google-api-services-gmail -->
-        <dependency>
-            <groupId>com.google.apis</groupId>
-            <artifactId>google-api-services-gmail</artifactId>
-            <version>v1-rev20220404-1.32.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.google.apis</groupId>-->
+<!--            <artifactId>google-api-services-gmail</artifactId>-->
+<!--            <version>v1-rev20220404-1.32.1</version>-->
+<!--        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/com.google.auth/google-auth-library-oauth2-http -->
         <dependency>
@@ -114,11 +114,11 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/javax.mail/mail -->
-        <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-            <version>1.4.7</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>javax.mail</groupId>-->
+<!--            <artifactId>mail</artifactId>-->
+<!--            <version>1.4.7</version>-->
+<!--        </dependency>-->
 
     </dependencies>
 

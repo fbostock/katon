@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 public class DishActionFactory {
 
@@ -150,7 +151,7 @@ public class DishActionFactory {
 
     private MenuItem addDishToMealPlan(Dish dish) {
         MenuItem menuItem = new MenuItem("Add Dish to plan starting " + currentMealPlan.getStart());
-        menuItem.setOnAction(actionEvent -> currentMealPlan.addDishToHolder(dish));
+        menuItem.setOnAction(actionEvent -> currentMealPlan.addDishToHolder(new Meal(dish, "")));
         return menuItem;
     }
 
@@ -167,13 +168,18 @@ public class DishActionFactory {
         }
 
         @Override
-        public void addDishToHolder(Dish dish) {
+        public void addDishToHolder(Meal dish) {
             //no-op
         }
 
         @Override
         public void addDish(Meal meal, LocalDate date, MealType type) {
             //no-op
+        }
+
+        @Override
+        public Set<Meal> getRecentMeals() {
+            return Set.of();
         }
     }
 }

@@ -8,7 +8,7 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import fjdb.calendar.NoHoliday;
 import fjdb.mealplanner.web.email.Gmailer;
-import fjdb.mealplanner.web.MealWebServer;
+import fjdb.mealplanner.web.MealWebServerFunctions;
 import fjdb.threading.LazyInitializer;
 import fjdb.util.DateTimeUtil;
 import javafx.scene.control.Alert;
@@ -350,12 +350,11 @@ public class MealPlanManager {
     }
 
     public File toPdfAndEmail(MealPlan plan) {
-        MealWebServer.uploadMealPlan(plan);
+        MealWebServerFunctions.uploadMealPlan(plan);
         File file = toPdf(plan);
         String subject = String.format("Meal Plan Starting %s", plan.getStart());
 //        Emailer2.sendMessage(subject, DEFAULT_ADDRESSES, "Meal Plan", file);
 //        Emailer2.sendMessage(subject, MealPlanner.addresses, "Meal Plan", file);
-
 
         Gmailer.sendMessage(subject, MealPlanner.addresses, "Meal Plan", file);
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

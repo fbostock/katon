@@ -7,13 +7,19 @@ import fjdb.databases.ColumnGroup;
 import fjdb.mealplanner.admin.DishTagPanel;
 import fjdb.mealplanner.dao.DishHistoryDao;
 import fjdb.mealplanner.dao.DishTagDao;
+import fjdb.mealplanner.events.EventProcessor;
+import fjdb.mealplanner.events.MealEvent;
+import fjdb.mealplanner.events.MealEventListener;
 import fjdb.mealplanner.fx.DishTagSelectionPanel;
 import fjdb.mealplanner.fx.MealPlanConfigurator;
 import fjdb.mealplanner.fx.Selectors;
 import fjdb.mealplanner.fx.planpanel.MealPlanPanel;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
 import fjdb.mealplanner.panels.PlansPane;
+import fjdb.mealplanner.persistence.PlannerState;
+import fjdb.mealplanner.web.MealPlanMeta;
 import fjdb.mealplanner.web.MealWebServer;
+import fjdb.mealplanner.web.MealWebServerFunctions;
 import fjdb.mealplanner.web.email.EmailAddresses;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -21,6 +27,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
@@ -31,6 +38,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -59,6 +68,8 @@ public class MealPlanner extends Application {
     private PlansPane plansPane;
 
     public static List<String> addresses = new ArrayList<>();
+    private MealWebServer webServer;
+    private PlannerState plannerState;
 
     /*
 
@@ -142,6 +153,7 @@ public class MealPlanner extends Application {
 
     public MealPlanner() {
 
+        webServer = new MealWebServer();
 //        String currentUsersHomeDir = System.getProperty("user.home");
 //        File mealPlansFolder = new File(currentUsersHomeDir, "MealPlans");
 //        mealPlanManager = new MealPlanManager(mealPlansFolder);
@@ -263,6 +275,12 @@ public class MealPlanner extends Application {
         templatesMenu.getItems().add(templateEdit);
 
         Menu serverMenu = new Menu("Server");
+        serverMenu.setOnShowing(new EventHandler<Event>() {
+            @Override
+            public void handle(Event event) {
+                System.out.println("help");
+            }
+        });
         MenuItem loadDishes = new MenuItem("Load server dishes to current plan");
         MenuItem uploadDishes = new MenuItem("Upload dishes to server");
         MenuItem loadServerPlan = new MenuItem("Load Plan from Server");
@@ -271,26 +289,25 @@ public class MealPlanner extends Application {
             @Override
             public void handle(ActionEvent actionEvent) {
 //                List<Dish> dishes = MealWebServer.requestDishes();
-                List<Dish> dishes = MealWebServer.requestDishList();
-                dishes.forEach(dish -> plansPane.getLatestPlan().addTempDish(dish));
+//                List<Dish> dishes = MealWebServerFunctions.requestDishList();
+//                dishes.forEach(dish -> plansPane.getLatestPlan().addTempDish(dish));
+                List<Meal> dishes = webServer.requestMealList();
+                dishes.forEach(dish -> plansPane.getLatestPlan().addDishToHolder(dish));
             }
         });
-        uploadDishes.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                List<Meal> mealList = plansPane.getLatestPlan().getMealList();
-                try {
-                    MealWebServer.uploadMealList(mealList);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        uploadDishes.setOnAction(actionEvent -> {
+            List<Meal> mealList = plansPane.getLatestPlan().getMealList();
+            try {
+                webServer.uploadMealList(mealList);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
 
-        uploadServerPlan.setOnAction(event -> MealWebServer.uploadMealPlan(plansPane.getLatestPlan().makePlan()));
+        uploadServerPlan.setOnAction(event -> webServer.uploadMealPlan(plansPane.getLatestPlan().makePlan()));
 
         loadServerPlan.setOnAction(event -> {
-            MealPlan mealPlan = MealWebServer.requestMealPlan();
+            MealPlan mealPlan = MealWebServerFunctions.requestMealPlan();
             plansPane.addMealPlanPanel(new MealPlanPanel(mealPlan, dishList, mealPlanManager));
             System.out.println(mealPlan);
         });
@@ -300,7 +317,10 @@ public class MealPlanner extends Application {
         menuBar.getMenus().add(functions);
         menuBar.getMenus().add(templatesMenu);
         menuBar.getMenus().add(serverMenu);
+        RecentMealsMenu recentMealsMenu = new RecentMealsMenu();
+        menuBar.getMenus().add(recentMealsMenu);
 
+        recentMealsMenu.init();
 
         final BorderPane sceneRoot = new BorderPane();
         sceneRoot.setCenter(mainTabs);
@@ -488,6 +508,84 @@ public class MealPlanner extends Application {
 
         return flowPane;
     }
+
+    public class RecentMealsMenu extends Menu implements MealEventListener {
+
+        public RecentMealsMenu() {
+            super("Recent Meals");
+            getItems().add(new SeparatorMenuItem());//dummy item to make sure onShowing is called.
+            EventProcessor.getInstance().addListener(this);
+        }
+
+        public void init() {
+            setOnShowing(event -> {
+                getItems().clear();
+                System.out.println("did something");
+                MenuItem refresh = new MenuItem("Refresh");
+                refresh.setOnAction(event3 -> webServer.attemptMealFetch());
+                getItems().add(refresh);
+                Set<Meal> recentMeals = mealPlanManager.getDishActionFactory().getCurrentMealPlan().getRecentMeals();
+                recentMeals.forEach(meal -> {
+                    MenuItem someMeal = new MenuItem(meal.toString());
+                    someMeal.setOnAction(event1 -> mealPlanManager.getDishActionFactory().getCurrentMealPlan().addDishToHolder(meal));
+                    getItems().add(someMeal);
+                });
+//                if (recentMeals.isEmpty()) {
+                getItems().add(new SeparatorMenuItem());
+//                }
+                List<Meal> serverMeals = webServer.getServerMeals();
+                if (!serverMeals.isEmpty()) {
+                    MenuItem serverMealsMenu = new MenuItem("Add meals (%s) from server".formatted(serverMeals.size()));
+                    serverMealsMenu.setOnAction(event12 -> {
+                        serverMeals.forEach(meal -> mealPlanManager.getDishActionFactory().getCurrentMealPlan().addDishToHolder(meal));
+                        setGraphic(null);
+                    });
+                    getItems().add(serverMealsMenu);
+                }
+                List<MealPlanMeta> serverMealPlans = webServer.getServerMealPlans();
+                if (!serverMealPlans.isEmpty()) {
+                    getItems().add(new SeparatorMenuItem());
+                    for (MealPlanMeta serverMealPlan : serverMealPlans) {
+                        MenuItem planMenuItem = new MenuItem("Load %s updated %s".formatted(serverMealPlan.getName(), serverMealPlan.getTimestamp()));
+                        planMenuItem.setOnAction(event2 -> {
+                            MealPlan mealPlan = MealWebServerFunctions.requestMealPlan2(serverMealPlan);
+                            plansPane.addMealPlanPanel(new MealPlanPanel(mealPlan, dishList, mealPlanManager));
+
+                        });
+                        getItems().add(planMenuItem);
+                    }
+                }
+                setGraphic(null);
+            });
+            if (!webServer.getServerMeals().isEmpty()) {
+                menuHasUpdates();
+            }
+        }
+
+        private void menuHasUpdates() {
+            Circle greenDot = new Circle(5, Color.GREEN);
+            setGraphic(greenDot);
+        }
+
+        @Override
+        public void processEvent(MealEvent event) {
+            if (event.isType(MealEvent.SERVER_EVENT)) {
+                //TODO do something to menu title to hightlight fresh stuff from server.
+                if (webServer.hasUpdates()) {
+                    menuHasUpdates();
+                }
+            }
+        }
+    }
+
+    //I've uploaded some dishes to webserver.
+    //Kate opens her application. I want a process to check server for uploaded dishes (a MealList), and to add a menu to recentItems
+    //which does "add meals from server".
+
+    //TODO create AppMetaData class, to store a field for the uuid of a meallist pulled from server.
+
+    //TODO check what happens if app tries to upload to server when it's down. Should not block.
+
 
     public static boolean isMasterApplication() {
         return System.getProperty("user.home").contains("francis");

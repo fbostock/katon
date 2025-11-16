@@ -619,10 +619,8 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
                     } else if (hasMeal) {
                         Meal content = DragUtils.getContent(dragboard, MEAL_FORMAT);
                         //TODO allow meals to be stored here as well. Either store two lists, or just meals.
-                        if (!Dish.isStub(content.getDish())) {
-                            addMeal(content);
-                            success = true;
-                        }
+                        addMeal(content);
+                        success = true;
                     }
                     /* let the source know whether the string was successfully
                      * transferred and used */
@@ -814,17 +812,22 @@ public class MealPlanPanel extends FlowPane implements MealPlanProxy {
     }
 
     @Override
-    public void addDishToHolder(Dish dish) {
+    public void addDishToHolder(Meal dish) {
         //TODO this creates a DishButton in the holder panel, which then adds it to the mealPlanBuilder. I would
         //prefer this method adds it to the builder (the model), and the model uses listeners to then update
         //the appropriate panels.
-        dishHolderPanel.addDish(dish);
+        dishHolderPanel.addMeal(dish);
     }
 
     @Override
     public void addDish(Meal meal, LocalDate date, MealType type) {
         mealPlanBuilder.setMeal(date, type, meal);
         tableView.refresh();
+    }
+
+    @Override
+    public Set<Meal> getRecentMeals() {
+        return mealPlanBuilder.getRecentMeals();
     }
 
     public List<Meal> getMealList() {

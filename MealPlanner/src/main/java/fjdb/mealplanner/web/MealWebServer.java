@@ -1,202 +1,110 @@
 package fjdb.mealplanner.web;
 
-import com.google.gson.Gson;
-import fjdb.mealplanner.*;
+import fjdb.mealplanner.Meal;
+import fjdb.mealplanner.MealPlan;
+import fjdb.mealplanner.events.EventProcessor;
+import fjdb.mealplanner.events.MealEvent;
 import fjdb.threading.Threading;
-import org.apache.commons.lang3.SerializationUtils;
+import javafx.scene.control.Alert;
 
-import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-/*
-This is not an actual webserver, but serves as an interface for messaging with the webserver managed by the DemoApplication
-in the demo repo.
- */
 public class MealWebServer {
 
-    private static final String mealListWriteEndpoint = "/api/mealswrite";
-    private static final String mealListFetchEndpoint = "/api/meallist";
-    private static final String mealPlanWriteEndpoint = "/api/mealplanwrite";
-    private static final String mealPlanFetchEndpoint = "/api/mealplan";
+    private volatile List<Meal> mealsFromServer = new ArrayList<>();
+    private final AtomicBoolean hasFetched = new AtomicBoolean(false);
+    private final AtomicBoolean hasFetchedPlans = new AtomicBoolean(false);
+    private volatile List<MealPlanMeta> mealPlansFromServer = new ArrayList<>();
+    private final AtomicBoolean hasUpdates = new AtomicBoolean(false);
 
 
-    private static String getServerUrl() {
-        if (MealPlanner.isMasterApplication()) {
-            return "http://localhost:8080";
+    public MealWebServer() {
+        attemptMealFetch();
+    }
+
+    public List<Meal> getServerMeals() {
+        if (hasFetched.get()) {
+            return mealsFromServer;
         } else {
-            return "http://192.168.0.46:8080";
+            return List.of();
         }
     }
 
-    public static File getWebserverFolder() {
-        File mealPlansDirectory = MealPlanManager.tryFindMealPlans();
-        File webserver = new File(mealPlansDirectory, "webserver");
-        File webServer = webserver;
-        if (!webserver.exists()) {
-            webServer.mkdir();
-        }
-        return webserver;
-    }
-
-    public static void uploadDishes(List<Dish> dishes) throws IOException {
-        //TODO put this on a separate thread, so it doesn't hang the UI if the server is down.
-        if (!attemptPost(dishes)) {
-            File dishFile = new File(getWebserverFolder(), "dishlist.json");
-            String json = new Gson().toJson(dishes.stream().map(Dish::getName).collect(Collectors.toList()));
-            FileWriter writer = new FileWriter(dishFile);
-            writer.write(json);
-            writer.close();
+    public List<MealPlanMeta> getServerMealPlans() {
+        if (hasFetchedPlans.get()) {
+            return mealPlansFromServer;
+        } else {
+            return List.of();
         }
     }
 
-    public static void uploadMealList(List<Meal> meals) throws IOException {
-        //TODO put this on a separate thread, so it doesn't hang the UI if the server is down.
-        if (!attemptPostMeals(meals)) {
-            File dishFile = new File(getWebserverFolder(), "meallist.json");
-            String json = new Gson().toJson(new MealList(meals));
-            FileWriter writer = new FileWriter(dishFile);
-            writer.write(json);
-            writer.close();
+    public List<Meal> requestMealList() {
+        Optional<List<Meal>> meals = MealWebServerFunctions.requestMealList();
+        if (meals.isPresent()) {
+            return meals.get();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setContentText("Could not connect to server");
+            alert.show();
+            return List.of();
         }
     }
 
-    private static boolean attemptPost(List<Dish> dishes) {
-        try {
-            return WebUtils.attemptPost(new Gson().toJson(dishes), URI.create(getServerUrl() + "/api/dishlistwrite"));
-        } catch (Exception ex) {
-            return false;
-        }
+    private List<MealPlanMeta> requestMealPlans() {
+        return MealWebServerFunctions.requestMealPlanList();
     }
 
-    private static boolean attemptPostMeals(List<Meal> meals) {
-        try {
-            return WebUtils.attemptPost(new Gson().toJson(new MealList(meals)), URI.create(getServerUrl() + mealListWriteEndpoint));
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
-    public static List<Dish> requestDishList() {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(getServerUrl() + "/api/dishlist"))
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            DishList list = new Gson().fromJson(response.body(), DishList.class);
-            return list.getDishes();
-        } catch (IOException | InterruptedException | URISyntaxException ex) {
-            ex.printStackTrace();
-        }
-        return List.of();
-    }
-
-    public static List<Meal> requestMealList() {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(getServerUrl() + mealListFetchEndpoint))
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            MealList list = new Gson().fromJson(response.body(), MealList.class);
-            return list.getMeals();
-        } catch (IOException | InterruptedException | URISyntaxException ex) {
-            ex.printStackTrace();
-        }
-        return List.of();
-    }
-
-
-
-
-    public static List<Dish> requestDishes() {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(getServerUrl() + "/api/meals"))
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            List<String> list = new Gson().fromJson(response.body(), List.class);
-            return list.stream().map(item -> new Dish(item, "")).toList();
-        } catch (IOException | InterruptedException | URISyntaxException ex) {
-            ex.printStackTrace();
-        }
-
-        return List.of();
-    }
-
-    public static void uploadMealPlan(MealPlan mealPlan) {
+    public void attemptMealFetch() {
+        hasFetched.set(false);
+        hasFetchedPlans.set(false);
         Threading.runAndReturn(List.of(() -> {
-            System.out.println("Attempting to upload mealplan to server " + mealPlan);
-            if (!attemptPostMealPlan(mealPlan)) {
-                System.out.println("Failed to upload to server. Try saving to file");
-                File mealPlanFile = new File(getWebserverFolder(), "mealplan");
-
-                MealPlanManager.serializePlan(mealPlanFile, mealPlan);
-            }
-        }));
+                    ArrayList<Meal> oldMeals = new ArrayList<>(mealsFromServer);
+                    mealsFromServer = requestMealList();
+                    System.out.printf("Meals have been fetched from server (%s)%n", mealsFromServer.size());
+                    hasFetched.set(true);
+                    if (!oldMeals.equals(mealsFromServer)) {
+                        hasUpdates.set(true);
+                    }
+                    EventProcessor.getInstance().processEvent(new MealEvent(MealEvent.SERVER_EVENT));
+                }, () -> {
+                    ArrayList<MealPlanMeta> oldMealPlanMetas = new ArrayList<>(mealPlansFromServer);
+                    mealPlansFromServer = requestMealPlans();
+                    if (!oldMealPlanMetas.equals(mealPlansFromServer)) {
+                        hasUpdates.set(true);
+                    }
+                    System.out.printf("MealPlans have been fetched from server (%s)%n", mealPlansFromServer.size());
+                    hasFetchedPlans.set(true);
+                }
+        ));
     }
 
-    private static boolean attemptPostMealPlan(MealPlan plan) {
-        try {
-            return WebUtils.attemptPost(SerializationUtils.serialize(plan), URI.create(getServerUrl() + mealPlanWriteEndpoint));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return false;
+    public void uploadMealList(List<Meal> meals) throws IOException {
+        boolean success = MealWebServerFunctions.uploadMealList(meals);
+        Alert alert;
+        if (success) {
+            alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setContentText("Upload successful");
+        } else {
+            alert = new Alert(Alert.AlertType.WARNING);
+            alert.setContentText("Server unavailable");
         }
+        alert.show();
     }
 
-    public static MealPlan requestMealPlan() {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(getServerUrl() + mealPlanFetchEndpoint))
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-
-            return SerializationUtils.deserialize(new BufferedInputStream(new ByteArrayInputStream(response.body())));
-        } catch (IOException | InterruptedException | URISyntaxException ex) {
-            ex.printStackTrace();
-        }
-        return null;
+    public void uploadMealPlan(MealPlan mealPlan) {
+        MealWebServerFunctions.uploadMealPlan(mealPlan);
     }
 
-    private static class DishList {
-        private final List<Dish> dishes;
-
-        public DishList(List<Dish> dishes) {
-            this.dishes = dishes;
+    public boolean hasUpdates() {
+        if (hasFetched.get() && hasFetchedPlans.get()) {
+            return hasUpdates.getAndSet(false);
         }
-
-
-        public List<Dish> getDishes() {
-            return dishes;
-        }
+        return false;
     }
 
-    private static class MealList {
-        private final List<Meal> meals;
-
-        public MealList(List<Meal> meals) {
-            this.meals = meals;
-        }
-
-
-        public List<Meal> getMeals() {
-            return meals;
-        }
-    }
+    //TODO we will need to provide a GUID to the MealList to identify new ones on the server.
 }
