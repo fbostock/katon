@@ -1,8 +1,10 @@
 package fjdb.mealplanner.web;
 
 import com.google.gson.*;
+import fjdb.fxutil.FxUtils;
 import fjdb.mealplanner.*;
 import fjdb.threading.Threading;
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.tools.ant.taskdefs.Local;
@@ -17,6 +19,7 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,6 +37,8 @@ public class MealWebServerFunctions {
     private static final String mealPlanMetaWriteEndpoint = "/api/mealplanmeta";
     private static final String mealPlanMetaListFetchEndpoint = "/api/mealplanmetalist";
     private static final String mealPlanMetaFetchEndpoint = "/api/mealplanmeta";
+    private static final String generalNotesFetchEndpoint = "/api/generalNotes";
+    private static final String generalNotesWriteEndpoint = "/api/generalNotes";
 
 
     private static String getServerUrl() {
@@ -195,7 +200,8 @@ public class MealWebServerFunctions {
                     .registerTypeAdapter(Instant.class, new InstantAdapter())
                     .registerTypeAdapter(DayPlanIF.class, new DayPlanAdapter())
                     .create();
-            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<MealPlanMeta>>() {}.getType();
+            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<MealPlanMeta>>() {
+            }.getType();
             List<MealPlanMeta> mealPlanMeta = gson.fromJson(response.body(), listType);
             return mealPlanMeta;
 //            return gson.fromJson(mealPlanMeta.getJson(), List.class);
@@ -256,6 +262,80 @@ public class MealWebServerFunctions {
             ex.printStackTrace();
         }
         return null;
+    }
+
+
+    static Optional<GeneralNotesImpl> requestGeneralNotes() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI(getServerUrl() + generalNotesFetchEndpoint))
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            GeneralNotes generalNotes = new Gson().fromJson(response.body(), GeneralNotes.class);
+            return Optional.of(generalNotes.create());
+        } catch (IOException | InterruptedException | URISyntaxException ex) {
+            ex.printStackTrace();
+        }
+        return Optional.empty();
+    }
+
+    public static void uploadGeneralNotes(GeneralNotesImpl generalNotes) {
+        Threading.runAndReturn(List.of(() -> {
+            System.out.println("Attempting to upload generalNotes to server " + generalNotes);
+            if (!attemptPostGeneralNotes(generalNotes)) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setContentText("General notes (meal list and notes) NOT uploaded");
+                    alert.show();
+                });
+                System.out.println("Failed to upload to server.");
+
+            }
+        }));
+    }
+
+
+    private static boolean attemptPostGeneralNotes(GeneralNotesImpl generalNotes) {
+        try {
+            return WebUtils.attemptPost(new Gson().toJson(new GeneralNotes(generalNotes.getMeals(), generalNotes.getNotes())), URI.create(getServerUrl() + generalNotesWriteEndpoint));
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private static class GeneralNotes {
+        //Note: It was crucial for the deserialization that the MealList variable was declared as "mealList" rather than "meals".
+        //On the server side, the GeneralNotes class has a MealList member called mealList, so the names must match for Gson to map them correctly.
+        private MealList mealList;
+        private String notes;
+
+        public GeneralNotes(List<Meal> meals, String notes) {
+            this.mealList = new MealList(meals);
+            this.notes = notes;
+        }
+
+        public MealList getMeals() {
+            return mealList;
+        }
+
+        public void setMeals(MealList meals) {
+            this.mealList = meals;
+        }
+
+        public String getNotes() {
+            return notes;
+        }
+
+        public void setNotes(String notes) {
+            this.notes = notes;
+        }
+
+        public GeneralNotesImpl create() {
+            return new GeneralNotesImpl(mealList == null ? new ArrayList<>() : mealList.getMeals(), notes);
+        }
     }
 
     private static class DishList {

@@ -35,6 +35,7 @@
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/MealPlan.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/search/SearchSelectorPopup.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/events/MealEvent.java
+/Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/GeneralNotesImpl.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/DishId.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/MealPlanner.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/DaoManager.java
@@ -48,6 +49,7 @@
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/MealConsolidator.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/web/MealWebServer.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/search/Searcher.java
+/Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/fx/planpanel/DishHolderPanel.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/fx/DemoOfComponents.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/swing/SearchSelector.java
 /Users/francisbostock/IdeaProjects/katon/MealPlanner/src/main/java/fjdb/mealplanner/util/CheckedFunction.java

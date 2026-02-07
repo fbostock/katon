@@ -1,3 +1,14 @@
+
+            16-Nov-2025
+            1) create a database table for MealPlanMeta data. When MealPlans are changed, we should update the MealPlanMeta.
+            Then we can build a mechanism where we check the plan version on the server, compare to the local meta data, and update.
+            2) Create custom Tab objects for the meal plan tabbed panel. This is to allow setting hte "currentTab" field correctly,
+            and to properly handle opening/closing tabs.
+            3) Add controls to allow user to update their local mealplan with the server version, allowing user to see both
+            (perhaps the tab panel should say "SERVER" prior to plan dates.
+
+
+            OLD ITEMS (may remove later)
             - Order the meal plan tabs.
             - Refactor examples in DemoOfComponents so that they don't depend on the tags/db.
 

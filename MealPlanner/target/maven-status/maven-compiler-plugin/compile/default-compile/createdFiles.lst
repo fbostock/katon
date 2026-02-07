@@ -22,10 +22,8 @@ fjdb/mealplanner/fx/SelectionPanel$FilterButton.class
 fjdb/mealplanner/fx/unused/MealEditingCell.class
 fjdb/mealplanner/MealPlanner$4.class
 fjdb/mealplanner/search/SearchSelectorPopup$1.class
-fjdb/mealplanner/fx/planpanel/MealPlanPanel$DishHolderPanel$DishButton.class
 fjdb/mealplanner/MealPlanManager.class
 fjdb/mealplanner/fx/SelectionPanel$SelectionListener.class
-fjdb/mealplanner/fx/planpanel/MealPlanPanel$DishHolderPanel.class
 fjdb/mealplanner/swing/DishSelector$DishListener.class
 fjdb/mealplanner/MealType.class
 fjdb/mealplanner/fx/DishFxSelector$1.class
@@ -91,13 +89,11 @@ fjdb/mealplanner/PhotoTest.class
 fjdb/mealplanner/search/Searcher.class
 fjdb/mealplanner/fx/DishFxSelector.class
 fjdb/mealplanner/Dish.class
-fjdb/mealplanner/fx/planpanel/MealPlanPanel$DishHolderPanel$1.class
 fjdb/mealplanner/MealPlanBuilder$2.class
 fjdb/mealplanner/dao/DishHistoryDao.class
 fjdb/mealplanner/fx/planpanel/MealCell$1.class
 fjdb/mealplanner/fx/planpanel/MealPlanPanel.class
 fjdb/mealplanner/dao/DishTagDao$TagColumns.class
-fjdb/mealplanner/fx/planpanel/MealPlanPanel$DishHolderPanel$DishButton$1.class
 fjdb/mealplanner/search/SearchFxField$1.class
 fjdb/mealplanner/search/SearchObserver.class
 fjdb/mealplanner/search/SearchSelectorPopup$5.class
@@ -116,12 +112,10 @@ fjdb/mealplanner/swing/MealPlannerTest$StubDish.class
 fjdb/mealplanner/swing/DishSelector$SelectedPanel.class
 fjdb/mealplanner/MealPlanBuilder$1.class
 fjdb/mealplanner/search/SearchSelectorPopup$4.class
-fjdb/mealplanner/fx/planpanel/MealPlanPanel$DishHolderPanel$DishButton$2.class
 fjdb/mealplanner/MealConsolidator.class
 fjdb/mealplanner/MealPlanner$1.class
 fjdb/mealplanner/search/SearchModel$Search.class
 fjdb/mealplanner/DishActionFactory$MealPlanStub.class
-fjdb/mealplanner/fx/planpanel/MealPlanPanel$DishHolderPanel$2.class
 fjdb/mealplanner/fx/planpanel/MealCell$2.class
 fjdb/mealplanner/search/Searcher$Modifier.class
 fjdb/mealplanner/util/CheckedFunction.class

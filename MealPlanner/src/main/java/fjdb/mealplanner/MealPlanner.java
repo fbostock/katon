@@ -13,6 +13,7 @@ import fjdb.mealplanner.events.MealEventListener;
 import fjdb.mealplanner.fx.DishTagSelectionPanel;
 import fjdb.mealplanner.fx.MealPlanConfigurator;
 import fjdb.mealplanner.fx.Selectors;
+import fjdb.mealplanner.fx.planpanel.DishHolderPanel;
 import fjdb.mealplanner.fx.planpanel.MealPlanPanel;
 import fjdb.mealplanner.loaders.CompositeDishLoader;
 import fjdb.mealplanner.panels.PlansPane;
@@ -21,6 +22,7 @@ import fjdb.mealplanner.web.MealPlanMeta;
 import fjdb.mealplanner.web.MealWebServer;
 import fjdb.mealplanner.web.MealWebServerFunctions;
 import fjdb.mealplanner.web.email.EmailAddresses;
+import fjdb.util.ListUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -202,6 +204,10 @@ public class MealPlanner extends Application {
         plansPane.getSelectionModel().selectLast();
         Consumer<MealPlanPanel> consumer = plansPane::addMealPlanPanel;
 
+        if (!mealPlanManager.getMealPlans().isEmpty() && !isMasterApplication()) {
+            webServer.uploadMealPlanIfNew(ListUtil.last(mealPlanManager.getMealPlans()));
+        }
+
         TabPane adminPane = new TabPane();
         adminPane.setSide(Side.TOP);
         adminPane.getTabs().add(new Tab("Dishes", getDishesPane(dishTableView)));
@@ -325,8 +331,9 @@ public class MealPlanner extends Application {
         final BorderPane sceneRoot = new BorderPane();
         sceneRoot.setCenter(mainTabs);
         sceneRoot.setTop(vBox);
+        sceneRoot.setBottom(makeNotesPanel());
 
-        final Scene scene = new Scene(sceneRoot, 1200, 600);
+        final Scene scene = new Scene(sceneRoot, 1200, 800);
         primaryStage.setScene(scene);
         primaryStage.show();
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
@@ -338,6 +345,69 @@ public class MealPlanner extends Application {
         });
         primaryStage.setOnCloseRequest(windowEvent -> Platform.exit());
     }
+
+    private class NotePanel extends FlowPane {
+        DishHolderPanel dishHolderPanel = new DishHolderPanel(new MealPlanBuilder());
+        TextArea textField = new TextArea("");
+        Button saveButton = new Button("Upload Notes");
+        Button refresh = new Button("Refresh from Server");
+
+        public NotePanel() {
+            this.getChildren().add(dishHolderPanel);
+            this.getChildren().add(textField);
+            textField.focusedProperty().addListener((observableValue, aBoolean, t1) -> {
+                if (!t1) {
+//                    mealPlanBuilder.setNotes(textField.getText());
+                }
+            });
+            saveButton.setOnAction(actionEvent -> {
+                GeneralNotesImpl generalNotes = new GeneralNotesImpl(new ArrayList<>(dishHolderPanel.getMeals()), textField.getText());
+                webServer.uploadGeneralNotes(generalNotes);
+            });
+            refresh.setOnAction(actionEvent -> {
+                ;
+                refresh(true);
+            });
+            this.getChildren().add(saveButton);
+            this.getChildren().add(refresh);
+
+        }
+
+        private void disable(boolean disabled) {
+            dishHolderPanel.setDisable(disabled);
+            textField.setDisable(disabled);
+            saveButton.setDisable(disabled);
+        }
+
+        public void refresh(boolean checkServer) {
+            GeneralNotesImpl generalNotes = webServer.getGeneralNotes();
+            if (checkServer) {
+                generalNotes = webServer.refreshGeneralNotes();
+            }
+            if (generalNotes != null) {
+                disable(false);
+                dishHolderPanel.clear();
+                for (Meal meal : generalNotes.getMeals()) {
+                    dishHolderPanel.addMeal(meal);
+                }
+                textField.setText(generalNotes.getNotes());
+            } else {
+                disable(true);
+            }
+        }
+
+        public void refresh() {
+            refresh(false);
+        }
+    }
+
+    private FlowPane makeNotesPanel() {
+        NotePanel notePanel = new NotePanel();
+        Platform.runLater(notePanel::refresh);
+
+        return notePanel;
+    }
+
 
     private FlowPane getDishesPane(TableView<Dish> dishTableView) {
         FlowPane flowPane = new FlowPane(Orientation.VERTICAL);

@@ -10,8 +10,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>MealPlanner</artifactId>
-    <!--Last release 1.0.4 on 20241005. Updated version for next release-->
-    <version>1.0.8</version>
+    <!--Last release 1.0.10 on 20260124. Updated version for next release-->
+    <version>1.0.10</version>
     <dependencies>
 
 <!--        <dependency>-->
