@@ -1,0 +1,339 @@
+/Users/francisbostock/Library/Java/JavaVirtualMachines/openjdk-17.0.1/Contents/Home/bin/java -javaagent:/Applications/IntelliJ IDEA CE 2.app/Contents/lib/idea_rt.jar=52404 -Dfile.encoding=UTF-8 -classpath /Users/francisbostock/IdeaProjects/katon/IvyGames/target/classes:/Users/francisbostock/IdeaProjects/katon/Taskboard/target/classes:/Users/francisbostock/IdeaProjects/katon/Core/target/classes:/Users/francisbostock/.m2/repository/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar:/Users/francisbostock/.m2/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar:/Users/francisbostock/.m2/repository/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar:/Users/francisbostock/.m2/repository/org/apache/commons/commons-csv/1.8/commons-csv-1.8.jar:/Users/francisbostock/.m2/repository/jfree/jfreechart/1.0.13/jfreechart-1.0.13.jar:/Users/francisbostock/.m2/repository/jfree/jcommon/1.0.16/jcommon-1.0.16.jar:/Users/francisbostock/.m2/repository/org/jfxtras/jfxtras-controls/8.0-r5/jfxtras-controls-8.0-r5.jar:/Users/francisbostock/.m2/repository/org/jfxtras/jfxtras-common/8.0-r5/jfxtras-common-8.0-r5.jar:/Users/francisbostock/.m2/repository/org/jfxtras/jfxtras-fxml/8.0-r5/jfxtras-fxml-8.0-r5.jar:/Users/francisbostock/.m2/repository/ch/qos/logback/logback-classic/1.2.3/logback-classic-1.2.3.jar:/Users/francisbostock/.m2/repository/ch/qos/logback/logback-core/1.2.3/logback-core-1.2.3.jar:/Users/francisbostock/.m2/repository/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar:/Users/francisbostock/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/Users/francisbostock/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/francisbostock/.m2/repository/com/google/code/gson/gson/2.9.0/gson-2.9.0.jar:/Users/francisbostock/.m2/repository/com/google/guava/guava/23.0/guava-23.0.jar:/Users/francisbostock/.m2/repository/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar:/Users/francisbostock/.m2/repository/com/google/errorprone/error_prone_annotations/2.0.18/error_prone_annotations-2.0.18.jar:/Users/francisbostock/.m2/repository/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar:/Users/francisbostock/.m2/repository/org/openjfx/javafx-controls/18.0.1/javafx-controls-18.0.1-mac.jar:/Users/francisbostock/.m2/repository/com/jimmoores/quandl-core/2.0.0/quandl-core-2.0.0.jar:/Users/francisbostock/.m2/repository/javax/ws/rs/javax.ws.rs-api/2.0.1/javax.ws.rs-api-2.0.1.jar:/Users/francisbostock/.m2/repository/org/threeten/threetenbp/1.3.6/threetenbp-1.3.6.jar:/Users/francisbostock/.m2/repository/org/glassfish/jersey/core/jersey-client/2.25.1/jersey-client-2.25.1.jar:/Users/francisbostock/.m2/repository/org/glassfish/jersey/core/jersey-common/2.25.1/jersey-common-2.25.1.jar:/Users/francisbostock/.m2/repository/javax/annotation/javax.annotation-api/1.2/javax.annotation-api-1.2.jar:/Users/francisbostock/.m2/repository/org/glassfish/jersey/bundles/repackaged/jersey-guava/2.25.1/jersey-guava-2.25.1.jar:/Users/francisbostock/.m2/repository/org/glassfish/hk2/osgi-resource-locator/1.0.1/osgi-resource-locator-1.0.1.jar:/Users/francisbostock/.m2/repository/org/glassfish/hk2/hk2-api/2.5.0-b32/hk2-api-2.5.0-b32.jar:/Users/francisbostock/.m2/repository/org/glassfish/hk2/hk2-utils/2.5.0-b32/hk2-utils-2.5.0-b32.jar:/Users/francisbostock/.m2/repository/org/glassfish/hk2/external/aopalliance-repackaged/2.5.0-b32/aopalliance-repackaged-2.5.0-b32.jar:/Users/francisbostock/.m2/repository/org/glassfish/hk2/external/javax.inject/2.5.0-b32/javax.inject-2.5.0-b32.jar:/Users/francisbostock/.m2/repository/org/glassfish/hk2/hk2-locator/2.5.0-b32/hk2-locator-2.5.0-b32.jar:/Users/francisbostock/.m2/repository/org/javassist/javassist/3.20.0-GA/javassist-3.20.0-GA.jar:/Users/francisbostock/.m2/repository/net/sf/opencsv/opencsv/2.3/opencsv-2.3.jar:/Users/francisbostock/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-json-org/2.8.9/jackson-datatype-json-org-2.8.9.jar:/Users/francisbostock/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.8.9/jackson-core-2.8.9.jar:/Users/francisbostock/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.8.9/jackson-databind-2.8.9.jar:/Users/francisbostock/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.8.0/jackson-annotations-2.8.0.jar:/Users/francisbostock/.m2/repository/org/apache/geronimo/bundles/json/20090211_1/json-20090211_1.jar:/Users/francisbostock/.m2/repository/org/hsqldb/hsqldb/2.0.0/hsqldb-2.0.0.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy/2.5.1/groovy-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-ant/2.5.1/groovy-ant-2.5.1.jar:/Users/francisbostock/.m2/repository/org/apache/ant/ant/1.9.9/ant-1.9.9.jar:/Users/francisbostock/.m2/repository/org/apache/ant/ant-junit/1.9.9/ant-junit-1.9.9.jar:/Users/francisbostock/.m2/repository/org/apache/ant/ant-launcher/1.9.9/ant-launcher-1.9.9.jar:/Users/francisbostock/.m2/repository/org/apache/ant/ant-antlr/1.9.9/ant-antlr-1.9.9.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-cli-commons/2.5.1/groovy-cli-commons-2.5.1.jar:/Users/francisbostock/.m2/repository/commons-cli/commons-cli/1.4/commons-cli-1.4.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-cli-picocli/2.5.1/groovy-cli-picocli-2.5.1.jar:/Users/francisbostock/.m2/repository/info/picocli/picocli/3.2.0/picocli-3.2.0.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-console/2.5.1/groovy-console-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-datetime/2.5.1/groovy-datetime-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-docgenerator/2.5.1/groovy-docgenerator-2.5.1.jar:/Users/francisbostock/.m2/repository/com/thoughtworks/qdox/qdox/1.12.1/qdox-1.12.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-groovydoc/2.5.1/groovy-groovydoc-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-dateutil/2.5.1/groovy-dateutil-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-groovysh/2.5.1/groovy-groovysh-2.5.1.jar:/Users/francisbostock/.m2/repository/jline/jline/2.14.6/jline-2.14.6.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-jmx/2.5.1/groovy-jmx-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-json/2.5.1/groovy-json-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-jsr223/2.5.1/groovy-jsr223-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-macro/2.5.1/groovy-macro-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-nio/2.5.1/groovy-nio-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-servlet/2.5.1/groovy-servlet-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-sql/2.5.1/groovy-sql-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-swing/2.5.1/groovy-swing-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-templates/2.5.1/groovy-templates-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-test/2.5.1/groovy-test-2.5.1.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-test-junit5/2.5.1/groovy-test-junit5-2.5.1.jar:/Users/francisbostock/.m2/repository/org/junit/platform/junit-platform-launcher/1.2.0/junit-platform-launcher-1.2.0.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-testng/2.5.1/groovy-testng-2.5.1.jar:/Users/francisbostock/.m2/repository/org/testng/testng/6.13.1/testng-6.13.1.jar:/Users/francisbostock/.m2/repository/com/beust/jcommander/1.72/jcommander-1.72.jar:/Users/francisbostock/.m2/repository/org/codehaus/groovy/groovy-xml/2.5.1/groovy-xml-2.5.1.jar:/Users/francisbostock/.m2/repository/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar:/Users/francisbostock/.m2/repository/org/openjfx/javafx-controls/17.0.1/javafx-controls-17.0.1.jar:/Users/francisbostock/.m2/repository/org/openjfx/javafx-controls/17.0.1/javafx-controls-17.0.1-mac-aarch64.jar:/Users/francisbostock/.m2/repository/org/openjfx/javafx-graphics/17.0.1/javafx-graphics-17.0.1.jar:/Users/francisbostock/.m2/repository/org/openjfx/javafx-graphics/17.0.1/javafx-graphics-17.0.1-mac-aarch64.jar:/Users/francisbostock/.m2/repository/org/openjfx/javafx-base/17.0.1/javafx-base-17.0.1.jar:/Users/francisbostock/.m2/repository/org/openjfx/javafx-base/17.0.1/javafx-base-17.0.1-mac-aarch64.jar:/Users/francisbostock/.m2/repository/org/openjfx/javafx-fxml/17.0.1/javafx-fxml-17.0.1.jar:/Users/francisbostock/.m2/repository/org/openjfx/javafx-fxml/17.0.1/javafx-fxml-17.0.1-mac-aarch64.jar:/Users/francisbostock/.m2/repository/org/controlsfx/controlsfx/11.1.0/controlsfx-11.1.0.jar:/Users/francisbostock/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/Users/francisbostock/.m2/repository/org/junit/platform/junit-platform-commons/1.8.1/junit-platform-commons-1.8.1.jar:/Users/francisbostock/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/Users/francisbostock/.m2/repository/org/junit/platform/junit-platform-engine/1.8.1/junit-platform-engine-1.8.1.jar fjdb.kategames.squardle.SquardlePuzzleGenerator
+Finding words in: cytoplasm
+{
+  id: 0,
+  initialLetters: [
+    "T","Y","M",
+    "O","C","S",
+    "P","L","A"
+  ],
+  wordList: new Set([
+    "ALCO", "ASCOT", "CALO", "CALP", "CLOP", "CLOT", "CLOY", "CLOYS", "COLA", "COLAS", "COLS", "COYS", "CYTOPLASM", "LACS", "LACY", "LOCA", "LOYS", "MYCS", "OCAS", "PLASM", "PLOT", "PLOY", "PLOYS", "POLS", "SALOP", "SALP", "SCALP", "SCOP", "SCOT", "SLOP", "SLOT", "TOCS", "TOLA", "TOLAS", "TOYS"
+  ])
+},
+
+35
+Finding words in: authorise
+{
+  id: 0,
+  initialLetters: [
+    "A","U","T",
+    "R","O","H",
+    "I","S","E"
+  ],
+  wordList: new Set([
+    "ARIOSE", "ARIOT", "ARIS", "ARISE", "ARISH", "AROSE", "ARSE", "ARUHE", "AURIS", "AUTHOR", "AUTHORISE", "AUTHORS", "AUTO", "AUTOS", "HOAR", "HOARS", "HOARSE", "HOES", "HOISE", "HORA", "HORI", "HORIS", "HORS", "HORSE", "HOSE", "HOUR", "HOURI", "HOURIS", "HOURS", "HOUT", "OARS", "OURS", "RIOT", "RISE", "ROES", "ROSE", "ROUT", "ROUTH", "ROUTHS", "RUTH", "RUTHS", "SHOE", "SHOT", "SHOUT", "SHURA", "SHUT", "SOAR", "SORA", "SORI", "SOTH", "SOUARI", "SOUR", "SOUT", "SOUTH", "THOSE", "THOU", "TOES", "TOISE", "TORA", "TORI", "TORS", "TORSE", "TORSI", "TOSE", "TOSH", "TOUR", "TOURS", "URAO", "URAOS"
+  ])
+},
+
+69
+Finding words in: factories
+{
+  id: 0,
+  initialLetters: [
+    "O","T","C",
+    "R","A","F",
+    "I","E","S"
+  ],
+  wordList: new Set([
+    "ACTOR", "AERO", "AIRT", "ARES", "CAFE", "CAFES", "CARE", "CARES", "CARIES", "CART", "CASE", "ERAS", "FACT", "FACTOR", "FACTORIES", "FAIR", "FARE", "FARES", "FARO", "FART", "FEAR", "FEAT", "FERIA", "FERIAS", "IRES", "OAFS", "ORES", "OTARIES", "RAFT", "RASE", "RATO", "REACT", "REFS", "REFT", "RESAT", "RIAS", "ROTA", "ROTAS", "SAFE", "SAFER", "SAFT", "SAIR", "SARI", "SATORI", "SEAR", "SEAT", "SEIR", "SERA", "SERAC", "SERAI", "TAES", "TARE", "TARES", "TARO", "TASER", "TORA", "TORAS", "TORE", "TORES", "TORI", "TORIES", "TREF", "TREFA", "TRES", "TRIAC", "TRIE", "TRIES"
+  ])
+},
+
+67
+Finding words in: geraniums
+{
+  id: 0,
+  initialLetters: [
+    "G","M","S",
+    "E","U","I",
+    "R","A","N"
+  ],
+  wordList: new Set([
+    "AIMER", "AIMS", "ANIME", "ANIMUS", "ANIS", "ANUS", "AREG", "ARUM", "ARUMS", "AUGER", "EAUS", "EMUS", "GEAN", "GEAR", "GEMS", "GERANIUM", "GERANIUMS", "GEUM", "GEUMS", "GUAN", "GUAR", "GUMS", "INURE", "IURE", "MEAN", "MEUS", "MINA", "MINAE", "MINAR", "MINUS", "MUNI", "MUNIS", "MURA", "MURE", "NARE", "NIMS", "RAIN", "RAIS", "RANI", "RANIS", "RAUN", "REAN", "REMS", "RUIN", "RUME", "RUMINA", "RUMS", "SMEAR", "SMUG", "SMUR", "SUER", "SURA", "SURE", "UNAI", "UNAIS", "UNIS", "URANISM", "UREA", "UREMIA"
+  ])
+},
+
+59
+Finding words in: democrats
+{
+  id: 0,
+  initialLetters: [
+    "S","C","R",
+    "O","T","A",
+    "M","E","D"
+  ],
+  wordList: new Set([
+    "ACTED", "ACTS", "ARCO", "ARCS", "ARTS", "ATOC", "ATOCS", "ATOM", "CADE", "CADET", "CADETS", "CART", "CARTE", "CARTED", "CARTS", "CATE", "CATS", "COED", "COME", "COMET", "COMETS", "COMTE", "COST", "COSTA", "COSTAE", "COSTAR", "COSTE", "COSTED", "COTE", "COTED", "COTS", "CRATE", "CRATED", "DART", "DARTS", "DATE", "DATO", "DATOS", "DEAR", "DEMO", "DEMOCRAT", "DEMOCRATS", "DEMOS", "EATS", "EMOS", "MEAD", "MEAT", "MEATS", "META", "METS", "MOCS", "MOST", "MOSTE", "MOTE", "MOTED", "MOTS", "OCTA", "OCTAD", "OSCAR", "RADE", "RATE", "RATED", "RATO", "RATOS", "RATS", "SCAD", "SCAR", "SCART", "SCARTED", "SCAT", "SCOT", "SCRAE", "SCRAT", "SOCA", "SOME", "STADE", "STAR", "STEAD", "STEAR", "STED", "STEM", "STRAD", "STRAE", "TACO", "TACOS", "TAED", "TEAD", "TEAR", "TOCS", "TOEA", "TOED", "TOME", "TRAD", "TRADE"
+  ])
+},
+
+94
+Finding words in: bachelors
+{
+  id: 0,
+  initialLetters: [
+    "S","B","C",
+    "R","A","H",
+    "O","L","E"
+  ],
+  wordList: new Set([
+    "ACHE", "ARBS", "ARLE", "BACH", "BACHELOR", "BACHELORS", "BAEL", "BALE", "BARS", "BHEL", "BRACH", "BRAE", "BRAS", "BROACH", "CABS", "CALO", "CARB", "CARBS", "CARL", "CARLE", "CAROL", "CARS", "CHAL", "CHAO", "CHAR", "CHARS", "CHAS", "CHELA", "CHELAS", "EACH", "EARL", "EARS", "HALE", "HALO", "HAOLE", "HARL", "HARO", "HEAL", "HEAR", "HEARS", "HELO", "LABS", "LARS", "LEACH", "LEAR", "LEARS", "LEAS", "LOACH", "OARS", "OLEA", "ORACH", "ORACHE", "ORAL", "ORBS", "ORLE", "RACH", "RACHE", "RALE", "ROACH", "ROLE", "SALE"
+  ])
+},
+
+61
+Finding words in: coastline
+{
+  id: 0,
+  initialLetters: [
+    "A","S","E",
+    "O","N","T",
+    "C","I","L"
+  ],
+  wordList: new Set([
+    "ANES", "ANETIC", "ANIL", "ANTE", "ANTES", "ANTI", "ANTIC", "ANTS", "CINE", "CINES", "CION", "CIONS", "CITE", "CITES", "CITS", "COAST", "COASTLINE", "COIL", "COIN", "COINS", "COIT", "COITS", "CONE", "CONES", "CONI", "CONS", "CONTE", "CONTES", "COSE", "COSET", "COST", "COSTE", "ENLIT", "ETIC", "ETNA", "ETNAS", "ICON", "ICONES", "ICONS", "INSET", "IONS", "LINE", "LINES", "LINO", "LINOS", "LINS", "LINT", "LINTS", "LION", "LIONET", "LIONETS", "LIONS", "LITE", "LITES", "LITS", "NAOI", "NAOS", "NASTIC", "NEST", "NETS", "NITE", "NITES", "NITS", "NOIL", "NOSE", "OAST", "OINT", "OINTS", "ONES", "ONSET", "ONST", "ONTIC", "SANE", "SANT", "SENA", "SENT", "SENTI", "SNIT", "SOIL", "SONE", "SONIC", "STEN", "STENCIL", "STENO", "TENS", "TINE", "TINES", "TINS"
+  ])
+},
+
+88
+Finding words in: hazelnuts
+{
+  id: 0,
+  initialLetters: [
+    "U","T","S",
+    "N","A","H",
+    "L","E","Z"
+  ],
+  wordList: new Set([
+    "AHENT", "ANTS", "ASHEN", "ASTUN", "AUNE", "AUNT", "AUNTS", "EAST", "EATH", "EATS", "ELAN", "HAEN", "HALE", "HANT", "HANTS", "HAST", "HATS", "HAUNT", "HAUNTS", "HAUT", "HAZE", "HAZEL", "HAZELNUT", "HAZELNUTS", "HEAL", "HEAST", "HEAT", "HEATS", "HENT", "HENTS", "LAHS", "LANE", "LANT", "LANTS", "LASH", "LAST", "LATH", "LATHE", "LATHEN", "LATHS", "LATS", "LATU", "LAZE", "LEAN", "LEANT", "LEAS", "LEASH", "LEAST", "LEAT", "LEATS", "LENT", "NATS", "NAZE", "NEAL", "NEAT", "NEATH", "NEATS", "NUTS", "SALE", "SANE", "SANT", "SAUNT", "SAUT", "SAZHEN", "SHALE", "SHAN", "SHAT", "SHEA", "SHEAL", "SHENT", "STALE", "STANE", "STAUN", "STUN", "TAEL", "TALE", "TANE", "TASH", "THAE", "THAN", "THANE", "THEN", "THENAL", "TUAN", "TUNA", "TUNAS", "TUNE", "UNEATH", "UNLASH", "UNLAST", "UNLEASH", "UTAS", "ZEAL", "ZEAS", "ZELANT", "ZELANTS"
+  ])
+},
+
+96
+Finding words in: abduction
+{
+  id: 0,
+  initialLetters: [
+    "N","O","I",
+    "U","C","T",
+    "D","B","A"
+  ],
+  wordList: new Set([
+    "ABDUCT", "ABDUCTION", "ACTION", "ACTON", "ATOC", "BACON", "BATON", "BUNCO", "CATION", "CION", "CITO", "COIT", "DUCAT", "DUCI", "DUCT", "ICON", "IOTA", "NOTA", "OCTA", "OTIC", "TABU", "TABUN", "TACO", "TOUN", "UNCI", "UNCO"
+  ])
+},
+
+26
+Finding words in: greyhound
+{
+  id: 0,
+  initialLetters: [
+    "G","R","E",
+    "O","H","Y",
+    "U","N","D"
+  ],
+  wordList: new Set([
+    "DYER", "ERGO", "ERGON", "GORE", "GORY", "GREY", "GREYHOUND", "GROUND", "HERO", "HERON", "HERY", "HOND", "HORE", "HOUND", "OGRE", "OUNDY", "ROUND", "RYND", "UNDY"
+  ])
+},
+
+19
+Finding words in: detaching
+{
+  id: 0,
+  initialLetters: [
+    "T","E","D",
+    "H","A","N",
+    "C","I","G"
+  ],
+  wordList: new Set([
+    "ACHE", "ACHED", "ACHING", "ACING", "AGIN", "AHED", "AHIND", "AHING", "AINE", "CADE", "CADET", "CAIN", "CANE", "CANED", "CANEH", "CANG", "CATE", "CHAD", "CHAI", "CHAIN", "CHAINE", "CHAINED", "CHANG", "CHAT", "CHEAT", "CHIA", "CHIN", "CHINA", "CHINE", "CHINED", "CINE", "DAINE", "DANG", "DATE", "DEAN", "DEATH", "DENI", "DETACH", "DETACHING", "DETAIN", "EACH", "EATH", "EHING", "ENIAC", "ETHIC", "GADE", "GAED", "GAEN", "GAIN", "GAINED", "GANE", "GATE", "GATED", "GATH", "GNAT", "GNATHIC", "HADE", "HAED", "HAEN", "HAET", "HAIN", "HAINED", "HAND", "HANG", "HANGI", "HATE", "HATED", "HEAD", "HEAT", "HEND", "HIND", "HING", "ICHED", "IGAD", "INGATE", "NACH", "NACHE", "NEAT", "NEATH", "NICAD", "NICHE", "NICHED", "NICHT", "TACH", "TACHE", "TAED", "TAGINE", "TAIG", "TAIN", "TANE", "TANG", "TANGI", "TEACH", "TEACHING", "TEAD", "TEAING", "TEND", "TENIA", "THAE", "THAGI", "THAN", "THANE", "THEN", "THIG", "THIN", "THINE", "THING"
+  ])
+},
+
+107
+Finding words in: crankiest
+{
+  id: 0,
+  initialLetters: [
+    "A","R","T",
+    "C","N","S",
+    "K","I","E"
+  ],
+  wordList: new Set([
+    "ACNE", "ACNES", "ANES", "ANIS", "ANISE", "ANTS", "ARSE", "ARSENIC", "ARSINE", "ARTS", "CANE", "CANES", "CANIEST", "CANS", "CANST", "CANT", "CANTS", "CARN", "CARNIE", "CARNIES", "CARNIEST", "CARNS", "CARS", "CARSE", "CART", "CARTS", "CINE", "CINES", "CIST", "CRAN", "CRANE", "CRANES", "CRANK", "CRANKIEST", "CRANS", "CRANTS", "EINA", "INTRA", "ISNA", "KINA", "KINE", "KINES", "KINS", "KIST", "KNAR", "KNARS", "NARC", "NARCIST", "NEIST", "NEST", "NICK", "NIES", "RACIEST", "RACIST", "RACK", "RANI", "RANIS", "RANK", "RANT", "RANTS", "SEIK", "SENA", "SENT", "SICK", "SIEN", "SIENT", "SINE", "SINK", "SNACK", "SNAR", "SNICK", "TRACK", "TRANK", "TRANS", "TRANSE"
+  ])
+},
+
+75
+Finding words in: fluorides
+{
+  id: 0,
+  initialLetters: [
+    "F","L","U",
+    "I","O","S",
+    "R","D","E"
+  ],
+  wordList: new Set([
+    "DIOL", "DIOLS", "DOES", "DOLS", "DOSE", "DOUSE", "DROIL", "DROILS", "FIDO", "FIDOS", "FIDS", "FILO", "FILOS", "FILOSE", "FILS", "FIORD", "FIORDS", "FLIR", "FLOE", "FLOES", "FLOR", "FLORID", "FLOUSE", "FLOUSED", "FLUOR", "FLUORID", "FLUORIDE", "FLUORIDES", "FLUORIDS", "FLUS", "FOES", "FOID", "FOIDS", "FOIL", "FOILS", "FORD", "FORDS", "FOUL", "FOULS", "FOUS", "IDES", "IDOL", "IDOLS", "LIDO", "LIDOS", "LIDS", "LODE", "LODES", "LODS", "LOID", "LOIDS", "LOIR", "LORD", "LORDS", "LOSE", "LOSED", "LOUS", "LOUSE", "LOUSED", "ODES", "OILS", "OLID", "ORDS", "RIDE", "RIDES", "RIDS", "RODE", "RODES", "RODS", "ROED", "ROES", "ROIL", "ROILS", "ROLF", "ROSE", "ROSED", "ROUL", "ROULS", "ROUSE", "ROUSED", "SLID", "SLIDE", "SLOE", "SLOID", "SOIL", "SOLI", "SOLID", "SORD", "SORI", "SOUL", "SULFID", "SULFIDE", "SULFO", "USED"
+  ])
+},
+
+94
+Finding words in: kilobytes
+{
+  id: 0,
+  initialLetters: [
+    "E","S","I",
+    "T","K","L",
+    "Y","B","O"
+  ],
+  wordList: new Set([
+    "BLIST", "BLOKE", "BLOKES", "BOKE", "BOKES", "BOKS", "BYKE", "BYKES", "BYTE", "BYTES", "ESKY", "ILKS", "KEST", "KETS", "KILO", "KILOBYTE", "KILOBYTES", "KIST", "KYBO", "KYTE", "KYTES", "LIKE", "LIKES", "LIKEST", "LISK", "LIST", "LOKE", "LOKES", "OKES", "SEKT", "SIKE", "SILK", "SILKY", "SILO", "SKET", "SKOL", "SKYTE", "SLOB", "TYKE", "TYKES"
+  ])
+},
+
+40
+Finding words in: machinery
+{
+  id: 0,
+  initialLetters: [
+    "A","C","H",
+    "Y","M","I",
+    "R","E","N"
+  ],
+  wordList: new Set([
+    "ACHIER", "ACME", "AMEN", "AMIE", "AMIN", "AMINE", "AMNIC", "AYRE", "CAME", "CHIME", "CHIMER", "CHIMNEY", "CHIN", "CHINE", "CINE", "CINEMA", "CYMA", "CYME", "EMIC", "INERM", "MACH", "MACHI", "MACHINE", "MACHINERY", "MEIN", "MICA", "MICH", "MIEN", "MINE", "MINER", "NEMA", "REIN", "YAMEN"
+  ])
+},
+
+33
+Finding words in: coalmines
+{
+  id: 0,
+  initialLetters: [
+    "L","M","I",
+    "A","C","N",
+    "O","S","E"
+  ],
+  wordList: new Set([
+    "ACES", "ACNE", "ACNES", "ALCO", "ALCOS", "AMICE", "AMICES", "AMIN", "AMINE", "AMINES", "AMINS", "AMNIC", "ASCI", "CALM", "CASE", "CENS", "CINE", "CINES", "CLAM", "COAL", "COALMINE", "COALMINES", "COSE", "ECOS", "ENCALM", "ICES", "INCASE", "LACE", "LACES", "LACS", "LASE", "MACE", "MACES", "MACS", "MASE", "MICA", "MICAS", "MICE", "MICO", "MICOS", "MICS", "MINCE", "MINCES", "MINE", "MINES", "NICE", "OCAS", "OSCINE", "SALMI", "SCAM", "SECO", "SOCA"
+  ])
+},
+
+52
+Finding words in: emulation
+{
+  id: 0,
+  initialLetters: [
+    "N","O","I",
+    "L","A","T",
+    "U","M","E"
+  ],
+  wordList: new Set([
+    "ALME", "ALUM", "AULOI", "EMULATION", "ETALON", "IOTA", "ITEM", "LAME", "LATE", "LATI", "LOAM", "LOAN", "LOTA", "LOTE", "LOTI", "LUMA", "MALOTI", "MANO", "MATE", "MAUL", "MEAL", "MEAN", "MEAT", "META", "METAL", "METOL", "NAME", "NAMU", "NAOI", "NOTA", "NOTAL", "NOTE", "TALON", "TAME", "TEAL", "TEAM", "TOLA", "TOLAN", "TOLU", "TONAL", "ULAN", "ULNA", "ULNAE"
+  ])
+},
+
+43
+Finding words in: bacterium
+{
+  id: 0,
+  initialLetters: [
+    "T","E","R",
+    "C","B","I",
+    "A","M","U"
+  ],
+  wordList: new Set([
+    "ABET", "ABRI", "ABRIM", "ACER", "ACERB", "AMBER", "AMIE", "AMIR", "BACTERIUM", "BIER", "BIMA", "BREI", "BRIE", "BRIM", "CABER", "CABRE", "CABRIE", "CAMBER", "CEIBA", "CERIUM", "ERBIUM", "MABE", "MACE", "MACER", "MIRE", "MUIR", "RIBA", "RIMA", "RIMU", "TERBIUM", "UMBER", "UMBRE"
+  ])
+},
+
+32
+Finding words in: bankrupts
+{
+  id: 0,
+  initialLetters: [
+    "N","K","R",
+    "A","P","U",
+    "B","T","S"
+  ],
+  wordList: new Set([
+    "ANKUS", "APTS", "BANK", "BANKRUPT", "BANKRUPTS", "BAPS", "BAPU", "BAPUS", "BATS", "KAPUT", "KATS", "KNAP", "KNAPS", "KUTA", "NAPS", "NATS", "PATS", "PATU", "PATUS", "PRUTA", "PUKA", "PUTS", "RUST", "RUTS", "SPAN", "SPANK", "SPAT", "SPUR", "SPUTA", "STAB", "STANK", "STAP", "STUPA", "TANK", "TAPS", "TAPU", "TAPUS", "TUPS", "TURK", "TURPS", "UPTA", "UPTAK", "URPS"
+  ])
+},
+
+43
+Finding words in: jubilance
+{
+  id: 0,
+  initialLetters: [
+    "B","U","J",
+    "I","N","C",
+    "L","A","E"
+  ],
+  wordList: new Set([
+    "ACNE", "AINE", "ALINE", "ANCE", "ANIL", "BINAL", "BINE", "BUNA", "BUNCE", "BUNIA", "CAIN", "CANE", "CUNEAL", "ENIAC", "INLACE", "JUBILANCE", "LACE", "LACUNE", "LAIN", "LANCE", "LANE", "LIANE", "LINAC", "LINE", "NAIL", "NEAL", "NUBIA", "UNAI", "UNCE", "UNLACE"
+  ])
+},
+
+30
+Finding words in: documents
+{
+  id: 0,
+  initialLetters: [
+    "D","O","C",
+    "E","U","S",
+    "M","N","T"
+  ],
+  wordList: new Set([
+    "CODE", "CODEN", "CODENS", "COED", "COST", "COSTUME", "COSTUMED", "COUDE", "COUNT", "COUNTS", "CUED", "CUNT", "CUNTS", "CUTS", "DENS", "DENT", "DENTS", "DEUS", "DOCS", "DOCUMENT", "DOCUMENTS", "DOEN", "DOST", "DOUC", "DOUCS", "DOUM", "DOUN", "DOUT", "DOUTS", "DUNE", "DUNS", "DUNT", "DUNTS", "DUOS", "DUST", "EMUS", "MENT", "MENU", "MENUDO", "MENUDOS", "MENUS", "MEOU", "MEOUS", "MEUS", "MUNS", "MUNT", "MUNTS", "MUSO", "MUST", "MUTS", "NEUM", "NUDE", "NUTS", "NUTSO", "ODEUM", "OUST", "OUTS", "SCOUT", "SCUD", "SCUDO", "SCUM", "SCUT", "SNED", "SOUM", "SOUMED", "SOUT", "STUD", "STUM", "STUN", "SUED", "SUENT", "TUNE", "TUNED", "TUNS", "UDOS", "UNSOD"
+  ])
+},
+
+76
+Finding words in: chlorides
+{
+  id: 0,
+  initialLetters: [
+    "L","H","C",
+    "O","D","E",
+    "R","I","S"
+  ],
+  wordList: new Set([
+    "CEDI", "CEDIS", "CHLORID", "CHLORIDE", "CHLORIDES", "CHLORIDS", "CHODE", "CHOIR", "CHORD", "CHORDS", "DESI", "DHOL", "DIES", "DIOL", "DORIES", "DORIS", "DORISE", "DRIES", "ECHO", "HEID", "HEIDS", "HEIR", "HODS", "HOISE", "HOISED", "HOLD", "HOLDS", "HORDE", "HORDES", "HORI", "HORIS", "IDES", "IDOL", "LODE", "LODES", "LODS", "LOID", "LOIDS", "LOIR", "LORD", "LORDS", "LORIES", "LORIS", "ODES", "OHED", "OLDIE", "OLDIES", "OLDS", "ORDS", "RIDE", "RIDES", "RIDS", "RISE", "RODE", "RODES", "RODS", "SECH", "SEIR", "SIDE", "SIDH", "SIDHE"
+  ])
+},
+
+61
+Finding words in: filaments
+{
+  id: 0,
+  initialLetters: [
+    "L","I","S",
+    "A","F","T",
+    "M","E","N"
+  ],
+  wordList: new Set([
+    "AITS", "ALFS", "ALIF", "ALIFS", "ALIST", "ALIT", "AMEN", "AMENT", "AMENTS", "EFTS", "EMAIL", "ENTIA", "FAIL", "FAME", "FEAL", "FEMAL", "FENT", "FENTS", "FETIAL", "FETS", "FILA", "FILAMENT", "FILAMENTS", "FIST", "FITS", "FLAM", "FLAME", "FLAMEN", "FLIT", "FLITE", "FLITS", "ITEM", "LAME", "LAMENT", "LAMENTS", "LIFE", "LIFT", "LIFTS", "LIST", "LISTEN", "LITE", "LITS", "MAIL", "MAIST", "MALI", "MALIS", "MALIST", "MEAL", "MENT", "METIF", "METIFS", "METIS", "METS", "NEAL", "NEFS", "NEMA", "NETS", "SIAL", "SIFT", "SITE", "STEAL", "STEAM", "STEM", "STEN", "TEAL", "TEAM", "TEFS"
+  ])
+},
+
+67
+Finding words in: husbandry
+{
+  id: 0,
+  initialLetters: [
+    "H","N","D",
+    "U","A","R",
+    "S","B","Y"
+  ],
+  wordList: new Set([
+    "ADRY", "ANUS", "ARBS", "BAND", "BARD", "BARN", "BRAD", "BRAN", "BRAND", "BRAS", "BRAY", "BUNA", "BUNAS", "BUND", "DABS", "DARB", "DARBS", "DARN", "DAUB", "DAUBRY", "DAUBS", "DAUBY", "DRAB", "DRABS", "DRAY", "HABU", "HABUS", "HAND", "HARD", "HARN", "HUBS", "HUSBAND", "HUSBANDRY", "NABS", "NARD", "NARY", "NUBS", "RAND", "RAUN", "RYAS", "SAND", "SARD", "SUBA", "SUBAH", "SUNDRA", "SUNDRY", "SUNRAY", "UNARY", "YARD", "YARN"
+  ])
+},
+
+50
+
+Process finished with exit code 0
