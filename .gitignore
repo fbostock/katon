@@ -6,3 +6,4 @@
 *.iml
 katon.iml
 katon.iml
+**/target/**
