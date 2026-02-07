@@ -19,9 +19,12 @@ public class Collatz {
 //            calculateRoots(3, i, false);
 //        }
 
-        for (int i = 15; i < 21; i++) {
-            System.out.println(3 + "^" +(5+i));
-            calculateRoots(3, (int)Math.pow(3, 5+i), false);
+        calculateRoots(3, 1162261467, true);
+
+ if (true) return;
+ for (int i = 15; i < 21; i++) {
+            System.out.println(3 + "^" +(i));
+            calculateRoots(3, (int)Math.pow(3, i), false);
         }
     }
 
@@ -29,7 +32,7 @@ public class Collatz {
         System.out.printf("\nAnalysis for {%s,%s}%n", p, q);
 //        long MAX = 1000000;
 //        long MAX = 100;
-        long MAX = 10000;
+        long MAX = 10;
         long initial = 1;
         ResultFactory factory = new FindingRootFactory();
         Collatz algo = new Collatz(p, q, factory);

@@ -53,7 +53,7 @@ public class YahooDataLoader {
 //        fetchData(new Ticker("MSFT"), START_DATE, DateTimeUtil.previous());
 //        updateDataScript(Tickers.NASDAQ_CONSTITUENTS);
         updateDataScript(Tickers.TekCapital);
-//        updateDataScript(Tickers.TEKCAPITAL_PORTFOLIO);
+        updateDataScript(Tickers.TEKCAPITAL_PORTFOLIO);
     }
 
     /**
@@ -149,7 +149,7 @@ public class YahooDataLoader {
         for (Ticker ticker : tickers) {
             TimeSeries<Double> load = load(ticker.getName());
             LocalDate from = load.isEmpty() ? START_DATE : WeekendHoliday.WEEKEND.next(load.lastKey());
-//            LocalDate from = DateTimeUtil.date(20230901);
+//            LocalDate from = DateTimeUtil.date(20250617);
 //            fetchAndMergeData(ticker.getName(), from, WeekendHoliday.WEEKEND.previous(DateTimeUtil.today()));
             fetchAndMergeData(ticker.getName(), from, (DateTimeUtil.today()));
 //            fetchAndMergeData(ticker.getName(), DateTimeUtil.date(20231116), DateTimeUtil.date(20231116));

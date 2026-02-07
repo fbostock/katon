@@ -51,7 +51,7 @@ public class StockPrice {
     private static String getYahooData(String symbol) throws Exception {
 //        String symbol = "AAPL";
         String urlStr = "https://query1.finance.yahoo.com/v8/finance/chart/" +
-                symbol + "?interval=1d&range=1mo";
+                symbol + "?interval=1d&range=6mo";
 
         URL url = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
